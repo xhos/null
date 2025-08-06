@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/account_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	money "google.golang.org/genproto/googleapis/type/money"
@@ -2063,7 +2063,8 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\x11CheckCollaborator\x12\".arian.v1.CheckCollaboratorRequest\x1a#.arian.v1.CheckCollaboratorResponse\x12k\n" +
 	"\x16ListUserCollaborations\x12'.arian.v1.ListUserCollaborationsRequest\x1a(.arian.v1.ListUserCollaborationsResponse\x12_\n" +
 	"\x12LeaveCollaboration\x12#.arian.v1.LeaveCollaborationRequest\x1a$.arian.v1.LeaveCollaborationResponse\x12\\\n" +
-	"\x11TransferOwnership\x12\".arian.v1.TransferOwnershipRequest\x1a#.arian.v1.TransferOwnershipResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x11TransferOwnership\x12\".arian.v1.TransferOwnershipRequest\x1a#.arian.v1.TransferOwnershipResponseB\x8b\x01\n" +
+	"\fcom.arian.v1B\x14AccountServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_account_services_proto_rawDescOnce sync.Once

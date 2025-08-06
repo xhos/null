@@ -7,9 +7,9 @@ package sqlcdb
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type BulkCreateCategoriesParams struct {
@@ -134,24 +134,24 @@ GROUP BY c.id, c.slug, c.label, c.color, c.created_at, c.updated_at
 `
 
 type GetCategoryWithStatsParams struct {
-	UserID    uuid.UUID              `json:"user_id"`
-	ID        int64                  `json:"id"`
-	StartDate *timestamppb.Timestamp `json:"start_date"`
-	EndDate   *timestamppb.Timestamp `json:"end_date"`
+	UserID    uuid.UUID  `json:"user_id"`
+	ID        int64      `json:"id"`
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
 }
 
 type GetCategoryWithStatsRow struct {
-	ID          int64                  `json:"id"`
-	Slug        string                 `json:"slug"`
-	Label       string                 `json:"label"`
-	Color       string                 `json:"color"`
-	CreatedAt   *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt   *timestamppb.Timestamp `json:"updated_at"`
-	UsageCount  int64                  `json:"usage_count"`
-	TotalAmount interface{}            `json:"total_amount"`
-	AvgAmount   interface{}            `json:"avg_amount"`
-	FirstUsed   interface{}            `json:"first_used"`
-	LastUsed    interface{}            `json:"last_used"`
+	ID          int64       `json:"id"`
+	Slug        string      `json:"slug"`
+	Label       string      `json:"label"`
+	Color       string      `json:"color"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
+	UsageCount  int64       `json:"usage_count"`
+	TotalAmount interface{} `json:"total_amount"`
+	AvgAmount   interface{} `json:"avg_amount"`
+	FirstUsed   interface{} `json:"first_used"`
+	LastUsed    interface{} `json:"last_used"`
 }
 
 func (q *Queries) GetCategoryWithStats(ctx context.Context, arg GetCategoryWithStatsParams) (GetCategoryWithStatsRow, error) {
@@ -196,10 +196,10 @@ LIMIT COALESCE($4::int, 10)
 `
 
 type GetMostUsedCategoriesForUserParams struct {
-	UserID uuid.UUID              `json:"user_id"`
-	Start  *timestamppb.Timestamp `json:"start"`
-	End    *timestamppb.Timestamp `json:"end"`
-	Limit  *int32                 `json:"limit"`
+	UserID uuid.UUID  `json:"user_id"`
+	Start  *time.Time `json:"start"`
+	End    *time.Time `json:"end"`
+	Limit  *int32     `json:"limit"`
 }
 
 type GetMostUsedCategoriesForUserRow struct {
@@ -326,14 +326,14 @@ ORDER BY user_usage_count DESC, c.slug
 `
 
 type ListCategoriesForUserRow struct {
-	ID              int64                  `json:"id"`
-	Slug            string                 `json:"slug"`
-	Label           string                 `json:"label"`
-	Color           string                 `json:"color"`
-	CreatedAt       *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt       *timestamppb.Timestamp `json:"updated_at"`
-	UserUsageCount  int64                  `json:"user_usage_count"`
-	UserTotalAmount interface{}            `json:"user_total_amount"`
+	ID              int64       `json:"id"`
+	Slug            string      `json:"slug"`
+	Label           string      `json:"label"`
+	Color           string      `json:"color"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+	UserUsageCount  int64       `json:"user_usage_count"`
+	UserTotalAmount interface{} `json:"user_total_amount"`
 }
 
 func (q *Queries) ListCategoriesForUser(ctx context.Context, userID uuid.UUID) ([]ListCategoriesForUserRow, error) {
@@ -383,21 +383,21 @@ LIMIT COALESCE($4::int, 100)
 `
 
 type ListCategoriesWithUsageParams struct {
-	UserID    uuid.UUID              `json:"user_id"`
-	StartDate *timestamppb.Timestamp `json:"start_date"`
-	EndDate   *timestamppb.Timestamp `json:"end_date"`
-	Limit     *int32                 `json:"limit"`
+	UserID    uuid.UUID  `json:"user_id"`
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
+	Limit     *int32     `json:"limit"`
 }
 
 type ListCategoriesWithUsageRow struct {
-	ID          int64                  `json:"id"`
-	Slug        string                 `json:"slug"`
-	Label       string                 `json:"label"`
-	Color       string                 `json:"color"`
-	CreatedAt   *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt   *timestamppb.Timestamp `json:"updated_at"`
-	UsageCount  int64                  `json:"usage_count"`
-	TotalAmount interface{}            `json:"total_amount"`
+	ID          int64       `json:"id"`
+	Slug        string      `json:"slug"`
+	Label       string      `json:"label"`
+	Color       string      `json:"color"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
+	UsageCount  int64       `json:"usage_count"`
+	TotalAmount interface{} `json:"total_amount"`
 }
 
 func (q *Queries) ListCategoriesWithUsage(ctx context.Context, arg ListCategoriesWithUsageParams) ([]ListCategoriesWithUsageRow, error) {

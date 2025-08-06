@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/category_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1901,7 +1901,8 @@ const file_arian_v1_category_services_proto_rawDesc = "" +
 	"\x10SearchCategories\x12!.arian.v1.SearchCategoriesRequest\x1a\".arian.v1.SearchCategoriesResponse\x12\\\n" +
 	"\x11ListCategorySlugs\x12\".arian.v1.ListCategorySlugsRequest\x1a#.arian.v1.ListCategorySlugsResponse\x12}\n" +
 	"\x1cGetMostUsedCategoriesForUser\x12-.arian.v1.GetMostUsedCategoriesForUserRequest\x1a..arian.v1.GetMostUsedCategoriesForUserResponse\x12b\n" +
-	"\x13GetUnusedCategories\x12$.arian.v1.GetUnusedCategoriesRequest\x1a%.arian.v1.GetUnusedCategoriesResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x13GetUnusedCategories\x12$.arian.v1.GetUnusedCategoriesRequest\x1a%.arian.v1.GetUnusedCategoriesResponseB\x8c\x01\n" +
+	"\fcom.arian.v1B\x15CategoryServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_category_services_proto_rawDescOnce sync.Once

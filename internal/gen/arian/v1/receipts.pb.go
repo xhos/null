@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/receipts.proto
 
-package ariandv1
+package arianv1
 
 import (
 	date "google.golang.org/genproto/googleapis/type/date"
@@ -572,7 +572,8 @@ const file_arian_v1_receipts_proto_rawDesc = "" +
 	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\v\n" +
 	"\t_merchantB\x10\n" +
 	"\x0e_purchase_dateB\x0f\n" +
-	"\r_total_amountB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\r_total_amountB\x84\x01\n" +
+	"\fcom.arian.v1B\rReceiptsProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_receipts_proto_rawDescOnce sync.Once

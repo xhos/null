@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
 	sqlc "ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 
 	"google.golang.org/genproto/googleapis/type/date"

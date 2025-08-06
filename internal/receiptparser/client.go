@@ -1,7 +1,7 @@
 package receiptparser
 
 import (
-	ariandv1 "ariand/gen/go/arian/v1"
+	arian "ariand/internal/gen/arian/v1"
 	"context"
 	"fmt"
 	"io"
@@ -19,16 +19,16 @@ type Client interface {
 		file io.Reader,
 		filename string,
 		contentType string,
-		engine *ariandv1.ReceiptEngine,
-	) (*ariandv1.Receipt, error)
+		engine *arian.ReceiptEngine,
+	) (*arian.Receipt, error)
 
-	GetStatus(ctx context.Context) (*ariandv1.GetStatusResponse, error)
+	GetStatus(ctx context.Context) (*arian.GetStatusResponse, error)
 	TestConnection(ctx context.Context) error
 }
 
 // grpcClient is the implementation of Client using gRPC
 type grpcClient struct {
-	client ariandv1.ReceiptParsingServiceClient
+	client arian.ReceiptParsingServiceClient
 	conn   *grpc.ClientConn
 }
 
@@ -49,7 +49,7 @@ func New(address string, timeout time.Duration) (Client, error) {
 		return nil, fmt.Errorf("failed to create connection to receipt parsing service at %s: %w", grpcAddress, err)
 	}
 
-	client := ariandv1.NewReceiptParsingServiceClient(conn)
+	client := arian.NewReceiptParsingServiceClient(conn)
 
 	return &grpcClient{
 		client: client,
@@ -72,8 +72,8 @@ func (c *grpcClient) Parse(
 	file io.Reader,
 	filename string,
 	contentType string,
-	engine *ariandv1.ReceiptEngine,
-) (*ariandv1.Receipt, error) {
+	engine *arian.ReceiptEngine,
+) (*arian.Receipt, error) {
 	// Read the file data
 	imageData, err := io.ReadAll(file)
 	if err != nil {
@@ -81,7 +81,7 @@ func (c *grpcClient) Parse(
 	}
 
 	// Create the gRPC request
-	req := &ariandv1.ParseImageRequest{
+	req := &arian.ParseImageRequest{
 		ImageData:   imageData,
 		ContentType: contentType,
 		Engine:      engine,
@@ -97,8 +97,8 @@ func (c *grpcClient) Parse(
 }
 
 // GetStatus returns the status of available parsing providers
-func (c *grpcClient) GetStatus(ctx context.Context) (*ariandv1.GetStatusResponse, error) {
-	req := &ariandv1.GetStatusRequest{}
+func (c *grpcClient) GetStatus(ctx context.Context) (*arian.GetStatusResponse, error) {
+	req := &arian.GetStatusRequest{}
 
 	resp, err := c.client.GetStatus(ctx, req)
 	if err != nil {

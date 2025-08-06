@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/transaction.proto
 
-package ariandv1
+package arianv1
 
 import (
 	money "google.golang.org/genproto/googleapis/type/money"
@@ -346,7 +346,7 @@ var File_arian_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x1aarian/v1/transaction.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x17arian/v1/category.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xd5\b\n" +
+	"\x1aarian/v1/transaction.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xd5\b\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
 	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
@@ -394,7 +394,8 @@ const file_arian_v1_transaction_proto_rawDesc = "" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x03R\taccountId\x12!\n" +
 	"\faccount_name\x18\x02 \x01(\tR\vaccountName\x12+\n" +
-	"\x11transaction_count\x18\x03 \x01(\x03R\x10transactionCountB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x11transaction_count\x18\x03 \x01(\x03R\x10transactionCountB\x87\x01\n" +
+	"\fcom.arian.v1B\x10TransactionProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_transaction_proto_rawDescOnce sync.Once
@@ -442,8 +443,8 @@ func file_arian_v1_transaction_proto_init() {
 	if File_arian_v1_transaction_proto != nil {
 		return
 	}
-	file_arian_v1_enums_proto_init()
 	file_arian_v1_category_proto_init()
+	file_arian_v1_enums_proto_init()
 	file_arian_v1_transaction_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

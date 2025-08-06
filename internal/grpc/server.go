@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
+	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/service"
 
 	"github.com/charmbracelet/log"

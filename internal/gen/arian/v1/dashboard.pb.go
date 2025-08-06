@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/dashboard.proto
 
-package ariandv1
+package arianv1
 
 import (
 	date "google.golang.org/genproto/googleapis/type/date"
@@ -417,7 +417,8 @@ const file_arian_v1_dashboard_proto_rawDesc = "" +
 	"\x11transaction_count\x18\x02 \x01(\x03R\x10transactionCount\x125\n" +
 	"\ftotal_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\vtotalAmount\x121\n" +
 	"\n" +
-	"avg_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\tavgAmountB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"avg_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\tavgAmountB\x85\x01\n" +
+	"\fcom.arian.v1B\x0eDashboardProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_dashboard_proto_rawDescOnce sync.Once

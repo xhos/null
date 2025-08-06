@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
 	sqlc "ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 
 	"google.golang.org/grpc/codes"
@@ -246,7 +246,7 @@ func (s *Server) GetUnlinkedReceipts(ctx context.Context, req *pb.GetUnlinkedRec
 			Id:          receipt.ID,
 			Merchant:    receipt.Merchant,
 			TotalAmount: receipt.TotalAmount,
-			CreatedAt:   receipt.CreatedAt,
+			CreatedAt:   toProtoTimestamp(&receipt.CreatedAt),
 		})
 	}
 

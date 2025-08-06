@@ -1,13 +1,12 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
 	sqlc "ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/service"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/money"
@@ -72,17 +71,6 @@ func timestampToDate(ts *timestamppb.Timestamp) *date.Date {
 	}
 }
 
-// Date helper for pgtype.Date - kept for backward compatibility
-func timeToPgDate(t time.Time) pgtype.Date {
-	if t.IsZero() {
-		return pgtype.Date{}
-	}
-	return pgtype.Date{
-		Time:  t,
-		Valid: true,
-	}
-}
-
 // Money helpers - kept for backward compatibility
 func decimalToMoney(val decimal.Decimal, currency string) *money.Money {
 	if currency == "" {
@@ -139,8 +127,8 @@ func toProtoAccount(a *sqlc.ListAccountsForUserRow) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: a.AnchorBalance,
-		CreatedAt:     a.CreatedAt,
-		UpdatedAt:     a.UpdatedAt,
+		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
+		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
 }
 
@@ -157,8 +145,8 @@ func toProtoAccountFromGetRow(a *sqlc.GetAccountForUserRow) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: a.AnchorBalance,
-		CreatedAt:     a.CreatedAt,
-		UpdatedAt:     a.UpdatedAt,
+		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
+		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
 }
 
@@ -175,8 +163,8 @@ func toProtoAccountFromModel(a *sqlc.Account) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: a.AnchorBalance,
-		CreatedAt:     a.CreatedAt,
-		UpdatedAt:     a.UpdatedAt,
+		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
+		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
 }
 
@@ -221,7 +209,7 @@ func toProtoAccountCollaborator(c *sqlc.ListAccountCollaboratorsRow) *pb.Account
 
 	return &pb.AccountCollaborator{
 		User:    user,
-		AddedAt: c.AddedAt,
+		AddedAt: toProtoTimestamp(&c.AddedAt),
 	}
 }
 
@@ -239,7 +227,7 @@ func toProtoAccountCollaboration(c *sqlc.ListUserCollaborationsRow) *pb.AccountC
 		AccountId:   c.AccountID,
 		AccountName: c.AccountName,
 		Bank:        c.Bank,
-		AddedAt:     c.AddedAt,
+		AddedAt:     toProtoTimestamp(&c.AddedAt),
 		Owner:       owner,
 	}
 }
@@ -255,8 +243,8 @@ func toProtoUser(u *sqlc.User) *pb.User {
 		Id:          u.ID.String(),
 		Email:       u.Email,
 		DisplayName: u.DisplayName,
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
+		CreatedAt:   toProtoTimestamp(&u.CreatedAt),
+		UpdatedAt:   toProtoTimestamp(&u.UpdatedAt),
 	}
 }
 
@@ -293,7 +281,7 @@ func toProtoUserCredential(c *sqlc.UserCredential) *pb.UserCredential {
 		CredentialId: c.CredentialID,
 		PublicKey:    c.PublicKey,
 		SignCount:    c.SignCount,
-		CreatedAt:    c.CreatedAt,
+		CreatedAt:    toProtoTimestamp(&c.CreatedAt),
 	}
 }
 
@@ -323,8 +311,8 @@ func toProtoCategory(c *sqlc.Category) *pb.Category {
 		Slug:      c.Slug,
 		Label:     c.Label,
 		Color:     c.Color,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
+		CreatedAt: toProtoTimestamp(&c.CreatedAt),
+		UpdatedAt: toProtoTimestamp(&c.UpdatedAt),
 	}
 }
 
@@ -338,8 +326,8 @@ func toProtoCategoryFromUserRow(c *sqlc.ListCategoriesForUserRow) *pb.Category {
 		Slug:      c.Slug,
 		Label:     c.Label,
 		Color:     c.Color,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
+		CreatedAt: toProtoTimestamp(&c.CreatedAt),
+		UpdatedAt: toProtoTimestamp(&c.UpdatedAt),
 	}
 
 	category.UsageCount = &c.UserUsageCount
@@ -356,7 +344,7 @@ func toProtoTransaction(t *sqlc.Transaction) *pb.Transaction {
 
 	return &pb.Transaction{
 		Id:                   t.ID,
-		TxDate:               t.TxDate,
+		TxDate:               toProtoTimestamp(&t.TxDate),
 		TxAmount:             t.TxAmount,
 		Direction:            t.TxDirection,
 		AccountId:            t.AccountID,
@@ -366,8 +354,8 @@ func toProtoTransaction(t *sqlc.Transaction) *pb.Transaction {
 		CategorizationStatus: t.CatStatus,
 		Merchant:             t.Merchant,
 		UserNotes:            t.UserNotes,
-		CreatedAt:            t.CreatedAt,
-		UpdatedAt:            t.UpdatedAt,
+		CreatedAt:            toProtoTimestamp(&t.CreatedAt),
+		UpdatedAt:            toProtoTimestamp(&t.UpdatedAt),
 	}
 }
 
@@ -378,7 +366,7 @@ func toProtoTransactionFromGetRow(t *sqlc.GetTransactionForUserRow) *pb.Transact
 
 	return &pb.Transaction{
 		Id:                   t.ID,
-		TxDate:               t.TxDate,
+		TxDate:               toProtoTimestamp(&t.TxDate),
 		TxAmount:             t.TxAmount,
 		Direction:            t.TxDirection,
 		AccountId:            t.AccountID,
@@ -388,13 +376,9 @@ func toProtoTransactionFromGetRow(t *sqlc.GetTransactionForUserRow) *pb.Transact
 		CategorizationStatus: t.CatStatus,
 		Merchant:             t.Merchant,
 		UserNotes:            t.UserNotes,
-		CreatedAt:            t.CreatedAt,
-		UpdatedAt:            t.UpdatedAt,
+		CreatedAt:            toProtoTimestamp(&t.CreatedAt),
+		UpdatedAt:            toProtoTimestamp(&t.UpdatedAt),
 	}
-}
-
-func toProtoTransactionFromModel(t *sqlc.Transaction) *pb.Transaction {
-	return toProtoTransaction(t)
 }
 
 func toProtoTransactionFromListRow(t *sqlc.ListTransactionsForUserRow) *pb.Transaction {
@@ -404,7 +388,7 @@ func toProtoTransactionFromListRow(t *sqlc.ListTransactionsForUserRow) *pb.Trans
 
 	return &pb.Transaction{
 		Id:                   t.ID,
-		TxDate:               t.TxDate,
+		TxDate:               toProtoTimestamp(&t.TxDate),
 		TxAmount:             t.TxAmount,
 		Direction:            t.TxDirection,
 		AccountId:            t.AccountID,
@@ -414,8 +398,8 @@ func toProtoTransactionFromListRow(t *sqlc.ListTransactionsForUserRow) *pb.Trans
 		CategorizationStatus: t.CatStatus,
 		Merchant:             t.Merchant,
 		UserNotes:            t.UserNotes,
-		CreatedAt:            t.CreatedAt,
-		UpdatedAt:            t.UpdatedAt,
+		CreatedAt:            toProtoTimestamp(&t.CreatedAt),
+		UpdatedAt:            toProtoTimestamp(&t.UpdatedAt),
 	}
 }
 
@@ -426,7 +410,7 @@ func toProtoTransactionFromFindRow(t *sqlc.FindCandidateTransactionsForUserRow) 
 
 	return &pb.Transaction{
 		Id:                   t.ID,
-		TxDate:               t.TxDate,
+		TxDate:               toProtoTimestamp(&t.TxDate),
 		TxAmount:             t.TxAmount,
 		Direction:            t.TxDirection,
 		AccountId:            t.AccountID,
@@ -436,8 +420,8 @@ func toProtoTransactionFromFindRow(t *sqlc.FindCandidateTransactionsForUserRow) 
 		CategorizationStatus: t.CatStatus,
 		Merchant:             t.Merchant,
 		UserNotes:            t.UserNotes,
-		CreatedAt:            t.CreatedAt,
-		UpdatedAt:            t.UpdatedAt,
+		CreatedAt:            toProtoTimestamp(&t.CreatedAt),
+		UpdatedAt:            toProtoTimestamp(&t.UpdatedAt),
 	}
 }
 
@@ -478,8 +462,8 @@ func toProtoReceipt(r *sqlc.Receipt) *pb.Receipt {
 		Lon:            r.Lon,
 		LocationSource: r.LocationSource,
 		LocationLabel:  r.LocationLabel,
-		CreatedAt:      r.CreatedAt,
-		UpdatedAt:      r.UpdatedAt,
+		CreatedAt:      toProtoTimestamp(&r.CreatedAt),
+		UpdatedAt:      toProtoTimestamp(&r.UpdatedAt),
 	}
 }
 
@@ -504,19 +488,9 @@ func toProtoReceiptItem(ri *sqlc.ReceiptItem) *pb.ReceiptItem {
 		LineTotal:    ri.LineTotal,
 		Sku:          ri.Sku,
 		CategoryHint: ri.CategoryHint,
-		CreatedAt:    ri.CreatedAt,
-		UpdatedAt:    ri.UpdatedAt,
+		CreatedAt:    toProtoTimestamp(&ri.CreatedAt),
+		UpdatedAt:    toProtoTimestamp(&ri.UpdatedAt),
 	}
 }
 
 // ==================== HELPER FUNCTIONS ====================
-
-func timeToPgTimestamp(t time.Time) pgtype.Timestamp {
-	if t.IsZero() {
-		return pgtype.Timestamp{}
-	}
-	return pgtype.Timestamp{
-		Time:  t,
-		Valid: true,
-	}
-}

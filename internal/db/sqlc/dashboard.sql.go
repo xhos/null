@@ -7,10 +7,10 @@ package sqlcdb
 
 import (
 	"context"
+	"time"
 
-	arian "ariand/gen/go/arian/v1"
+	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const getAccountBalancesForUser = `-- name: GetAccountBalancesForUser :many
@@ -89,10 +89,10 @@ WHERE (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
 `
 
 type GetDashboardSummaryForAccountParams struct {
-	UserID    uuid.UUID              `json:"user_id"`
-	AccountID int64                  `json:"account_id"`
-	Start     *timestamppb.Timestamp `json:"start"`
-	End       *timestamppb.Timestamp `json:"end"`
+	UserID    uuid.UUID  `json:"user_id"`
+	AccountID int64      `json:"account_id"`
+	Start     *time.Time `json:"start"`
+	End       *time.Time `json:"end"`
 }
 
 type GetDashboardSummaryForAccountRow struct {
@@ -140,9 +140,9 @@ WHERE (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
 `
 
 type GetDashboardSummaryForUserParams struct {
-	UserID uuid.UUID              `json:"user_id"`
-	Start  *timestamppb.Timestamp `json:"start"`
-	End    *timestamppb.Timestamp `json:"end"`
+	UserID uuid.UUID  `json:"user_id"`
+	Start  *time.Time `json:"start"`
+	End    *time.Time `json:"end"`
 }
 
 type GetDashboardSummaryForUserRow struct {
@@ -185,10 +185,10 @@ ORDER BY date
 `
 
 type GetDashboardTrendsForAccountParams struct {
-	UserID    uuid.UUID              `json:"user_id"`
-	AccountID int64                  `json:"account_id"`
-	Start     *timestamppb.Timestamp `json:"start"`
-	End       *timestamppb.Timestamp `json:"end"`
+	UserID    uuid.UUID  `json:"user_id"`
+	AccountID int64      `json:"account_id"`
+	Start     *time.Time `json:"start"`
+	End       *time.Time `json:"end"`
 }
 
 type GetDashboardTrendsForAccountRow struct {
@@ -238,9 +238,9 @@ ORDER BY date
 `
 
 type GetDashboardTrendsForUserParams struct {
-	UserID uuid.UUID              `json:"user_id"`
-	Start  *timestamppb.Timestamp `json:"start"`
-	End    *timestamppb.Timestamp `json:"end"`
+	UserID uuid.UUID  `json:"user_id"`
+	Start  *time.Time `json:"start"`
+	End    *time.Time `json:"end"`
 }
 
 type GetDashboardTrendsForUserRow struct {
@@ -286,9 +286,9 @@ ORDER BY month
 `
 
 type GetMonthlyComparisonForUserParams struct {
-	UserID uuid.UUID              `json:"user_id"`
-	Start  *timestamppb.Timestamp `json:"start"`
-	End    *timestamppb.Timestamp `json:"end"`
+	UserID uuid.UUID  `json:"user_id"`
+	Start  *time.Time `json:"start"`
+	End    *time.Time `json:"end"`
 }
 
 type GetMonthlyComparisonForUserRow struct {
@@ -344,10 +344,10 @@ LIMIT COALESCE($4::int, 10)
 `
 
 type GetTopCategoriesForUserParams struct {
-	UserID uuid.UUID              `json:"user_id"`
-	Start  *timestamppb.Timestamp `json:"start"`
-	End    *timestamppb.Timestamp `json:"end"`
-	Limit  *int32                 `json:"limit"`
+	UserID uuid.UUID  `json:"user_id"`
+	Start  *time.Time `json:"start"`
+	End    *time.Time `json:"end"`
+	Limit  *int32     `json:"limit"`
 }
 
 type GetTopCategoriesForUserRow struct {
@@ -409,10 +409,10 @@ LIMIT COALESCE($4::int, 10)
 `
 
 type GetTopMerchantsForUserParams struct {
-	UserID uuid.UUID              `json:"user_id"`
-	Start  *timestamppb.Timestamp `json:"start"`
-	End    *timestamppb.Timestamp `json:"end"`
-	Limit  *int32                 `json:"limit"`
+	UserID uuid.UUID  `json:"user_id"`
+	Start  *time.Time `json:"start"`
+	End    *time.Time `json:"end"`
+	Limit  *int32     `json:"limit"`
 }
 
 type GetTopMerchantsForUserRow struct {

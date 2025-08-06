@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/transaction_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	money "google.golang.org/genproto/googleapis/type/money"
@@ -1916,7 +1916,7 @@ var File_arian_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
-	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x1aarian/v1/transaction.proto\x1a\x14arian/v1/enums.proto\x1a\x15arian/v1/common.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x89\b\n" +
+	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x89\b\n" +
 	"\x17ListTransactionsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\"\n" +
 	"\n" +
@@ -2146,7 +2146,8 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x1cGetTransactionCountByAccount\x12-.arian.v1.GetTransactionCountByAccountRequest\x1a..arian.v1.GetTransactionCountByAccountResponse\x12t\n" +
 	"\x19FindCandidateTransactions\x12*.arian.v1.FindCandidateTransactionsRequest\x1a+.arian.v1.FindCandidateTransactionsResponse\x12Y\n" +
 	"\x10IdentifyMerchant\x12!.arian.v1.IdentifyMerchantRequest\x1a\".arian.v1.IdentifyMerchantResponse\x12h\n" +
-	"\x15SetTransactionReceipt\x12&.arian.v1.SetTransactionReceiptRequest\x1a'.arian.v1.SetTransactionReceiptResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x15SetTransactionReceipt\x12&.arian.v1.SetTransactionReceiptRequest\x1a'.arian.v1.SetTransactionReceiptResponseB\x8f\x01\n" +
+	"\fcom.arian.v1B\x18TransactionServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_transaction_services_proto_rawDescOnce sync.Once
@@ -2281,9 +2282,9 @@ func file_arian_v1_transaction_services_proto_init() {
 	if File_arian_v1_transaction_services_proto != nil {
 		return
 	}
-	file_arian_v1_transaction_proto_init()
-	file_arian_v1_enums_proto_init()
 	file_arian_v1_common_proto_init()
+	file_arian_v1_enums_proto_init()
+	file_arian_v1_transaction_proto_init()
 	file_arian_v1_transaction_services_proto_msgTypes[0].OneofWrappers = []any{}
 	file_arian_v1_transaction_services_proto_msgTypes[1].OneofWrappers = []any{}
 	file_arian_v1_transaction_services_proto_msgTypes[4].OneofWrappers = []any{}

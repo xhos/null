@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/enums.proto
 
-package ariandv1
+package arianv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -377,7 +377,9 @@ const file_arian_v1_enums_proto_rawDesc = "" +
 	"\x17LINK_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14LINK_STATUS_UNLINKED\x10\x01\x12\x17\n" +
 	"\x13LINK_STATUS_MATCHED\x10\x02\x12\"\n" +
-	"\x1eLINK_STATUS_NEEDS_VERIFICATION\x10\x03B!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x1eLINK_STATUS_NEEDS_VERIFICATION\x10\x03B\x81\x01\n" +
+	"\fcom.arian.v1B\n" +
+	"EnumsProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_enums_proto_rawDescOnce sync.Once

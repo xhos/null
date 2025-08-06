@@ -12,6 +12,16 @@ LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = @user_id::uu
 WHERE a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL
 ORDER BY r.created_at DESC;
 
+-- name: GetReceipt :one
+SELECT
+  id, engine, parse_status, link_status, match_ids,
+  merchant, purchase_date, total_amount, currency, tax_amount,
+  raw_payload, canonical_data, image_url, image_sha256,
+  lat, lon, location_source, location_label,
+  created_at, updated_at
+FROM receipts
+WHERE id = @id::bigint;
+
 -- name: GetReceiptForUser :one
 SELECT DISTINCT
   r.id, r.engine, r.parse_status, r.link_status, r.match_ids,
@@ -164,3 +174,17 @@ LEFT JOIN transactions t ON t.id = ANY(r.match_ids)
 WHERE r.link_status = 3  -- needs verification
 GROUP BY r.id, r.merchant, r.purchase_date, r.total_amount, r.currency
 ORDER BY r.created_at DESC;
+
+-- name: FindCandidateTransactions :many
+SELECT id, account_id, tx_date, tx_amount, tx_currency, tx_desc, merchant
+FROM transactions
+WHERE tx_amount BETWEEN @min_amount::numeric AND @max_amount::numeric
+  AND tx_date BETWEEN @start_date::timestamptz AND @end_date::timestamptz
+  AND receipt_id IS NULL  -- not already linked
+ORDER BY ABS(tx_amount - @target_amount::numeric), ABS(EXTRACT(EPOCH FROM (tx_date - @target_date::timestamptz))) / 86400;
+
+-- name: LinkTransactionToReceipt :exec
+UPDATE transactions 
+SET receipt_id = @receipt_id::bigint
+WHERE id = @transaction_id::bigint
+  AND receipt_id IS NULL;

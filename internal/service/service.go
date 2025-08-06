@@ -5,6 +5,7 @@ import (
 	"ariand/internal/config"
 	"ariand/internal/db"
 	"ariand/internal/receiptparser"
+	"ariand/internal/storage"
 	"context"
 	"time"
 
@@ -50,6 +51,6 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager)
 		Dashboard:    newDashSvc(queries),
 		Users:        newUserSvc(queries, database, lg.WithPrefix("user")), //TODO: WHY PASS DB?
 		Auth:         newAuthSvc(queries, lg.WithPrefix("auth")),
-		Receipts:     newReceiptSvc(queries, parserClient, lg.WithPrefix("receipt")),
+		Receipts:     newReceiptSvc(queries, parserClient, storage.NewLocalStorage("/tmp/receipts", "/api/receipts/images"), lg.WithPrefix("receipt")),
 	}, nil
 }

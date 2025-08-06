@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/user_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1811,7 +1811,8 @@ const file_arian_v1_user_services_proto_rawDesc = "" +
 	"\x10DeleteCredential\x12!.arian.v1.DeleteCredentialRequest\x1a\".arian.v1.DeleteCredentialResponse\x12z\n" +
 	"\x1bDeleteAllCredentialsForUser\x12,.arian.v1.DeleteAllCredentialsForUserRequest\x1a-.arian.v1.DeleteAllCredentialsForUserResponse\x12n\n" +
 	"\x17CountCredentialsForUser\x12(.arian.v1.CountCredentialsForUserRequest\x1a).arian.v1.CountCredentialsForUserResponse\x12h\n" +
-	"\x15CheckCredentialExists\x12&.arian.v1.CheckCredentialExistsRequest\x1a'.arian.v1.CheckCredentialExistsResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x15CheckCredentialExists\x12&.arian.v1.CheckCredentialExistsRequest\x1a'.arian.v1.CheckCredentialExistsResponseB\x88\x01\n" +
+	"\fcom.arian.v1B\x11UserServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_user_services_proto_rawDescOnce sync.Once

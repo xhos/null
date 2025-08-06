@@ -11,7 +11,6 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type CategoryService interface {
@@ -183,18 +182,10 @@ func (s *catSvc) ListWithUsage(ctx context.Context, userID uuid.UUID, startDate 
 		}
 	}
 
-	var startTs, endTs *timestamppb.Timestamp
-	if start != nil {
-		startTs = timestamppb.New(*start)
-	}
-	if end != nil {
-		endTs = timestamppb.New(*end)
-	}
-
 	params := sqlc.ListCategoriesWithUsageParams{
 		UserID:    userID,
-		StartDate: startTs,
-		EndDate:   endTs,
+		StartDate: start,
+		EndDate:   end,
 		Limit:     limit,
 	}
 	categories, err := s.queries.ListCategoriesWithUsage(ctx, params)
@@ -217,19 +208,11 @@ func (s *catSvc) GetWithStats(ctx context.Context, userID uuid.UUID, id int64, s
 		}
 	}
 
-	var startTs, endTs *timestamppb.Timestamp
-	if start != nil {
-		startTs = timestamppb.New(*start)
-	}
-	if end != nil {
-		endTs = timestamppb.New(*end)
-	}
-
 	params := sqlc.GetCategoryWithStatsParams{
 		UserID:    userID,
 		ID:        id,
-		StartDate: startTs,
-		EndDate:   endTs,
+		StartDate: start,
+		EndDate:   end,
 	}
 	stats, err := s.queries.GetCategoryWithStats(ctx, params)
 	if errors.Is(err, sql.ErrNoRows) {

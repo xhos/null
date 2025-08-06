@@ -28,3 +28,11 @@ docker run -d \
   -v postgres_data:/var/lib/postgresql/data \
   postgres:17-alpine
 ```
+
+```shell
+migrate
+```
+
+```shell
+docker run -p 6969:6969 -d gusaul/grpcox
+```

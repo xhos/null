@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/category.proto
 
-package ariandv1
+package arianv1
 
 import (
 	money "google.golang.org/genproto/googleapis/type/money"
@@ -394,7 +394,8 @@ const file_arian_v1_category_proto_rawDesc = "" +
 	"avg_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\tavgAmount\x129\n" +
 	"\n" +
 	"first_used\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tfirstUsed\x127\n" +
-	"\tlast_used\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\blastUsedB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\tlast_used\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\blastUsedB\x84\x01\n" +
+	"\fcom.arian.v1B\rCategoryProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_category_proto_rawDescOnce sync.Once

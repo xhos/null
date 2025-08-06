@@ -7,12 +7,12 @@ package sqlcdb
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/money"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type BulkCreateReceiptItemsParams struct {
@@ -230,6 +230,108 @@ func (q *Queries) DeleteReceiptItemsByReceipt(ctx context.Context, receiptID int
 	return result.RowsAffected(), nil
 }
 
+const findCandidateTransactions = `-- name: FindCandidateTransactions :many
+SELECT id, account_id, tx_date, tx_amount, tx_currency, tx_desc, merchant
+FROM transactions
+WHERE tx_amount BETWEEN $1::numeric AND $2::numeric
+  AND tx_date BETWEEN $3::timestamptz AND $4::timestamptz
+  AND receipt_id IS NULL  -- not already linked
+ORDER BY ABS(tx_amount - $5::numeric), ABS(EXTRACT(EPOCH FROM (tx_date - $6::timestamptz))) / 86400
+`
+
+type FindCandidateTransactionsParams struct {
+	MinAmount    decimal.Decimal `json:"min_amount"`
+	MaxAmount    decimal.Decimal `json:"max_amount"`
+	StartDate    time.Time       `json:"start_date"`
+	EndDate      time.Time       `json:"end_date"`
+	TargetAmount decimal.Decimal `json:"target_amount"`
+	TargetDate   time.Time       `json:"target_date"`
+}
+
+type FindCandidateTransactionsRow struct {
+	ID         int64        `json:"id"`
+	AccountID  int64        `json:"account_id"`
+	TxDate     time.Time    `json:"tx_date"`
+	TxAmount   *money.Money `json:"tx_amount"`
+	TxCurrency string       `json:"tx_currency"`
+	TxDesc     *string      `json:"tx_desc"`
+	Merchant   *string      `json:"merchant"`
+}
+
+func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandidateTransactionsParams) ([]FindCandidateTransactionsRow, error) {
+	rows, err := q.db.Query(ctx, findCandidateTransactions,
+		arg.MinAmount,
+		arg.MaxAmount,
+		arg.StartDate,
+		arg.EndDate,
+		arg.TargetAmount,
+		arg.TargetDate,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindCandidateTransactionsRow
+	for rows.Next() {
+		var i FindCandidateTransactionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.TxDate,
+			&i.TxAmount,
+			&i.TxCurrency,
+			&i.TxDesc,
+			&i.Merchant,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getReceipt = `-- name: GetReceipt :one
+SELECT
+  id, engine, parse_status, link_status, match_ids,
+  merchant, purchase_date, total_amount, currency, tax_amount,
+  raw_payload, canonical_data, image_url, image_sha256,
+  lat, lon, location_source, location_label,
+  created_at, updated_at
+FROM receipts
+WHERE id = $1::bigint
+`
+
+func (q *Queries) GetReceipt(ctx context.Context, id int64) (Receipt, error) {
+	row := q.db.QueryRow(ctx, getReceipt, id)
+	var i Receipt
+	err := row.Scan(
+		&i.ID,
+		&i.Engine,
+		&i.ParseStatus,
+		&i.LinkStatus,
+		&i.MatchIds,
+		&i.Merchant,
+		&i.PurchaseDate,
+		&i.TotalAmount,
+		&i.Currency,
+		&i.TaxAmount,
+		&i.RawPayload,
+		&i.CanonicalData,
+		&i.ImageUrl,
+		&i.ImageSha256,
+		&i.Lat,
+		&i.Lon,
+		&i.LocationSource,
+		&i.LocationLabel,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getReceiptForUser = `-- name: GetReceiptForUser :one
 SELECT DISTINCT
   r.id, r.engine, r.parse_status, r.link_status, r.match_ids,
@@ -360,12 +462,12 @@ LIMIT COALESCE($1::int, 50)
 `
 
 type GetUnlinkedReceiptsRow struct {
-	ID           int64                  `json:"id"`
-	Merchant     *string                `json:"merchant"`
-	PurchaseDate *date.Date             `json:"purchase_date"`
-	TotalAmount  *money.Money           `json:"total_amount"`
-	Currency     *string                `json:"currency"`
-	CreatedAt    *timestamppb.Timestamp `json:"created_at"`
+	ID           int64        `json:"id"`
+	Merchant     *string      `json:"merchant"`
+	PurchaseDate *date.Date   `json:"purchase_date"`
+	TotalAmount  *money.Money `json:"total_amount"`
+	Currency     *string      `json:"currency"`
+	CreatedAt    time.Time    `json:"created_at"`
 }
 
 // Utility queries
@@ -394,6 +496,23 @@ func (q *Queries) GetUnlinkedReceipts(ctx context.Context, limit *int32) ([]GetU
 		return nil, err
 	}
 	return items, nil
+}
+
+const linkTransactionToReceipt = `-- name: LinkTransactionToReceipt :exec
+UPDATE transactions 
+SET receipt_id = $1::bigint
+WHERE id = $2::bigint
+  AND receipt_id IS NULL
+`
+
+type LinkTransactionToReceiptParams struct {
+	ReceiptID     int64 `json:"receipt_id"`
+	TransactionID int64 `json:"transaction_id"`
+}
+
+func (q *Queries) LinkTransactionToReceipt(ctx context.Context, arg LinkTransactionToReceiptParams) error {
+	_, err := q.db.Exec(ctx, linkTransactionToReceipt, arg.ReceiptID, arg.TransactionID)
+	return err
 }
 
 const listReceiptItemsForReceipt = `-- name: ListReceiptItemsForReceipt :many

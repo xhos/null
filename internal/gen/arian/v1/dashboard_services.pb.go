@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/dashboard_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	date "google.golang.org/genproto/googleapis/type/date"
@@ -1163,7 +1163,7 @@ var File_arian_v1_dashboard_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"\n" +
-	"!arian/v1/dashboard_services.proto\x12\barian.v1\x1a\x18arian/v1/dashboard.proto\x1a\x16arian/v1/account.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\"\xbb\x01\n" +
+	"!arian/v1/dashboard_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x18arian/v1/dashboard.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\"\xbb\x01\n" +
 	"\x1aGetDashboardSummaryRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x125\n" +
 	"\n" +
@@ -1270,7 +1270,8 @@ const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"\x11GetSpendingTrends\x12\".arian.v1.GetSpendingTrendsRequest\x1a#.arian.v1.GetSpendingTrendsResponse\x12V\n" +
 	"\x0fGetTotalBalance\x12 .arian.v1.GetTotalBalanceRequest\x1a!.arian.v1.GetTotalBalanceResponse\x12M\n" +
 	"\fGetTotalDebt\x12\x1d.arian.v1.GetTotalDebtRequest\x1a\x1e.arian.v1.GetTotalDebtResponse\x12P\n" +
-	"\rGetNetBalance\x12\x1e.arian.v1.GetNetBalanceRequest\x1a\x1f.arian.v1.GetNetBalanceResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\rGetNetBalance\x12\x1e.arian.v1.GetNetBalanceRequest\x1a\x1f.arian.v1.GetNetBalanceResponseB\x8d\x01\n" +
+	"\fcom.arian.v1B\x16DashboardServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_dashboard_services_proto_rawDescOnce sync.Once
@@ -1376,8 +1377,8 @@ func file_arian_v1_dashboard_services_proto_init() {
 	if File_arian_v1_dashboard_services_proto != nil {
 		return
 	}
-	file_arian_v1_dashboard_proto_init()
 	file_arian_v1_account_proto_init()
+	file_arian_v1_dashboard_proto_init()
 	file_arian_v1_dashboard_services_proto_msgTypes[0].OneofWrappers = []any{}
 	file_arian_v1_dashboard_services_proto_msgTypes[2].OneofWrappers = []any{}
 	file_arian_v1_dashboard_services_proto_msgTypes[4].OneofWrappers = []any{}

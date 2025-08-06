@@ -1,12 +1,14 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+// TODO: List Users not implemented yet
 
 // ==================== USER SERVICE ====================
 

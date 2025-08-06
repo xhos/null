@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/receipt_parsing.proto
 
-package ariandv1
+package arianv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -293,7 +293,7 @@ var File_arian_v1_receipt_parsing_proto protoreflect.FileDescriptor
 
 const file_arian_v1_receipt_parsing_proto_rawDesc = "" +
 	"\n" +
-	"\x1earian/v1/receipt_parsing.proto\x12\barian.v1\x1a\x17arian/v1/receipts.proto\x1a\x14arian/v1/enums.proto\"\x96\x01\n" +
+	"\x1earian/v1/receipt_parsing.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x17arian/v1/receipts.proto\"\x96\x01\n" +
 	"\x11ParseImageRequest\x12\x1d\n" +
 	"\n" +
 	"image_data\x18\x01 \x01(\fR\timageData\x12!\n" +
@@ -317,7 +317,8 @@ const file_arian_v1_receipt_parsing_proto_rawDesc = "" +
 	"\x15ReceiptParsingService\x12G\n" +
 	"\n" +
 	"ParseImage\x12\x1b.arian.v1.ParseImageRequest\x1a\x1c.arian.v1.ParseImageResponse\x12D\n" +
-	"\tGetStatus\x12\x1a.arian.v1.GetStatusRequest\x1a\x1b.arian.v1.GetStatusResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\tGetStatus\x12\x1a.arian.v1.GetStatusRequest\x1a\x1b.arian.v1.GetStatusResponseB\x8a\x01\n" +
+	"\fcom.arian.v1B\x13ReceiptParsingProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_receipt_parsing_proto_rawDescOnce sync.Once
@@ -361,8 +362,8 @@ func file_arian_v1_receipt_parsing_proto_init() {
 	if File_arian_v1_receipt_parsing_proto != nil {
 		return
 	}
-	file_arian_v1_receipts_proto_init()
 	file_arian_v1_enums_proto_init()
+	file_arian_v1_receipts_proto_init()
 	file_arian_v1_receipt_parsing_proto_msgTypes[0].OneofWrappers = []any{}
 	file_arian_v1_receipt_parsing_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}

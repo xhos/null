@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/receipt_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -2093,7 +2093,7 @@ var File_arian_v1_receipt_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\n" +
-	"\x1farian/v1/receipt_services.proto\x12\barian.v1\x1a\x17arian/v1/receipts.proto\x1a\x14arian/v1/enums.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbd\x03\n" +
+	"\x1farian/v1/receipt_services.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x17arian/v1/receipts.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbd\x03\n" +
 	"\x13ListReceiptsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
 	"\x05limit\x18\x02 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12\x1b\n" +
@@ -2317,7 +2317,8 @@ const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\x16BulkCreateReceiptItems\x12'.arian.v1.BulkCreateReceiptItemsRequest\x1a(.arian.v1.BulkCreateReceiptItemsResponse\x12z\n" +
 	"\x1bDeleteReceiptItemsByReceipt\x12,.arian.v1.DeleteReceiptItemsByReceiptRequest\x1a-.arian.v1.DeleteReceiptItemsByReceiptResponse\x12b\n" +
 	"\x13GetUnlinkedReceipts\x12$.arian.v1.GetUnlinkedReceiptsRequest\x1a%.arian.v1.GetUnlinkedReceiptsResponse\x12t\n" +
-	"\x19GetReceiptMatchCandidates\x12*.arian.v1.GetReceiptMatchCandidatesRequest\x1a+.arian.v1.GetReceiptMatchCandidatesResponseB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"\x19GetReceiptMatchCandidates\x12*.arian.v1.GetReceiptMatchCandidatesRequest\x1a+.arian.v1.GetReceiptMatchCandidatesResponseB\x8b\x01\n" +
+	"\fcom.arian.v1B\x14ReceiptServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_receipt_services_proto_rawDescOnce sync.Once
@@ -2460,8 +2461,8 @@ func file_arian_v1_receipt_services_proto_init() {
 	if File_arian_v1_receipt_services_proto != nil {
 		return
 	}
-	file_arian_v1_receipts_proto_init()
 	file_arian_v1_enums_proto_init()
+	file_arian_v1_receipts_proto_init()
 	file_arian_v1_receipt_services_proto_msgTypes[0].OneofWrappers = []any{}
 	file_arian_v1_receipt_services_proto_msgTypes[4].OneofWrappers = []any{}
 	file_arian_v1_receipt_services_proto_msgTypes[6].OneofWrappers = []any{}

@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
 	sqlc "ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 
 	"github.com/shopspring/decimal"
@@ -26,7 +26,8 @@ func (s *Server) ListTransactions(ctx context.Context, req *pb.ListTransactionsR
 	// Handle cursor pagination
 	if cursor := req.GetCursor(); cursor != nil {
 		if cursor.Date != nil {
-			params.CursorDate = cursor.Date
+			cursorTime := fromProtoTimestamp(cursor.Date)
+			params.CursorDate = &cursorTime
 		}
 		if cursor.Id != nil {
 			params.CursorID = cursor.Id
@@ -35,10 +36,12 @@ func (s *Server) ListTransactions(ctx context.Context, req *pb.ListTransactionsR
 
 	// Handle filters
 	if req.StartDate != nil {
-		params.Start = req.StartDate
+		startTime := fromProtoTimestamp(req.StartDate)
+		params.Start = &startTime
 	}
 	if req.EndDate != nil {
-		params.End = req.EndDate
+		endTime := fromProtoTimestamp(req.EndDate)
+		params.End = &endTime
 	}
 	if req.AmountMin != nil {
 		params.AmountMin = moneyToDecimal(req.AmountMin)
@@ -81,7 +84,7 @@ func (s *Server) ListTransactions(ctx context.Context, req *pb.ListTransactionsR
 	if len(transactions) > 0 && req.Limit != nil && len(transactions) == int(*req.Limit) {
 		lastTx := transactions[len(transactions)-1]
 		nextCursor = &pb.Cursor{
-			Date: lastTx.TxDate,
+			Date: toProtoTimestamp(&lastTx.TxDate),
 			Id:   &lastTx.ID,
 		}
 	}
@@ -139,7 +142,7 @@ func (s *Server) CreateTransaction(ctx context.Context, req *pb.CreateTransactio
 	params := sqlc.CreateTransactionForUserParams{
 		UserID:      userID,
 		AccountID:   req.GetAccountId(),
-		TxDate:      req.TxDate,
+		TxDate:      fromProtoTimestamp(req.TxDate),
 		TxAmount:    *moneyToDecimal(req.TxAmount),
 		TxDirection: int16(req.Direction),
 		TxDesc:      req.Description,
@@ -197,7 +200,8 @@ func (s *Server) UpdateTransaction(ctx context.Context, req *pb.UpdateTransactio
 
 	// Apply field mask updates
 	if req.TxDate != nil {
-		params.TxDate = req.TxDate
+		txTime := fromProtoTimestamp(req.TxDate)
+		params.TxDate = &txTime
 	}
 	if req.TxAmount != nil {
 		amount := moneyToDecimal(req.TxAmount)
@@ -395,7 +399,7 @@ func (s *Server) GetTransactionsByAccount(ctx context.Context, req *pb.GetTransa
 	if len(transactions) > 0 && req.Limit != nil && len(transactions) == int(*req.Limit) {
 		lastTx := transactions[len(transactions)-1]
 		nextCursor = &pb.Cursor{
-			Date: lastTx.TxDate,
+			Date: toProtoTimestamp(&lastTx.TxDate),
 			Id:   &lastTx.ID,
 		}
 	}
@@ -428,7 +432,7 @@ func (s *Server) GetUncategorizedTransactions(ctx context.Context, req *pb.GetUn
 	if len(transactions) > 0 && req.Limit != nil && len(transactions) == int(*req.Limit) {
 		lastTx := transactions[len(transactions)-1]
 		nextCursor = &pb.Cursor{
-			Date: lastTx.TxDate,
+			Date: toProtoTimestamp(&lastTx.TxDate),
 			Id:   &lastTx.ID,
 		}
 	}

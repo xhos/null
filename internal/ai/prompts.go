@@ -70,7 +70,7 @@ Now categorize:
 		val(tx.Merchant),
 		val(tx.TxDesc),
 		moneyToFloat(tx.TxAmount), tx.TxCurrency,
-		tx.TxDate.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		tx.TxDate.Format("2006-01-02T15:04:05Z07:00"),
 	)
 }
 

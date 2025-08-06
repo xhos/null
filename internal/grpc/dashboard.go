@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	pb "ariand/gen/go/arian/v1"
 	sqlc "ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 	"time"
 
@@ -68,8 +68,8 @@ func (s *Server) GetDashboardSummary(ctx context.Context, req *pb.GetDashboardSu
 
 	params := sqlc.GetDashboardSummaryForUserParams{
 		UserID: userID,
-		Start:  toProtoTimestamp(start),
-		End:    toProtoTimestamp(end),
+		Start:  start,
+		End:    end,
 	}
 
 	summary, err := s.services.Dashboard.SummaryForUser(ctx, params)
@@ -104,8 +104,8 @@ func (s *Server) GetTrendData(ctx context.Context, req *pb.GetTrendDataRequest) 
 
 	params := sqlc.GetDashboardTrendsForUserParams{
 		UserID: userID,
-		Start:  toProtoTimestamp(start),
-		End:    toProtoTimestamp(end),
+		Start:  start,
+		End:    end,
 	}
 
 	trends, err := s.services.Dashboard.TrendsForUser(ctx, params)
@@ -141,8 +141,8 @@ func (s *Server) GetMonthlyComparison(ctx context.Context, req *pb.GetMonthlyCom
 
 	params := sqlc.GetMonthlyComparisonForUserParams{
 		UserID: userID,
-		Start:  toProtoTimestamp(&start),
-		End:    toProtoTimestamp(&end),
+		Start:  &start,
+		End:    &end,
 	}
 
 	comparison, err := s.services.Dashboard.MonthlyComparisonForUser(ctx, params)
@@ -181,8 +181,8 @@ func (s *Server) GetTopCategories(ctx context.Context, req *pb.GetTopCategoriesR
 
 	params := sqlc.GetTopCategoriesForUserParams{
 		UserID: userID,
-		Start:  toProtoTimestamp(start),
-		End:    toProtoTimestamp(end),
+		Start:  start,
+		End:    end,
 		Limit:  req.Limit,
 	}
 
@@ -223,8 +223,8 @@ func (s *Server) GetTopMerchants(ctx context.Context, req *pb.GetTopMerchantsReq
 
 	params := sqlc.GetTopMerchantsForUserParams{
 		UserID: userID,
-		Start:  toProtoTimestamp(start),
-		End:    toProtoTimestamp(end),
+		Start:  start,
+		End:    end,
 		Limit:  req.Limit,
 	}
 

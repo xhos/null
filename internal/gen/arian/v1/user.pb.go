@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: arian/v1/user.proto
 
-package ariandv1
+package arianv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -207,7 +207,8 @@ const file_arian_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"sign_count\x18\x05 \x01(\x03R\tsignCount\x129\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB!Z\x1fariand/gen/go/arian/v1;ariandv1b\x06proto3"
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\x80\x01\n" +
+	"\fcom.arian.v1B\tUserProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
 	file_arian_v1_user_proto_rawDescOnce sync.Once

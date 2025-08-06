@@ -5,41 +5,42 @@
 package sqlcdb
 
 import (
-	arian "ariand/gen/go/arian/v1"
+	"time"
+
+	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/money"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Account struct {
-	ID             int64                  `json:"id"`
-	OwnerID        uuid.UUID              `json:"owner_id"`
-	Name           string                 `json:"name"`
-	Bank           string                 `json:"bank"`
-	AccountType    arian.AccountType      `json:"account_type"`
-	Alias          *string                `json:"alias"`
-	AnchorDate     *date.Date             `json:"anchor_date"`
-	AnchorBalance  *money.Money           `json:"anchor_balance"`
-	AnchorCurrency string                 `json:"anchor_currency"`
-	CreatedAt      *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt      *timestamppb.Timestamp `json:"updated_at"`
+	ID             int64             `json:"id"`
+	OwnerID        uuid.UUID         `json:"owner_id"`
+	Name           string            `json:"name"`
+	Bank           string            `json:"bank"`
+	AccountType    arian.AccountType `json:"account_type"`
+	Alias          *string           `json:"alias"`
+	AnchorDate     *date.Date        `json:"anchor_date"`
+	AnchorBalance  *money.Money      `json:"anchor_balance"`
+	AnchorCurrency string            `json:"anchor_currency"`
+	CreatedAt      time.Time         `json:"created_at"`
+	UpdatedAt      time.Time         `json:"updated_at"`
 }
 
 type AccountUser struct {
-	AccountID int64                  `json:"account_id"`
-	UserID    uuid.UUID              `json:"user_id"`
-	AddedAt   *timestamppb.Timestamp `json:"added_at"`
+	AccountID int64     `json:"account_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	AddedAt   time.Time `json:"added_at"`
 }
 
 type Category struct {
-	ID        int64                  `json:"id"`
-	Slug      string                 `json:"slug"`
-	Label     string                 `json:"label"`
-	Color     string                 `json:"color"`
-	CreatedAt *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt *timestamppb.Timestamp `json:"updated_at"`
+	ID        int64     `json:"id"`
+	Slug      string    `json:"slug"`
+	Label     string    `json:"label"`
+	Color     string    `json:"color"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Receipt struct {
@@ -61,29 +62,29 @@ type Receipt struct {
 	Lon            *float64                 `json:"lon"`
 	LocationSource *string                  `json:"location_source"`
 	LocationLabel  *string                  `json:"location_label"`
-	CreatedAt      *timestamppb.Timestamp   `json:"created_at"`
-	UpdatedAt      *timestamppb.Timestamp   `json:"updated_at"`
+	CreatedAt      time.Time                `json:"created_at"`
+	UpdatedAt      time.Time                `json:"updated_at"`
 }
 
 type ReceiptItem struct {
-	ID           int64                  `json:"id"`
-	ReceiptID    int64                  `json:"receipt_id"`
-	LineNo       *int32                 `json:"line_no"`
-	Name         string                 `json:"name"`
-	Qty          *decimal.Decimal       `json:"qty"`
-	UnitPrice    *money.Money           `json:"unit_price"`
-	LineTotal    *money.Money           `json:"line_total"`
-	Sku          *string                `json:"sku"`
-	CategoryHint *string                `json:"category_hint"`
-	CreatedAt    *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt    *timestamppb.Timestamp `json:"updated_at"`
+	ID           int64            `json:"id"`
+	ReceiptID    int64            `json:"receipt_id"`
+	LineNo       *int32           `json:"line_no"`
+	Name         string           `json:"name"`
+	Qty          *decimal.Decimal `json:"qty"`
+	UnitPrice    *money.Money     `json:"unit_price"`
+	LineTotal    *money.Money     `json:"line_total"`
+	Sku          *string          `json:"sku"`
+	CategoryHint *string          `json:"category_hint"`
+	CreatedAt    time.Time        `json:"created_at"`
+	UpdatedAt    time.Time        `json:"updated_at"`
 }
 
 type Transaction struct {
 	ID              int64                      `json:"id"`
 	AccountID       int64                      `json:"account_id"`
 	EmailID         *string                    `json:"email_id"`
-	TxDate          *timestamppb.Timestamp     `json:"tx_date"`
+	TxDate          time.Time                  `json:"tx_date"`
 	TxAmount        *money.Money               `json:"tx_amount"`
 	TxCurrency      string                     `json:"tx_currency"`
 	TxDirection     arian.TransactionDirection `json:"tx_direction"`
@@ -98,23 +99,23 @@ type Transaction struct {
 	ForeignAmount   *money.Money               `json:"foreign_amount"`
 	ExchangeRate    *decimal.Decimal           `json:"exchange_rate"`
 	ReceiptID       *int64                     `json:"receipt_id"`
-	CreatedAt       *timestamppb.Timestamp     `json:"created_at"`
-	UpdatedAt       *timestamppb.Timestamp     `json:"updated_at"`
+	CreatedAt       time.Time                  `json:"created_at"`
+	UpdatedAt       time.Time                  `json:"updated_at"`
 }
 
 type User struct {
-	ID          uuid.UUID              `json:"id"`
-	Email       string                 `json:"email"`
-	DisplayName *string                `json:"display_name"`
-	CreatedAt   *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt   *timestamppb.Timestamp `json:"updated_at"`
+	ID          uuid.UUID `json:"id"`
+	Email       string    `json:"email"`
+	DisplayName *string   `json:"display_name"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type UserCredential struct {
-	ID           uuid.UUID              `json:"id"`
-	UserID       uuid.UUID              `json:"user_id"`
-	CredentialID []byte                 `json:"credential_id"`
-	PublicKey    []byte                 `json:"public_key"`
-	SignCount    int64                  `json:"sign_count"`
-	CreatedAt    *timestamppb.Timestamp `json:"created_at"`
+	ID           uuid.UUID `json:"id"`
+	UserID       uuid.UUID `json:"user_id"`
+	CredentialID []byte    `json:"credential_id"`
+	PublicKey    []byte    `json:"public_key"`
+	SignCount    int64     `json:"sign_count"`
+	CreatedAt    time.Time `json:"created_at"`
 }

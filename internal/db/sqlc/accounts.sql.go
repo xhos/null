@@ -7,13 +7,13 @@ package sqlcdb
 
 import (
 	"context"
+	"time"
 
-	arian "ariand/gen/go/arian/v1"
+	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/money"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const checkUserAccountAccess = `-- name: CheckUserAccountAccess :one
@@ -160,18 +160,18 @@ type GetAccountForUserParams struct {
 }
 
 type GetAccountForUserRow struct {
-	ID             int64                  `json:"id"`
-	OwnerID        uuid.UUID              `json:"owner_id"`
-	Name           string                 `json:"name"`
-	Bank           string                 `json:"bank"`
-	AccountType    arian.AccountType      `json:"account_type"`
-	Alias          *string                `json:"alias"`
-	AnchorDate     *date.Date             `json:"anchor_date"`
-	AnchorBalance  *money.Money           `json:"anchor_balance"`
-	AnchorCurrency string                 `json:"anchor_currency"`
-	CreatedAt      *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt      *timestamppb.Timestamp `json:"updated_at"`
-	IsOwner        bool                   `json:"is_owner"`
+	ID             int64             `json:"id"`
+	OwnerID        uuid.UUID         `json:"owner_id"`
+	Name           string            `json:"name"`
+	Bank           string            `json:"bank"`
+	AccountType    arian.AccountType `json:"account_type"`
+	Alias          *string           `json:"alias"`
+	AnchorDate     *date.Date        `json:"anchor_date"`
+	AnchorBalance  *money.Money      `json:"anchor_balance"`
+	AnchorCurrency string            `json:"anchor_currency"`
+	CreatedAt      time.Time         `json:"created_at"`
+	UpdatedAt      time.Time         `json:"updated_at"`
+	IsOwner        bool              `json:"is_owner"`
 }
 
 func (q *Queries) GetAccountForUser(ctx context.Context, arg GetAccountForUserParams) (GetAccountForUserRow, error) {
@@ -220,18 +220,18 @@ ORDER BY is_owner DESC, a.created_at
 `
 
 type ListAccountsForUserRow struct {
-	ID             int64                  `json:"id"`
-	OwnerID        uuid.UUID              `json:"owner_id"`
-	Name           string                 `json:"name"`
-	Bank           string                 `json:"bank"`
-	AccountType    arian.AccountType      `json:"account_type"`
-	Alias          *string                `json:"alias"`
-	AnchorDate     *date.Date             `json:"anchor_date"`
-	AnchorBalance  *money.Money           `json:"anchor_balance"`
-	AnchorCurrency string                 `json:"anchor_currency"`
-	CreatedAt      *timestamppb.Timestamp `json:"created_at"`
-	UpdatedAt      *timestamppb.Timestamp `json:"updated_at"`
-	IsOwner        bool                   `json:"is_owner"`
+	ID             int64             `json:"id"`
+	OwnerID        uuid.UUID         `json:"owner_id"`
+	Name           string            `json:"name"`
+	Bank           string            `json:"bank"`
+	AccountType    arian.AccountType `json:"account_type"`
+	Alias          *string           `json:"alias"`
+	AnchorDate     *date.Date        `json:"anchor_date"`
+	AnchorBalance  *money.Money      `json:"anchor_balance"`
+	AnchorCurrency string            `json:"anchor_currency"`
+	CreatedAt      time.Time         `json:"created_at"`
+	UpdatedAt      time.Time         `json:"updated_at"`
+	IsOwner        bool              `json:"is_owner"`
 }
 
 func (q *Queries) ListAccountsForUser(ctx context.Context, userID uuid.UUID) ([]ListAccountsForUserRow, error) {

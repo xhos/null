@@ -7,9 +7,9 @@ package sqlcdb
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const addAccountCollaborator = `-- name: AddAccountCollaborator :one
@@ -106,10 +106,10 @@ type ListAccountCollaboratorsParams struct {
 }
 
 type ListAccountCollaboratorsRow struct {
-	ID          uuid.UUID              `json:"id"`
-	Email       string                 `json:"email"`
-	DisplayName *string                `json:"display_name"`
-	AddedAt     *timestamppb.Timestamp `json:"added_at"`
+	ID          uuid.UUID `json:"id"`
+	Email       string    `json:"email"`
+	DisplayName *string   `json:"display_name"`
+	AddedAt     time.Time `json:"added_at"`
 }
 
 func (q *Queries) ListAccountCollaborators(ctx context.Context, arg ListAccountCollaboratorsParams) ([]ListAccountCollaboratorsRow, error) {
@@ -153,12 +153,12 @@ ORDER BY au.added_at DESC
 `
 
 type ListUserCollaborationsRow struct {
-	AccountID   int64                  `json:"account_id"`
-	AccountName string                 `json:"account_name"`
-	Bank        string                 `json:"bank"`
-	AddedAt     *timestamppb.Timestamp `json:"added_at"`
-	OwnerEmail  string                 `json:"owner_email"`
-	OwnerName   *string                `json:"owner_name"`
+	AccountID   int64     `json:"account_id"`
+	AccountName string    `json:"account_name"`
+	Bank        string    `json:"bank"`
+	AddedAt     time.Time `json:"added_at"`
+	OwnerEmail  string    `json:"owner_email"`
+	OwnerName   *string   `json:"owner_name"`
 }
 
 func (q *Queries) ListUserCollaborations(ctx context.Context, userID uuid.UUID) ([]ListUserCollaborationsRow, error) {

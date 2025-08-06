@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: arian/v1/category_services.proto
 
-package ariandv1
+package arianv1
 
 import (
 	context "context"

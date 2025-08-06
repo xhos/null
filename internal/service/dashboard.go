@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AccountSummary struct {
@@ -147,19 +146,11 @@ func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accou
 		}
 	}
 
-	var startTs, endTs *timestamppb.Timestamp
-	if start != nil {
-		startTs = timestamppb.New(*start)
-	}
-	if end != nil {
-		endTs = timestamppb.New(*end)
-	}
-
 	summaryParams := sqlc.GetDashboardSummaryForAccountParams{
 		UserID:    userID,
 		AccountID: accountID,
-		Start:     startTs,
-		End:       endTs,
+		Start:     start,
+		End:       end,
 	}
 	summary, err := s.queries.GetDashboardSummaryForAccount(ctx, summaryParams)
 	if err != nil {
@@ -169,8 +160,8 @@ func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accou
 	trendsParams := sqlc.GetDashboardTrendsForAccountParams{
 		UserID:    userID,
 		AccountID: accountID,
-		Start:     startTs,
-		End:       endTs,
+		Start:     start,
+		End:       end,
 	}
 	trends, err := s.queries.GetDashboardTrendsForAccount(ctx, trendsParams)
 	if err != nil {
@@ -192,18 +183,10 @@ func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, start
 		end = &parsed
 	}
 
-	var startTs, endTs *timestamppb.Timestamp
-	if start != nil {
-		startTs = timestamppb.New(*start)
-	}
-	if end != nil {
-		endTs = timestamppb.New(*end)
-	}
-
 	params := sqlc.GetDashboardTrendsForUserParams{
 		UserID: userID,
-		Start:  startTs,
-		End:    endTs,
+		Start:  start,
+		End:    end,
 	}
 
 	return s.TrendsForUser(ctx, params)
