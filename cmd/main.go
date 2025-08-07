@@ -8,6 +8,7 @@ import (
 	grpcServer "ariand/internal/grpc"
 	"ariand/internal/grpc/interceptors"
 	"ariand/internal/service"
+	"ariand/internal/version"
 	"context"
 	"net"
 	"os"
@@ -33,6 +34,8 @@ func main() {
 		Prefix: "ariand",
 		Level:  level,
 	})
+
+	logger.Info("starting ariand", "version", version.FullVersion())
 
 	// --- database ---
 	store, err := db.New(cfg.DatabaseURL)

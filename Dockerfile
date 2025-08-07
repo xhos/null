@@ -9,7 +9,15 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /app/ariand ./cmd/main.go
+ARG BUILD_TIME
+ARG GIT_COMMIT
+ARG GIT_BRANCH
+
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w \
+    -X 'ariand/internal/version.BuildTime=${BUILD_TIME}' \
+    -X 'ariand/internal/version.GitCommit=${GIT_COMMIT}' \
+    -X 'ariand/internal/version.GitBranch=${GIT_BRANCH}'" \
+    -o /app/ariand ./cmd/main.go
 
 FROM alpine:latest
 
