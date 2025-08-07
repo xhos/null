@@ -18,6 +18,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -65,15 +66,15 @@ func main() {
 			return
 		}
 
-		// Setup interceptors
+		// setup interceptors
 		unaryInterceptor, streamInterceptor := interceptors.SetupInterceptors(interceptors.InterceptorConfig{
 			Logger:            logger.WithPrefix("grpc"),
 			APIKey:            cfg.APIKey,
 			EnableAuth:        true,
 			EnableRateLimit:   true,
-			RateLimitRPS:      1.0,        // 1 request per second for unauthenticated requests
-			RateLimitCapacity: 5,          // burst capacity
-			PublicMethods:     []string{}, // Add health check or other public methods here if needed
+			RateLimitRPS:      1.0,                                      // 1 request per second for unauthenticated requests
+			RateLimitCapacity: 5,                                        // burst capacity
+			PublicMethods:     []string{"/grpc.health.v1.Health/Check"}, // health check doesn't need auth
 		})
 
 		s := grpc.NewServer(
@@ -83,6 +84,8 @@ func main() {
 		grpcSrv := grpcServer.NewServer(services, logger.WithPrefix("grpc"))
 		grpcSrv.RegisterServices(s)
 		reflection.Register(s)
+
+		grpcSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 		logger.Info("gRPC server is listening", "addr", lis.Addr().String())
 		serverErrors <- s.Serve(lis)
