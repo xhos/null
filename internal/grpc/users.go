@@ -88,3 +88,19 @@ func (s *Server) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb
 
 	return &pb.DeleteUserResponse{}, nil
 }
+
+func (s *Server) SetUserDefaultAccount(ctx context.Context, req *pb.SetUserDefaultAccountRequest) (*pb.SetUserDefaultAccountResponse, error) {
+	params, err := setUserDefaultAccountParamsFromProto(req)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.services.Users.SetDefaultAccount(ctx, params)
+	if err != nil {
+		return nil, handleError(err)
+	}
+
+	return &pb.SetUserDefaultAccountResponse{
+		User: toProtoUser(user),
+	}, nil
+}

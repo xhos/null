@@ -24,6 +24,7 @@ const (
 	UserService_CreateUser_FullMethodName            = "/arian.v1.UserService/CreateUser"
 	UserService_UpdateUser_FullMethodName            = "/arian.v1.UserService/UpdateUser"
 	UserService_UpdateUserDisplayName_FullMethodName = "/arian.v1.UserService/UpdateUserDisplayName"
+	UserService_SetUserDefaultAccount_FullMethodName = "/arian.v1.UserService/SetUserDefaultAccount"
 	UserService_DeleteUser_FullMethodName            = "/arian.v1.UserService/DeleteUser"
 	UserService_ListUsers_FullMethodName             = "/arian.v1.UserService/ListUsers"
 	UserService_CheckUserExists_FullMethodName       = "/arian.v1.UserService/CheckUserExists"
@@ -40,6 +41,7 @@ type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	UpdateUserDisplayName(ctx context.Context, in *UpdateUserDisplayNameRequest, opts ...grpc.CallOption) (*UpdateUserDisplayNameResponse, error)
+	SetUserDefaultAccount(ctx context.Context, in *SetUserDefaultAccountRequest, opts ...grpc.CallOption) (*SetUserDefaultAccountResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	CheckUserExists(ctx context.Context, in *CheckUserExistsRequest, opts ...grpc.CallOption) (*CheckUserExistsResponse, error)
@@ -103,6 +105,16 @@ func (c *userServiceClient) UpdateUserDisplayName(ctx context.Context, in *Updat
 	return out, nil
 }
 
+func (c *userServiceClient) SetUserDefaultAccount(ctx context.Context, in *SetUserDefaultAccountRequest, opts ...grpc.CallOption) (*SetUserDefaultAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetUserDefaultAccountResponse)
+	err := c.cc.Invoke(ctx, UserService_SetUserDefaultAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteUserResponse)
@@ -144,6 +156,7 @@ type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	UpdateUserDisplayName(context.Context, *UpdateUserDisplayNameRequest) (*UpdateUserDisplayNameResponse, error)
+	SetUserDefaultAccount(context.Context, *SetUserDefaultAccountRequest) (*SetUserDefaultAccountResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	CheckUserExists(context.Context, *CheckUserExistsRequest) (*CheckUserExistsResponse, error)
@@ -170,6 +183,9 @@ func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserReq
 }
 func (UnimplementedUserServiceServer) UpdateUserDisplayName(context.Context, *UpdateUserDisplayNameRequest) (*UpdateUserDisplayNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserDisplayName not implemented")
+}
+func (UnimplementedUserServiceServer) SetUserDefaultAccount(context.Context, *SetUserDefaultAccountRequest) (*SetUserDefaultAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetUserDefaultAccount not implemented")
 }
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
@@ -290,6 +306,24 @@ func _UserService_UpdateUserDisplayName_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_SetUserDefaultAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetUserDefaultAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SetUserDefaultAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SetUserDefaultAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SetUserDefaultAccount(ctx, req.(*SetUserDefaultAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserRequest)
 	if err := dec(in); err != nil {
@@ -370,6 +404,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserDisplayName",
 			Handler:    _UserService_UpdateUserDisplayName_Handler,
+		},
+		{
+			MethodName: "SetUserDefaultAccount",
+			Handler:    _UserService_SetUserDefaultAccount_Handler,
 		},
 		{
 			MethodName: "DeleteUser",

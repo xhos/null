@@ -294,12 +294,13 @@ func (x *CreateUserResponse) GetUser() *User {
 }
 
 type UpdateUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
-	Email         *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
-	DisplayName   *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Email            *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	DisplayName      *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	DefaultAccountId *int64                 `protobuf:"varint,4,opt,name=default_account_id,json=defaultAccountId,proto3,oneof" json:"default_account_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UpdateUserRequest) Reset() {
@@ -351,6 +352,13 @@ func (x *UpdateUserRequest) GetDisplayName() string {
 		return *x.DisplayName
 	}
 	return ""
+}
+
+func (x *UpdateUserRequest) GetDefaultAccountId() int64 {
+	if x != nil && x.DefaultAccountId != nil {
+		return *x.DefaultAccountId
+	}
+	return 0
 }
 
 type UpdateUserResponse struct {
@@ -957,6 +965,102 @@ func (x *UpdateUserDisplayNameResponse) GetUser() *User {
 	return nil
 }
 
+type SetUserDefaultAccountRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	DefaultAccountId int64                  `protobuf:"varint,2,opt,name=default_account_id,json=defaultAccountId,proto3" json:"default_account_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SetUserDefaultAccountRequest) Reset() {
+	*x = SetUserDefaultAccountRequest{}
+	mi := &file_arian_v1_user_services_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetUserDefaultAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetUserDefaultAccountRequest) ProtoMessage() {}
+
+func (x *SetUserDefaultAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_user_services_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetUserDefaultAccountRequest.ProtoReflect.Descriptor instead.
+func (*SetUserDefaultAccountRequest) Descriptor() ([]byte, []int) {
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *SetUserDefaultAccountRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetUserDefaultAccountRequest) GetDefaultAccountId() int64 {
+	if x != nil {
+		return x.DefaultAccountId
+	}
+	return 0
+}
+
+type SetUserDefaultAccountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetUserDefaultAccountResponse) Reset() {
+	*x = SetUserDefaultAccountResponse{}
+	mi := &file_arian_v1_user_services_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetUserDefaultAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetUserDefaultAccountResponse) ProtoMessage() {}
+
+func (x *SetUserDefaultAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_user_services_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetUserDefaultAccountResponse.ProtoReflect.Descriptor instead.
+func (*SetUserDefaultAccountResponse) Descriptor() ([]byte, []int) {
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *SetUserDefaultAccountResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 type ListUsersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Limit         *int32                 `protobuf:"varint,1,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
@@ -967,7 +1071,7 @@ type ListUsersRequest struct {
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[20]
+	mi := &file_arian_v1_user_services_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -979,7 +1083,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[20]
+	mi := &file_arian_v1_user_services_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -992,7 +1096,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{20}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListUsersRequest) GetLimit() int32 {
@@ -1019,7 +1123,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[21]
+	mi := &file_arian_v1_user_services_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1031,7 +1135,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[21]
+	mi := &file_arian_v1_user_services_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,7 +1148,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{21}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListUsersResponse) GetUsers() []*User {
@@ -1070,7 +1174,7 @@ type CheckUserExistsRequest struct {
 
 func (x *CheckUserExistsRequest) Reset() {
 	*x = CheckUserExistsRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[22]
+	mi := &file_arian_v1_user_services_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1082,7 +1186,7 @@ func (x *CheckUserExistsRequest) String() string {
 func (*CheckUserExistsRequest) ProtoMessage() {}
 
 func (x *CheckUserExistsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[22]
+	mi := &file_arian_v1_user_services_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1095,7 +1199,7 @@ func (x *CheckUserExistsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckUserExistsRequest.ProtoReflect.Descriptor instead.
 func (*CheckUserExistsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{22}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CheckUserExistsRequest) GetId() string {
@@ -1114,7 +1218,7 @@ type CheckUserExistsResponse struct {
 
 func (x *CheckUserExistsResponse) Reset() {
 	*x = CheckUserExistsResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[23]
+	mi := &file_arian_v1_user_services_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1230,7 @@ func (x *CheckUserExistsResponse) String() string {
 func (*CheckUserExistsResponse) ProtoMessage() {}
 
 func (x *CheckUserExistsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[23]
+	mi := &file_arian_v1_user_services_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1243,7 @@ func (x *CheckUserExistsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckUserExistsResponse.ProtoReflect.Descriptor instead.
 func (*CheckUserExistsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{23}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CheckUserExistsResponse) GetExists() bool {
@@ -1158,7 +1262,7 @@ type GetCredentialByCredentialIDRequest struct {
 
 func (x *GetCredentialByCredentialIDRequest) Reset() {
 	*x = GetCredentialByCredentialIDRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[24]
+	mi := &file_arian_v1_user_services_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1170,7 +1274,7 @@ func (x *GetCredentialByCredentialIDRequest) String() string {
 func (*GetCredentialByCredentialIDRequest) ProtoMessage() {}
 
 func (x *GetCredentialByCredentialIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[24]
+	mi := &file_arian_v1_user_services_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1183,7 +1287,7 @@ func (x *GetCredentialByCredentialIDRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetCredentialByCredentialIDRequest.ProtoReflect.Descriptor instead.
 func (*GetCredentialByCredentialIDRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{24}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetCredentialByCredentialIDRequest) GetCredentialId() []byte {
@@ -1202,7 +1306,7 @@ type GetCredentialByCredentialIDResponse struct {
 
 func (x *GetCredentialByCredentialIDResponse) Reset() {
 	*x = GetCredentialByCredentialIDResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[25]
+	mi := &file_arian_v1_user_services_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1214,7 +1318,7 @@ func (x *GetCredentialByCredentialIDResponse) String() string {
 func (*GetCredentialByCredentialIDResponse) ProtoMessage() {}
 
 func (x *GetCredentialByCredentialIDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[25]
+	mi := &file_arian_v1_user_services_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1331,7 @@ func (x *GetCredentialByCredentialIDResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetCredentialByCredentialIDResponse.ProtoReflect.Descriptor instead.
 func (*GetCredentialByCredentialIDResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{25}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetCredentialByCredentialIDResponse) GetCredential() *UserCredential {
@@ -1247,7 +1351,7 @@ type GetCredentialForUserRequest struct {
 
 func (x *GetCredentialForUserRequest) Reset() {
 	*x = GetCredentialForUserRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[26]
+	mi := &file_arian_v1_user_services_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1259,7 +1363,7 @@ func (x *GetCredentialForUserRequest) String() string {
 func (*GetCredentialForUserRequest) ProtoMessage() {}
 
 func (x *GetCredentialForUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[26]
+	mi := &file_arian_v1_user_services_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1272,7 +1376,7 @@ func (x *GetCredentialForUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCredentialForUserRequest.ProtoReflect.Descriptor instead.
 func (*GetCredentialForUserRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{26}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetCredentialForUserRequest) GetId() string {
@@ -1298,7 +1402,7 @@ type GetCredentialForUserResponse struct {
 
 func (x *GetCredentialForUserResponse) Reset() {
 	*x = GetCredentialForUserResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[27]
+	mi := &file_arian_v1_user_services_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1310,7 +1414,7 @@ func (x *GetCredentialForUserResponse) String() string {
 func (*GetCredentialForUserResponse) ProtoMessage() {}
 
 func (x *GetCredentialForUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[27]
+	mi := &file_arian_v1_user_services_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1323,7 +1427,7 @@ func (x *GetCredentialForUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCredentialForUserResponse.ProtoReflect.Descriptor instead.
 func (*GetCredentialForUserResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{27}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetCredentialForUserResponse) GetCredential() *UserCredential {
@@ -1343,7 +1447,7 @@ type UpdateCredentialSignCountByCredentialIDRequest struct {
 
 func (x *UpdateCredentialSignCountByCredentialIDRequest) Reset() {
 	*x = UpdateCredentialSignCountByCredentialIDRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[28]
+	mi := &file_arian_v1_user_services_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1355,7 +1459,7 @@ func (x *UpdateCredentialSignCountByCredentialIDRequest) String() string {
 func (*UpdateCredentialSignCountByCredentialIDRequest) ProtoMessage() {}
 
 func (x *UpdateCredentialSignCountByCredentialIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[28]
+	mi := &file_arian_v1_user_services_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1368,7 +1472,7 @@ func (x *UpdateCredentialSignCountByCredentialIDRequest) ProtoReflect() protoref
 
 // Deprecated: Use UpdateCredentialSignCountByCredentialIDRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCredentialSignCountByCredentialIDRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{28}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateCredentialSignCountByCredentialIDRequest) GetCredentialId() []byte {
@@ -1393,7 +1497,7 @@ type UpdateCredentialSignCountByCredentialIDResponse struct {
 
 func (x *UpdateCredentialSignCountByCredentialIDResponse) Reset() {
 	*x = UpdateCredentialSignCountByCredentialIDResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[29]
+	mi := &file_arian_v1_user_services_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1405,7 +1509,7 @@ func (x *UpdateCredentialSignCountByCredentialIDResponse) String() string {
 func (*UpdateCredentialSignCountByCredentialIDResponse) ProtoMessage() {}
 
 func (x *UpdateCredentialSignCountByCredentialIDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[29]
+	mi := &file_arian_v1_user_services_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1418,7 +1522,7 @@ func (x *UpdateCredentialSignCountByCredentialIDResponse) ProtoReflect() protore
 
 // Deprecated: Use UpdateCredentialSignCountByCredentialIDResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCredentialSignCountByCredentialIDResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{29}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{31}
 }
 
 type DeleteAllCredentialsForUserRequest struct {
@@ -1430,7 +1534,7 @@ type DeleteAllCredentialsForUserRequest struct {
 
 func (x *DeleteAllCredentialsForUserRequest) Reset() {
 	*x = DeleteAllCredentialsForUserRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[30]
+	mi := &file_arian_v1_user_services_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1442,7 +1546,7 @@ func (x *DeleteAllCredentialsForUserRequest) String() string {
 func (*DeleteAllCredentialsForUserRequest) ProtoMessage() {}
 
 func (x *DeleteAllCredentialsForUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[30]
+	mi := &file_arian_v1_user_services_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1455,7 +1559,7 @@ func (x *DeleteAllCredentialsForUserRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DeleteAllCredentialsForUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAllCredentialsForUserRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{30}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DeleteAllCredentialsForUserRequest) GetUserId() string {
@@ -1474,7 +1578,7 @@ type DeleteAllCredentialsForUserResponse struct {
 
 func (x *DeleteAllCredentialsForUserResponse) Reset() {
 	*x = DeleteAllCredentialsForUserResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[31]
+	mi := &file_arian_v1_user_services_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1486,7 +1590,7 @@ func (x *DeleteAllCredentialsForUserResponse) String() string {
 func (*DeleteAllCredentialsForUserResponse) ProtoMessage() {}
 
 func (x *DeleteAllCredentialsForUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[31]
+	mi := &file_arian_v1_user_services_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1499,7 +1603,7 @@ func (x *DeleteAllCredentialsForUserResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DeleteAllCredentialsForUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAllCredentialsForUserResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{31}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DeleteAllCredentialsForUserResponse) GetAffectedRows() int64 {
@@ -1518,7 +1622,7 @@ type CountCredentialsForUserRequest struct {
 
 func (x *CountCredentialsForUserRequest) Reset() {
 	*x = CountCredentialsForUserRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[32]
+	mi := &file_arian_v1_user_services_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1530,7 +1634,7 @@ func (x *CountCredentialsForUserRequest) String() string {
 func (*CountCredentialsForUserRequest) ProtoMessage() {}
 
 func (x *CountCredentialsForUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[32]
+	mi := &file_arian_v1_user_services_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1543,7 +1647,7 @@ func (x *CountCredentialsForUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CountCredentialsForUserRequest.ProtoReflect.Descriptor instead.
 func (*CountCredentialsForUserRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{32}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *CountCredentialsForUserRequest) GetUserId() string {
@@ -1562,7 +1666,7 @@ type CountCredentialsForUserResponse struct {
 
 func (x *CountCredentialsForUserResponse) Reset() {
 	*x = CountCredentialsForUserResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[33]
+	mi := &file_arian_v1_user_services_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1574,7 +1678,7 @@ func (x *CountCredentialsForUserResponse) String() string {
 func (*CountCredentialsForUserResponse) ProtoMessage() {}
 
 func (x *CountCredentialsForUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[33]
+	mi := &file_arian_v1_user_services_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1587,7 +1691,7 @@ func (x *CountCredentialsForUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CountCredentialsForUserResponse.ProtoReflect.Descriptor instead.
 func (*CountCredentialsForUserResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{33}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CountCredentialsForUserResponse) GetCount() int64 {
@@ -1606,7 +1710,7 @@ type CheckCredentialExistsRequest struct {
 
 func (x *CheckCredentialExistsRequest) Reset() {
 	*x = CheckCredentialExistsRequest{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[34]
+	mi := &file_arian_v1_user_services_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1618,7 +1722,7 @@ func (x *CheckCredentialExistsRequest) String() string {
 func (*CheckCredentialExistsRequest) ProtoMessage() {}
 
 func (x *CheckCredentialExistsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[34]
+	mi := &file_arian_v1_user_services_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1631,7 +1735,7 @@ func (x *CheckCredentialExistsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckCredentialExistsRequest.ProtoReflect.Descriptor instead.
 func (*CheckCredentialExistsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{34}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *CheckCredentialExistsRequest) GetCredentialId() []byte {
@@ -1650,7 +1754,7 @@ type CheckCredentialExistsResponse struct {
 
 func (x *CheckCredentialExistsResponse) Reset() {
 	*x = CheckCredentialExistsResponse{}
-	mi := &file_arian_v1_user_services_proto_msgTypes[35]
+	mi := &file_arian_v1_user_services_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1662,7 +1766,7 @@ func (x *CheckCredentialExistsResponse) String() string {
 func (*CheckCredentialExistsResponse) ProtoMessage() {}
 
 func (x *CheckCredentialExistsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_user_services_proto_msgTypes[35]
+	mi := &file_arian_v1_user_services_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1675,7 +1779,7 @@ func (x *CheckCredentialExistsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckCredentialExistsResponse.ProtoReflect.Descriptor instead.
 func (*CheckCredentialExistsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{35}
+	return file_arian_v1_user_services_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *CheckCredentialExistsResponse) GetExists() bool {
@@ -1703,13 +1807,15 @@ const file_arian_v1_user_services_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01B\x0f\n" +
 	"\r_display_name\"8\n" +
 	"\x12CreateUserResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\x81\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\xcb\x01\n" +
 	"\x11UpdateUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12&\n" +
-	"\fdisplay_name\x18\x03 \x01(\tH\x01R\vdisplayName\x88\x01\x01B\b\n" +
+	"\fdisplay_name\x18\x03 \x01(\tH\x01R\vdisplayName\x88\x01\x01\x121\n" +
+	"\x12default_account_id\x18\x04 \x01(\x03H\x02R\x10defaultAccountId\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0f\n" +
-	"\r_display_name\"8\n" +
+	"\r_display_nameB\x15\n" +
+	"\x13_default_account_id\"8\n" +
 	"\x12UpdateUserResponse\x12\"\n" +
 	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
@@ -1745,6 +1851,11 @@ const file_arian_v1_user_services_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"C\n" +
 	"\x1dUpdateUserDisplayNameResponse\x12\"\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\\\n" +
+	"\x1cSetUserDefaultAccountRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
+	"\x12default_account_id\x18\x02 \x01(\x03R\x10defaultAccountId\"C\n" +
+	"\x1dSetUserDefaultAccountResponse\x12\"\n" +
 	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"_\n" +
 	"\x10ListUsersRequest\x12\x19\n" +
 	"\x05limit\x18\x01 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12\x1b\n" +
@@ -1788,7 +1899,7 @@ const file_arian_v1_user_services_proto_rawDesc = "" +
 	"\x1cCheckCredentialExistsRequest\x12#\n" +
 	"\rcredential_id\x18\x01 \x01(\fR\fcredentialId\"7\n" +
 	"\x1dCheckCredentialExistsResponse\x12\x16\n" +
-	"\x06exists\x18\x01 \x01(\bR\x06exists2\x85\x05\n" +
+	"\x06exists\x18\x01 \x01(\bR\x06exists2\xef\x05\n" +
 	"\vUserService\x12>\n" +
 	"\aGetUser\x12\x18.arian.v1.GetUserRequest\x1a\x19.arian.v1.GetUserResponse\x12S\n" +
 	"\x0eGetUserByEmail\x12\x1f.arian.v1.GetUserByEmailRequest\x1a .arian.v1.GetUserByEmailResponse\x12G\n" +
@@ -1796,7 +1907,8 @@ const file_arian_v1_user_services_proto_rawDesc = "" +
 	"CreateUser\x12\x1b.arian.v1.CreateUserRequest\x1a\x1c.arian.v1.CreateUserResponse\x12G\n" +
 	"\n" +
 	"UpdateUser\x12\x1b.arian.v1.UpdateUserRequest\x1a\x1c.arian.v1.UpdateUserResponse\x12h\n" +
-	"\x15UpdateUserDisplayName\x12&.arian.v1.UpdateUserDisplayNameRequest\x1a'.arian.v1.UpdateUserDisplayNameResponse\x12G\n" +
+	"\x15UpdateUserDisplayName\x12&.arian.v1.UpdateUserDisplayNameRequest\x1a'.arian.v1.UpdateUserDisplayNameResponse\x12h\n" +
+	"\x15SetUserDefaultAccount\x12&.arian.v1.SetUserDefaultAccountRequest\x1a'.arian.v1.SetUserDefaultAccountResponse\x12G\n" +
 	"\n" +
 	"DeleteUser\x12\x1b.arian.v1.DeleteUserRequest\x1a\x1c.arian.v1.DeleteUserResponse\x12D\n" +
 	"\tListUsers\x12\x1a.arian.v1.ListUsersRequest\x1a\x1b.arian.v1.ListUsersResponse\x12V\n" +
@@ -1826,7 +1938,7 @@ func file_arian_v1_user_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_user_services_proto_rawDescData
 }
 
-var file_arian_v1_user_services_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_arian_v1_user_services_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
 var file_arian_v1_user_services_proto_goTypes = []any{
 	(*GetUserRequest)(nil),                                  // 0: arian.v1.GetUserRequest
 	(*GetUserResponse)(nil),                                 // 1: arian.v1.GetUserResponse
@@ -1848,78 +1960,83 @@ var file_arian_v1_user_services_proto_goTypes = []any{
 	(*DeleteCredentialResponse)(nil),                        // 17: arian.v1.DeleteCredentialResponse
 	(*UpdateUserDisplayNameRequest)(nil),                    // 18: arian.v1.UpdateUserDisplayNameRequest
 	(*UpdateUserDisplayNameResponse)(nil),                   // 19: arian.v1.UpdateUserDisplayNameResponse
-	(*ListUsersRequest)(nil),                                // 20: arian.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),                               // 21: arian.v1.ListUsersResponse
-	(*CheckUserExistsRequest)(nil),                          // 22: arian.v1.CheckUserExistsRequest
-	(*CheckUserExistsResponse)(nil),                         // 23: arian.v1.CheckUserExistsResponse
-	(*GetCredentialByCredentialIDRequest)(nil),              // 24: arian.v1.GetCredentialByCredentialIDRequest
-	(*GetCredentialByCredentialIDResponse)(nil),             // 25: arian.v1.GetCredentialByCredentialIDResponse
-	(*GetCredentialForUserRequest)(nil),                     // 26: arian.v1.GetCredentialForUserRequest
-	(*GetCredentialForUserResponse)(nil),                    // 27: arian.v1.GetCredentialForUserResponse
-	(*UpdateCredentialSignCountByCredentialIDRequest)(nil),  // 28: arian.v1.UpdateCredentialSignCountByCredentialIDRequest
-	(*UpdateCredentialSignCountByCredentialIDResponse)(nil), // 29: arian.v1.UpdateCredentialSignCountByCredentialIDResponse
-	(*DeleteAllCredentialsForUserRequest)(nil),              // 30: arian.v1.DeleteAllCredentialsForUserRequest
-	(*DeleteAllCredentialsForUserResponse)(nil),             // 31: arian.v1.DeleteAllCredentialsForUserResponse
-	(*CountCredentialsForUserRequest)(nil),                  // 32: arian.v1.CountCredentialsForUserRequest
-	(*CountCredentialsForUserResponse)(nil),                 // 33: arian.v1.CountCredentialsForUserResponse
-	(*CheckCredentialExistsRequest)(nil),                    // 34: arian.v1.CheckCredentialExistsRequest
-	(*CheckCredentialExistsResponse)(nil),                   // 35: arian.v1.CheckCredentialExistsResponse
-	(*User)(nil),                                            // 36: arian.v1.User
-	(*UserCredential)(nil),                                  // 37: arian.v1.UserCredential
+	(*SetUserDefaultAccountRequest)(nil),                    // 20: arian.v1.SetUserDefaultAccountRequest
+	(*SetUserDefaultAccountResponse)(nil),                   // 21: arian.v1.SetUserDefaultAccountResponse
+	(*ListUsersRequest)(nil),                                // 22: arian.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                               // 23: arian.v1.ListUsersResponse
+	(*CheckUserExistsRequest)(nil),                          // 24: arian.v1.CheckUserExistsRequest
+	(*CheckUserExistsResponse)(nil),                         // 25: arian.v1.CheckUserExistsResponse
+	(*GetCredentialByCredentialIDRequest)(nil),              // 26: arian.v1.GetCredentialByCredentialIDRequest
+	(*GetCredentialByCredentialIDResponse)(nil),             // 27: arian.v1.GetCredentialByCredentialIDResponse
+	(*GetCredentialForUserRequest)(nil),                     // 28: arian.v1.GetCredentialForUserRequest
+	(*GetCredentialForUserResponse)(nil),                    // 29: arian.v1.GetCredentialForUserResponse
+	(*UpdateCredentialSignCountByCredentialIDRequest)(nil),  // 30: arian.v1.UpdateCredentialSignCountByCredentialIDRequest
+	(*UpdateCredentialSignCountByCredentialIDResponse)(nil), // 31: arian.v1.UpdateCredentialSignCountByCredentialIDResponse
+	(*DeleteAllCredentialsForUserRequest)(nil),              // 32: arian.v1.DeleteAllCredentialsForUserRequest
+	(*DeleteAllCredentialsForUserResponse)(nil),             // 33: arian.v1.DeleteAllCredentialsForUserResponse
+	(*CountCredentialsForUserRequest)(nil),                  // 34: arian.v1.CountCredentialsForUserRequest
+	(*CountCredentialsForUserResponse)(nil),                 // 35: arian.v1.CountCredentialsForUserResponse
+	(*CheckCredentialExistsRequest)(nil),                    // 36: arian.v1.CheckCredentialExistsRequest
+	(*CheckCredentialExistsResponse)(nil),                   // 37: arian.v1.CheckCredentialExistsResponse
+	(*User)(nil),                                            // 38: arian.v1.User
+	(*UserCredential)(nil),                                  // 39: arian.v1.UserCredential
 }
 var file_arian_v1_user_services_proto_depIdxs = []int32{
-	36, // 0: arian.v1.GetUserResponse.user:type_name -> arian.v1.User
-	36, // 1: arian.v1.GetUserByEmailResponse.user:type_name -> arian.v1.User
-	36, // 2: arian.v1.CreateUserResponse.user:type_name -> arian.v1.User
-	36, // 3: arian.v1.UpdateUserResponse.user:type_name -> arian.v1.User
-	37, // 4: arian.v1.ListCredentialsResponse.credentials:type_name -> arian.v1.UserCredential
-	37, // 5: arian.v1.GetCredentialResponse.credential:type_name -> arian.v1.UserCredential
-	37, // 6: arian.v1.CreateCredentialResponse.credential:type_name -> arian.v1.UserCredential
-	36, // 7: arian.v1.UpdateUserDisplayNameResponse.user:type_name -> arian.v1.User
-	36, // 8: arian.v1.ListUsersResponse.users:type_name -> arian.v1.User
-	37, // 9: arian.v1.GetCredentialByCredentialIDResponse.credential:type_name -> arian.v1.UserCredential
-	37, // 10: arian.v1.GetCredentialForUserResponse.credential:type_name -> arian.v1.UserCredential
-	0,  // 11: arian.v1.UserService.GetUser:input_type -> arian.v1.GetUserRequest
-	2,  // 12: arian.v1.UserService.GetUserByEmail:input_type -> arian.v1.GetUserByEmailRequest
-	4,  // 13: arian.v1.UserService.CreateUser:input_type -> arian.v1.CreateUserRequest
-	6,  // 14: arian.v1.UserService.UpdateUser:input_type -> arian.v1.UpdateUserRequest
-	18, // 15: arian.v1.UserService.UpdateUserDisplayName:input_type -> arian.v1.UpdateUserDisplayNameRequest
-	8,  // 16: arian.v1.UserService.DeleteUser:input_type -> arian.v1.DeleteUserRequest
-	20, // 17: arian.v1.UserService.ListUsers:input_type -> arian.v1.ListUsersRequest
-	22, // 18: arian.v1.UserService.CheckUserExists:input_type -> arian.v1.CheckUserExistsRequest
-	10, // 19: arian.v1.CredentialService.ListCredentials:input_type -> arian.v1.ListCredentialsRequest
-	12, // 20: arian.v1.CredentialService.GetCredential:input_type -> arian.v1.GetCredentialRequest
-	24, // 21: arian.v1.CredentialService.GetCredentialByCredentialID:input_type -> arian.v1.GetCredentialByCredentialIDRequest
-	26, // 22: arian.v1.CredentialService.GetCredentialForUser:input_type -> arian.v1.GetCredentialForUserRequest
-	14, // 23: arian.v1.CredentialService.CreateCredential:input_type -> arian.v1.CreateCredentialRequest
-	28, // 24: arian.v1.CredentialService.UpdateCredentialSignCountByCredentialID:input_type -> arian.v1.UpdateCredentialSignCountByCredentialIDRequest
-	16, // 25: arian.v1.CredentialService.DeleteCredential:input_type -> arian.v1.DeleteCredentialRequest
-	30, // 26: arian.v1.CredentialService.DeleteAllCredentialsForUser:input_type -> arian.v1.DeleteAllCredentialsForUserRequest
-	32, // 27: arian.v1.CredentialService.CountCredentialsForUser:input_type -> arian.v1.CountCredentialsForUserRequest
-	34, // 28: arian.v1.CredentialService.CheckCredentialExists:input_type -> arian.v1.CheckCredentialExistsRequest
-	1,  // 29: arian.v1.UserService.GetUser:output_type -> arian.v1.GetUserResponse
-	3,  // 30: arian.v1.UserService.GetUserByEmail:output_type -> arian.v1.GetUserByEmailResponse
-	5,  // 31: arian.v1.UserService.CreateUser:output_type -> arian.v1.CreateUserResponse
-	7,  // 32: arian.v1.UserService.UpdateUser:output_type -> arian.v1.UpdateUserResponse
-	19, // 33: arian.v1.UserService.UpdateUserDisplayName:output_type -> arian.v1.UpdateUserDisplayNameResponse
-	9,  // 34: arian.v1.UserService.DeleteUser:output_type -> arian.v1.DeleteUserResponse
-	21, // 35: arian.v1.UserService.ListUsers:output_type -> arian.v1.ListUsersResponse
-	23, // 36: arian.v1.UserService.CheckUserExists:output_type -> arian.v1.CheckUserExistsResponse
-	11, // 37: arian.v1.CredentialService.ListCredentials:output_type -> arian.v1.ListCredentialsResponse
-	13, // 38: arian.v1.CredentialService.GetCredential:output_type -> arian.v1.GetCredentialResponse
-	25, // 39: arian.v1.CredentialService.GetCredentialByCredentialID:output_type -> arian.v1.GetCredentialByCredentialIDResponse
-	27, // 40: arian.v1.CredentialService.GetCredentialForUser:output_type -> arian.v1.GetCredentialForUserResponse
-	15, // 41: arian.v1.CredentialService.CreateCredential:output_type -> arian.v1.CreateCredentialResponse
-	29, // 42: arian.v1.CredentialService.UpdateCredentialSignCountByCredentialID:output_type -> arian.v1.UpdateCredentialSignCountByCredentialIDResponse
-	17, // 43: arian.v1.CredentialService.DeleteCredential:output_type -> arian.v1.DeleteCredentialResponse
-	31, // 44: arian.v1.CredentialService.DeleteAllCredentialsForUser:output_type -> arian.v1.DeleteAllCredentialsForUserResponse
-	33, // 45: arian.v1.CredentialService.CountCredentialsForUser:output_type -> arian.v1.CountCredentialsForUserResponse
-	35, // 46: arian.v1.CredentialService.CheckCredentialExists:output_type -> arian.v1.CheckCredentialExistsResponse
-	29, // [29:47] is the sub-list for method output_type
-	11, // [11:29] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	38, // 0: arian.v1.GetUserResponse.user:type_name -> arian.v1.User
+	38, // 1: arian.v1.GetUserByEmailResponse.user:type_name -> arian.v1.User
+	38, // 2: arian.v1.CreateUserResponse.user:type_name -> arian.v1.User
+	38, // 3: arian.v1.UpdateUserResponse.user:type_name -> arian.v1.User
+	39, // 4: arian.v1.ListCredentialsResponse.credentials:type_name -> arian.v1.UserCredential
+	39, // 5: arian.v1.GetCredentialResponse.credential:type_name -> arian.v1.UserCredential
+	39, // 6: arian.v1.CreateCredentialResponse.credential:type_name -> arian.v1.UserCredential
+	38, // 7: arian.v1.UpdateUserDisplayNameResponse.user:type_name -> arian.v1.User
+	38, // 8: arian.v1.SetUserDefaultAccountResponse.user:type_name -> arian.v1.User
+	38, // 9: arian.v1.ListUsersResponse.users:type_name -> arian.v1.User
+	39, // 10: arian.v1.GetCredentialByCredentialIDResponse.credential:type_name -> arian.v1.UserCredential
+	39, // 11: arian.v1.GetCredentialForUserResponse.credential:type_name -> arian.v1.UserCredential
+	0,  // 12: arian.v1.UserService.GetUser:input_type -> arian.v1.GetUserRequest
+	2,  // 13: arian.v1.UserService.GetUserByEmail:input_type -> arian.v1.GetUserByEmailRequest
+	4,  // 14: arian.v1.UserService.CreateUser:input_type -> arian.v1.CreateUserRequest
+	6,  // 15: arian.v1.UserService.UpdateUser:input_type -> arian.v1.UpdateUserRequest
+	18, // 16: arian.v1.UserService.UpdateUserDisplayName:input_type -> arian.v1.UpdateUserDisplayNameRequest
+	20, // 17: arian.v1.UserService.SetUserDefaultAccount:input_type -> arian.v1.SetUserDefaultAccountRequest
+	8,  // 18: arian.v1.UserService.DeleteUser:input_type -> arian.v1.DeleteUserRequest
+	22, // 19: arian.v1.UserService.ListUsers:input_type -> arian.v1.ListUsersRequest
+	24, // 20: arian.v1.UserService.CheckUserExists:input_type -> arian.v1.CheckUserExistsRequest
+	10, // 21: arian.v1.CredentialService.ListCredentials:input_type -> arian.v1.ListCredentialsRequest
+	12, // 22: arian.v1.CredentialService.GetCredential:input_type -> arian.v1.GetCredentialRequest
+	26, // 23: arian.v1.CredentialService.GetCredentialByCredentialID:input_type -> arian.v1.GetCredentialByCredentialIDRequest
+	28, // 24: arian.v1.CredentialService.GetCredentialForUser:input_type -> arian.v1.GetCredentialForUserRequest
+	14, // 25: arian.v1.CredentialService.CreateCredential:input_type -> arian.v1.CreateCredentialRequest
+	30, // 26: arian.v1.CredentialService.UpdateCredentialSignCountByCredentialID:input_type -> arian.v1.UpdateCredentialSignCountByCredentialIDRequest
+	16, // 27: arian.v1.CredentialService.DeleteCredential:input_type -> arian.v1.DeleteCredentialRequest
+	32, // 28: arian.v1.CredentialService.DeleteAllCredentialsForUser:input_type -> arian.v1.DeleteAllCredentialsForUserRequest
+	34, // 29: arian.v1.CredentialService.CountCredentialsForUser:input_type -> arian.v1.CountCredentialsForUserRequest
+	36, // 30: arian.v1.CredentialService.CheckCredentialExists:input_type -> arian.v1.CheckCredentialExistsRequest
+	1,  // 31: arian.v1.UserService.GetUser:output_type -> arian.v1.GetUserResponse
+	3,  // 32: arian.v1.UserService.GetUserByEmail:output_type -> arian.v1.GetUserByEmailResponse
+	5,  // 33: arian.v1.UserService.CreateUser:output_type -> arian.v1.CreateUserResponse
+	7,  // 34: arian.v1.UserService.UpdateUser:output_type -> arian.v1.UpdateUserResponse
+	19, // 35: arian.v1.UserService.UpdateUserDisplayName:output_type -> arian.v1.UpdateUserDisplayNameResponse
+	21, // 36: arian.v1.UserService.SetUserDefaultAccount:output_type -> arian.v1.SetUserDefaultAccountResponse
+	9,  // 37: arian.v1.UserService.DeleteUser:output_type -> arian.v1.DeleteUserResponse
+	23, // 38: arian.v1.UserService.ListUsers:output_type -> arian.v1.ListUsersResponse
+	25, // 39: arian.v1.UserService.CheckUserExists:output_type -> arian.v1.CheckUserExistsResponse
+	11, // 40: arian.v1.CredentialService.ListCredentials:output_type -> arian.v1.ListCredentialsResponse
+	13, // 41: arian.v1.CredentialService.GetCredential:output_type -> arian.v1.GetCredentialResponse
+	27, // 42: arian.v1.CredentialService.GetCredentialByCredentialID:output_type -> arian.v1.GetCredentialByCredentialIDResponse
+	29, // 43: arian.v1.CredentialService.GetCredentialForUser:output_type -> arian.v1.GetCredentialForUserResponse
+	15, // 44: arian.v1.CredentialService.CreateCredential:output_type -> arian.v1.CreateCredentialResponse
+	31, // 45: arian.v1.CredentialService.UpdateCredentialSignCountByCredentialID:output_type -> arian.v1.UpdateCredentialSignCountByCredentialIDResponse
+	17, // 46: arian.v1.CredentialService.DeleteCredential:output_type -> arian.v1.DeleteCredentialResponse
+	33, // 47: arian.v1.CredentialService.DeleteAllCredentialsForUser:output_type -> arian.v1.DeleteAllCredentialsForUserResponse
+	35, // 48: arian.v1.CredentialService.CountCredentialsForUser:output_type -> arian.v1.CountCredentialsForUserResponse
+	37, // 49: arian.v1.CredentialService.CheckCredentialExists:output_type -> arian.v1.CheckCredentialExistsResponse
+	31, // [31:50] is the sub-list for method output_type
+	12, // [12:31] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_user_services_proto_init() }
@@ -1930,14 +2047,14 @@ func file_arian_v1_user_services_proto_init() {
 	file_arian_v1_user_proto_init()
 	file_arian_v1_user_services_proto_msgTypes[4].OneofWrappers = []any{}
 	file_arian_v1_user_services_proto_msgTypes[6].OneofWrappers = []any{}
-	file_arian_v1_user_services_proto_msgTypes[20].OneofWrappers = []any{}
+	file_arian_v1_user_services_proto_msgTypes[22].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_user_services_proto_rawDesc), len(file_arian_v1_user_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   36,
+			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

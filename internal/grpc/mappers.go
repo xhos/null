@@ -239,13 +239,19 @@ func toProtoUser(u *sqlc.User) *pb.User {
 		return nil
 	}
 
-	return &pb.User{
+	user := &pb.User{
 		Id:          u.ID.String(),
 		Email:       u.Email,
 		DisplayName: u.DisplayName,
 		CreatedAt:   toProtoTimestamp(&u.CreatedAt),
 		UpdatedAt:   toProtoTimestamp(&u.UpdatedAt),
 	}
+
+	if u.DefaultAccountID != nil {
+		user.DefaultAccountId = u.DefaultAccountID
+	}
+
+	return user
 }
 
 func createUserParamsFromProto(req *pb.CreateUserRequest) sqlc.CreateUserParams {
@@ -262,9 +268,22 @@ func updateUserParamsFromProto(req *pb.UpdateUserRequest) (sqlc.UpdateUserParams
 	}
 
 	return sqlc.UpdateUserParams{
-		ID:          userID,
-		Email:       req.Email,
-		DisplayName: req.DisplayName,
+		ID:               userID,
+		Email:            req.Email,
+		DisplayName:      req.DisplayName,
+		DefaultAccountID: req.DefaultAccountId,
+	}, nil
+}
+
+func setUserDefaultAccountParamsFromProto(req *pb.SetUserDefaultAccountRequest) (sqlc.SetUserDefaultAccountParams, error) {
+	userID, err := parseUUID(req.GetId())
+	if err != nil {
+		return sqlc.SetUserDefaultAccountParams{}, err
+	}
+
+	return sqlc.SetUserDefaultAccountParams{
+		ID:               userID,
+		DefaultAccountID: req.GetDefaultAccountId(),
 	}, nil
 }
 

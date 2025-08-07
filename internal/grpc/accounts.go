@@ -72,7 +72,7 @@ func (s *Server) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest
 		return nil, err
 	}
 
-	account, err := s.services.Accounts.Create(ctx, params)
+	account, err := s.services.Accounts.Create(ctx, params, s.services.Users)
 	if err != nil {
 		return nil, handleError(err)
 	}

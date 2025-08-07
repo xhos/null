@@ -44,14 +44,16 @@ END$$;
 --- users --------------------------------------------------------------
 
 CREATE TABLE users (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email        TEXT        NOT NULL,
-  display_name TEXT,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email              TEXT        NOT NULL,
+  display_name       TEXT,
+  default_account_id BIGINT      REFERENCES accounts(id) ON DELETE SET NULL,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE UNIQUE INDEX ux_users_email_ci ON users (lower(email));
+CREATE INDEX idx_users_default_account ON users(default_account_id);
 
 CREATE TRIGGER trg_users_update
   BEFORE UPDATE ON users

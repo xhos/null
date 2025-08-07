@@ -18,6 +18,8 @@ type UserService interface {
 	Create(ctx context.Context, params sqlc.CreateUserParams) (*sqlc.User, error)
 	Update(ctx context.Context, params sqlc.UpdateUserParams) (*sqlc.User, error)
 	UpdateDisplayName(ctx context.Context, params sqlc.UpdateUserDisplayNameParams) (*sqlc.User, error)
+	SetDefaultAccount(ctx context.Context, params sqlc.SetUserDefaultAccountParams) (*sqlc.User, error)
+	EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context) ([]sqlc.User, error)
 	Exists(ctx context.Context, id uuid.UUID) (bool, error)
@@ -156,4 +158,48 @@ func (s *userSvc) Exists(ctx context.Context, id uuid.UUID) (bool, error) {
 		return false, wrapErr("UserService.Exists", err)
 	}
 	return exists, nil
+}
+
+func (s *userSvc) SetDefaultAccount(ctx context.Context, params sqlc.SetUserDefaultAccountParams) (*sqlc.User, error) {
+	user, err := s.queries.SetUserDefaultAccount(ctx, params)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, wrapErr("UserService.SetDefaultAccount", ErrNotFound)
+	}
+
+	if err != nil {
+		return nil, wrapErr("UserService.SetDefaultAccount", err)
+	}
+
+	return &user, nil
+}
+
+func (s *userSvc) EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error {
+	user, err := s.queries.GetUser(ctx, userID)
+	if err != nil {
+		return wrapErr("UserService.EnsureDefaultAccount", err)
+	}
+
+	if user.DefaultAccountID != nil {
+		return nil
+	}
+
+	firstAccountID, err := s.queries.GetUserFirstAccount(ctx, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+
+	if err != nil {
+		return wrapErr("UserService.EnsureDefaultAccount", err)
+	}
+
+	_, err = s.queries.SetUserDefaultAccount(ctx, sqlc.SetUserDefaultAccountParams{
+		ID:               userID,
+		DefaultAccountID: firstAccountID,
+	})
+	if err != nil {
+		return wrapErr("UserService.EnsureDefaultAccount", err)
+	}
+
+	s.log.Info("Set default account for user", "user_id", userID, "account_id", firstAccountID)
+	return nil
 }

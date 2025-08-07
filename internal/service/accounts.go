@@ -16,7 +16,7 @@ import (
 type AccountService interface {
 	ListForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsForUserRow, error)
 	GetForUser(ctx context.Context, params sqlc.GetAccountForUserParams) (*sqlc.GetAccountForUserRow, error)
-	Create(ctx context.Context, params sqlc.CreateAccountParams) (*sqlc.Account, error)
+	Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error)
 	Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error)
 	DeleteForUser(ctx context.Context, params sqlc.DeleteAccountForUserParams) error
 	GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (int64, error)
@@ -85,14 +85,19 @@ func (s *acctSvc) GetForUser(ctx context.Context, params sqlc.GetAccountForUserP
 	return &account, nil
 }
 
-func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams) (*sqlc.Account, error) {
-	// Normalize parameters with defaults
+func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error) {
 	normalizeAccountParams(&params)
 
 	created, err := s.queries.CreateAccount(ctx, params)
 	if err != nil {
 		return nil, wrapErr("AccountService.Create", err)
 	}
+
+	// ensure user has a default account set
+	if err := userSvc.EnsureDefaultAccount(ctx, params.OwnerID); err != nil {
+		s.log.Warn("Failed to set default account for user", "user_id", params.OwnerID, "error", err)
+	}
+
 	return &created, nil
 }
 
