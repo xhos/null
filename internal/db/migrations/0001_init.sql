@@ -47,7 +47,7 @@ CREATE TABLE users (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email              TEXT        NOT NULL,
   display_name       TEXT,
-  default_account_id BIGINT      REFERENCES accounts(id) ON DELETE SET NULL,
+  default_account_id BIGINT,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -99,6 +99,13 @@ CREATE TRIGGER trg_accounts_currency_upcase
   FOR EACH ROW EXECUTE FUNCTION enforce_currency_upper_accounts();
 
 CREATE INDEX idx_accounts_owner ON accounts(owner_id);
+
+-- add the foreign key constraint for users.default_account_id after accounts table exists
+ALTER TABLE users
+  ADD CONSTRAINT fk_users_default_account
+  FOREIGN KEY (default_account_id)
+  REFERENCES accounts(id)
+  ON DELETE SET NULL;
 
 --- account_users ------------------------------------------------------
 
@@ -262,6 +269,7 @@ DROP INDEX IF EXISTS ux_transactions_email_id_notnull;
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS account_users;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_default_account;
 DROP TABLE IF EXISTS accounts;
 DROP INDEX IF EXISTS ux_users_email_ci;
 DROP TABLE IF EXISTS user_credentials;
