@@ -38,6 +38,13 @@ func main() {
 
 	logger.Info("starting ariand", "version", version.FullVersion())
 
+	// --- run database migrations ---
+	logger.Info("running database migrations")
+	if err := db.RunMigrations(cfg.DatabaseURL, "migrations"); err != nil {
+		logger.Fatal("failed to run database migrations", "err", err)
+	}
+	logger.Info("database migrations completed successfully")
+
 	// --- database ---
 	store, err := db.New(cfg.DatabaseURL)
 	if err != nil {
@@ -60,7 +67,7 @@ func main() {
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		lis, err := net.Listen("tcp", cfg.GRPCPort)
+		lis, err := net.Listen("tcp", cfg.Port)
 		if err != nil {
 			serverErrors <- err
 			return
