@@ -50,7 +50,7 @@ func (m *Manager) GetProvider(providerName, model string) (LLMProvider, error) {
 		"openai":    os.Getenv("OPENAI_API_KEY"),
 		"anthropic": os.Getenv("ANTHROPIC_API_KEY"),
 		"ollama":    os.Getenv("OLLAMA_API_KEY"),
-		"gemini":    os.Getenv("GEMINI_API_KEY"), // placeholder for future use
+		"gemini":    os.Getenv("GOOGLE_API_KEY"), // placeholder for future use
 	}
 
 	return builder(model, keys)

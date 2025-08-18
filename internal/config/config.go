@@ -8,7 +8,6 @@ import (
 
 type Config struct {
 	Port                 string
-	GRPCPort             string // <-- NEW
 	APIKey               string
 	LogLevel             string
 	DatabaseURL          string
@@ -17,9 +16,7 @@ type Config struct {
 }
 
 func Load() Config {
-	port := flag.String("port", "8080", "HTTP port")
-	grpcPort := flag.String("grpc-port", "50051", "gRPC port")
-	logLevel := flag.String("log-level", "info", "log level (debug|info|warn|error)")
+	port := flag.String("port", "55555", "gRPC port")
 	flag.Parse()
 
 	apiKey := os.Getenv("API_KEY")
@@ -27,32 +24,36 @@ func Load() Config {
 		panic("API_KEY environment variable is required")
 	}
 
-	databaseUrl := os.Getenv("DATABASE_URL")
-	if databaseUrl == "" {
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
 		panic("DATABASE_URL environment variable is required")
 	}
 
-	receiptParserURL := os.Getenv("RECEIPT_PARSER_URL")
+	receiptParserURL := os.Getenv("ARIAN_RECEIPTS_URL")
 	if receiptParserURL == "" {
-		receiptParserURL = "http://localhost:8081"
+		panic("ARIAN_RECEIPTS_URL environment variable is required")
 	}
 
-	timeoutStr := "30s"
-	if envTimeout := os.Getenv("RECEIPT_PARSER_TIMEOUT"); envTimeout != "" {
-		timeoutStr = envTimeout
+	timeoutStr := os.Getenv("RECEIPT_PARSER_TIMEOUT")
+	if timeoutStr == "" {
+		panic("RECEIPT_PARSER_TIMEOUT environment variable is required")
 	}
 
 	receiptParserTimeout, err := time.ParseDuration(timeoutStr)
 	if err != nil {
-		panic("invalid timeout value, must be a valid duration")
+		panic("invalid RECEIPT_PARSER_TIMEOUT value: must be a valid duration like '30s', '1m'")
+	}
+
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
 	}
 
 	return Config{
 		Port:                 ":" + *port,
-		GRPCPort:             ":" + *grpcPort,
 		APIKey:               apiKey,
-		LogLevel:             *logLevel,
-		DatabaseURL:          databaseUrl,
+		LogLevel:             logLevel,
+		DatabaseURL:          databaseURL,
 		ReceiptParserURL:     receiptParserURL,
 		ReceiptParserTimeout: receiptParserTimeout,
 	}
