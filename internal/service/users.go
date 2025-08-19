@@ -113,11 +113,6 @@ func (s *userSvc) Delete(ctx context.Context, id uuid.UUID) error {
 
 	txQueries := s.queries.WithTx(tx)
 
-	// delete credentials first
-	_, err = txQueries.DeleteAllCredentialsForUser(ctx, id)
-	if err != nil {
-		return wrapErr("UserService.Delete.DeleteCredentials", err)
-	}
 
 	// remove from all accounts
 	_, err = txQueries.RemoveUserFromAllAccounts(ctx, id)

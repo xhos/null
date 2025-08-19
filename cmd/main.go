@@ -40,7 +40,7 @@ func main() {
 
 	// --- run database migrations ---
 	logger.Info("running database migrations")
-	if err := db.RunMigrations(cfg.DatabaseURL, "migrations"); err != nil {
+	if err := db.RunMigrations(cfg.DatabaseURL, "internal/db/migrations"); err != nil {
 		logger.Fatal("failed to run database migrations", "err", err)
 	}
 	logger.Info("database migrations completed successfully")

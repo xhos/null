@@ -15,7 +15,6 @@ type Server struct {
 	pb.UnimplementedAccountServiceServer
 	pb.UnimplementedAccountCollaborationServiceServer
 	pb.UnimplementedUserServiceServer
-	pb.UnimplementedCredentialServiceServer
 	pb.UnimplementedTransactionServiceServer
 	pb.UnimplementedCategoryServiceServer
 	pb.UnimplementedDashboardServiceServer
@@ -39,7 +38,6 @@ func (s *Server) RegisterServices(grpcServer *grpc.Server) {
 	pb.RegisterAccountServiceServer(grpcServer, s)
 	pb.RegisterAccountCollaborationServiceServer(grpcServer, s)
 	pb.RegisterUserServiceServer(grpcServer, s)
-	pb.RegisterCredentialServiceServer(grpcServer, s)
 	pb.RegisterTransactionServiceServer(grpcServer, s)
 	pb.RegisterCategoryServiceServer(grpcServer, s)
 	pb.RegisterDashboardServiceServer(grpcServer, s)

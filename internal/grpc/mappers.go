@@ -287,36 +287,6 @@ func setUserDefaultAccountParamsFromProto(req *pb.SetUserDefaultAccountRequest) 
 	}, nil
 }
 
-// ==================== CREDENTIAL MAPPINGS ====================
-
-func toProtoUserCredential(c *sqlc.UserCredential) *pb.UserCredential {
-	if c == nil {
-		return nil
-	}
-
-	return &pb.UserCredential{
-		Id:           c.ID.String(),
-		UserId:       c.UserID.String(),
-		CredentialId: c.CredentialID,
-		PublicKey:    c.PublicKey,
-		SignCount:    c.SignCount,
-		CreatedAt:    toProtoTimestamp(&c.CreatedAt),
-	}
-}
-
-func createCredentialParamsFromProto(req *pb.CreateCredentialRequest) (sqlc.CreateCredentialParams, error) {
-	userID, err := parseUUID(req.GetUserId())
-	if err != nil {
-		return sqlc.CreateCredentialParams{}, err
-	}
-
-	return sqlc.CreateCredentialParams{
-		UserID:       userID,
-		CredentialID: req.GetCredentialId(),
-		PublicKey:    req.GetPublicKey(),
-		SignCount:    req.GetSignCount(),
-	}, nil
-}
 
 // ==================== CATEGORY MAPPINGS ====================
 

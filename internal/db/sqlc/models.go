@@ -111,12 +111,3 @@ type User struct {
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 }
-
-type UserCredential struct {
-	ID           uuid.UUID `json:"id"`
-	UserID       uuid.UUID `json:"user_id"`
-	CredentialID []byte    `json:"credential_id"`
-	PublicKey    []byte    `json:"public_key"`
-	SignCount    int64     `json:"sign_count"`
-	CreatedAt    time.Time `json:"created_at"`
-}

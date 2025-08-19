@@ -59,18 +59,6 @@ CREATE TRIGGER trg_users_update
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
 
---- user_credentials ---------------------------------------------------
-
-CREATE TABLE user_credentials (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID   NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  credential_id BYTEA  NOT NULL UNIQUE,
-  public_key    BYTEA  NOT NULL,
-  sign_count    BIGINT NOT NULL DEFAULT 0,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_user_credentials_user ON user_credentials(user_id);
 
 --- accounts -----------------------------------------------------------
 
@@ -272,7 +260,6 @@ DROP TABLE IF EXISTS account_users;
 ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_default_account;
 DROP TABLE IF EXISTS accounts;
 DROP INDEX IF EXISTS ux_users_email_ci;
-DROP TABLE IF EXISTS user_credentials;
 DROP TABLE IF EXISTS users;
 
 -- +goose StatementBegin
