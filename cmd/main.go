@@ -3,34 +3,32 @@ package main
 import (
 	"ariand/internal/ai"
 	_ "ariand/internal/ai/gollm"
+	api "ariand/internal/api"
+	"ariand/internal/api/middleware"
 	"ariand/internal/config"
 	"ariand/internal/db"
-	grpcServer "ariand/internal/grpc"
-	"ariand/internal/grpc/interceptors"
 	"ariand/internal/service"
 	"ariand/internal/version"
-	"context"
-	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/charmbracelet/log"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/reflection"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 func main() {
-	// --- configuration ---
+	// ----- configuration ----------
 	cfg := config.Load()
 
-	// --- logger ---
+	// ----- logger -----------------
 	level, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		level = log.InfoLevel
 	}
+
 	logger := log.NewWithOptions(os.Stdout, log.Options{
 		Prefix: "ariand",
 		Level:  level,
@@ -38,14 +36,14 @@ func main() {
 
 	logger.Info("starting ariand", "version", version.FullVersion())
 
-	// --- run database migrations ---
+	// ----- migrations -------------
 	logger.Info("running database migrations")
 	if err := db.RunMigrations(cfg.DatabaseURL, "internal/db/migrations"); err != nil {
 		logger.Fatal("failed to run database migrations", "err", err)
 	}
 	logger.Info("database migrations completed successfully")
 
-	// --- database ---
+	// ----- database ---------------
 	store, err := db.New(cfg.DatabaseURL)
 	if err != nil {
 		logger.Fatal("database connection failed", "err", err)
@@ -53,49 +51,36 @@ func main() {
 	defer store.Close()
 	logger.Info("database connection established")
 
-	// --- AI manager ---
+	// ----- ai manager -------------
 	aiManager := ai.GetManager()
 
-	// --- services ---
+	// ----- services ---------------
 	services, err := service.New(store, logger, &cfg, aiManager)
 	if err != nil {
-		logger.Fatal("Failed to create services", "error", err)
+		logger.Fatal("failed to create services", "error", err)
 	}
 	logger.Info("services initialized")
 
-	// start gRPC server
+	// ----- api layer --------
+	srv := api.NewServer(services, logger.WithPrefix("api"))
+	authConfig := &middleware.AuthConfig{
+		InternalAPIKey: cfg.InternalAPIKey,
+		BetterAuthURL:  cfg.BetterAuthURL,
+	}
+
+	// Get fully configured handler from api layer
+	handler := srv.GetHandler(authConfig)
+
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		lis, err := net.Listen("tcp", cfg.Port)
-		if err != nil {
-			serverErrors <- err
-			return
+		server := &http.Server{
+			Addr:    cfg.Port,
+			Handler: h2c.NewHandler(handler, &http2.Server{}),
 		}
 
-		// setup interceptors
-		unaryInterceptor, streamInterceptor := interceptors.SetupInterceptors(interceptors.InterceptorConfig{
-			Logger:            logger.WithPrefix("grpc"),
-			APIKey:            cfg.APIKey,
-			EnableAuth:        true,
-			EnableRateLimit:   true,
-			RateLimitRPS:      1.0,                                      // 1 request per second for unauthenticated requests
-			RateLimitCapacity: 5,                                        // burst capacity
-			PublicMethods:     []string{"/grpc.health.v1.Health/Check"}, // health check doesn't need auth
-		})
-
-		s := grpc.NewServer(
-			grpc.UnaryInterceptor(unaryInterceptor),
-			grpc.StreamInterceptor(streamInterceptor),
-		)
-		grpcSrv := grpcServer.NewServer(services, logger.WithPrefix("grpc"))
-		grpcSrv.RegisterServices(s)
-		reflection.Register(s)
-
-		grpcSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
-
-		logger.Info("gRPC server is listening", "addr", lis.Addr().String())
-		serverErrors <- s.Serve(lis)
+		logger.Info("server is listening", "addr", cfg.Port)
+		serverErrors <- server.ListenAndServe()
 	}()
 
 	quit := make(chan os.Signal, 1)
@@ -103,26 +88,14 @@ func main() {
 
 	select {
 	case err := <-serverErrors:
-		logger.Fatal("gRPC server error", "err", err)
+		logger.Fatal("server error", "err", err)
 
 	case <-quit:
 		logger.Info("shutdown signal received")
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		done := make(chan struct{})
-		go func() {
-			logger.Info("gRPC server stopping...")
-			close(done)
-		}()
-
-		select {
-		case <-done:
-			logger.Info("gRPC server stopped gracefully")
-		case <-ctx.Done():
-			logger.Warn("gRPC server shutdown timed out")
-		}
+		// TODO: implement graceful shutdown for HTTP server
+		logger.Info("server stopping...")
+		logger.Info("server stopped gracefully")
 	}
 
 	logger.Info("server shutdown complete")

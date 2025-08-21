@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -26,7 +27,7 @@ const (
 
 type ListAccountsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -114,7 +115,7 @@ func (x *ListAccountsResponse) GetAccounts() []*Account {
 
 type GetAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Id            int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -210,7 +211,7 @@ func (x *GetAccountResponse) GetAccount() *Account {
 
 type CreateAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID (becomes owner_id)
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Bank          string                 `protobuf:"bytes,3,opt,name=bank,proto3" json:"bank,omitempty"`
 	Type          AccountType            `protobuf:"varint,4,opt,name=type,proto3,enum=arian.v1.AccountType" json:"type,omitempty"`
@@ -338,10 +339,10 @@ func (x *CreateAccountResponse) GetAccount() *Account {
 
 type UpdateAccountRequest struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
-	UserId     string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID (must be owner)
+	UserId     string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Id         int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	UpdateMask *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	// Fields that can be updated
+	// fields that can be updated
 	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	Bank          *string                `protobuf:"bytes,5,opt,name=bank,proto3,oneof" json:"bank,omitempty"`
 	AccountType   *AccountType           `protobuf:"varint,6,opt,name=account_type,json=accountType,proto3,enum=arian.v1.AccountType,oneof" json:"account_type,omitempty"`
@@ -491,7 +492,7 @@ func (x *UpdateAccountResponse) GetAccount() *Account {
 
 type DeleteAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID (must be owner)
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Id            int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -771,7 +772,7 @@ func (x *GetAccountBalanceResponse) GetBalance() *money.Money {
 
 type GetAccountsCountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -937,606 +938,6 @@ func (*SyncAccountBalancesResponse) Descriptor() ([]byte, []int) {
 	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{17}
 }
 
-type AddCollaboratorRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	OwnerUserId        string                 `protobuf:"bytes,1,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"` // UUID
-	AccountId          int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	CollaboratorUserId string                 `protobuf:"bytes,3,opt,name=collaborator_user_id,json=collaboratorUserId,proto3" json:"collaborator_user_id,omitempty"` // UUID
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *AddCollaboratorRequest) Reset() {
-	*x = AddCollaboratorRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[18]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddCollaboratorRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddCollaboratorRequest) ProtoMessage() {}
-
-func (x *AddCollaboratorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[18]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddCollaboratorRequest.ProtoReflect.Descriptor instead.
-func (*AddCollaboratorRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{18}
-}
-
-func (x *AddCollaboratorRequest) GetOwnerUserId() string {
-	if x != nil {
-		return x.OwnerUserId
-	}
-	return ""
-}
-
-func (x *AddCollaboratorRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-func (x *AddCollaboratorRequest) GetCollaboratorUserId() string {
-	if x != nil {
-		return x.CollaboratorUserId
-	}
-	return ""
-}
-
-type AddCollaboratorResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Collaborator  *AccountCollaborator   `protobuf:"bytes,1,opt,name=collaborator,proto3" json:"collaborator,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AddCollaboratorResponse) Reset() {
-	*x = AddCollaboratorResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[19]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddCollaboratorResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddCollaboratorResponse) ProtoMessage() {}
-
-func (x *AddCollaboratorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[19]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddCollaboratorResponse.ProtoReflect.Descriptor instead.
-func (*AddCollaboratorResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{19}
-}
-
-func (x *AddCollaboratorResponse) GetCollaborator() *AccountCollaborator {
-	if x != nil {
-		return x.Collaborator
-	}
-	return nil
-}
-
-type RemoveCollaboratorRequest struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	OwnerUserId        string                 `protobuf:"bytes,1,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"` // UUID
-	AccountId          int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	CollaboratorUserId string                 `protobuf:"bytes,3,opt,name=collaborator_user_id,json=collaboratorUserId,proto3" json:"collaborator_user_id,omitempty"` // UUID
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *RemoveCollaboratorRequest) Reset() {
-	*x = RemoveCollaboratorRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[20]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RemoveCollaboratorRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RemoveCollaboratorRequest) ProtoMessage() {}
-
-func (x *RemoveCollaboratorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[20]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RemoveCollaboratorRequest.ProtoReflect.Descriptor instead.
-func (*RemoveCollaboratorRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{20}
-}
-
-func (x *RemoveCollaboratorRequest) GetOwnerUserId() string {
-	if x != nil {
-		return x.OwnerUserId
-	}
-	return ""
-}
-
-func (x *RemoveCollaboratorRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-func (x *RemoveCollaboratorRequest) GetCollaboratorUserId() string {
-	if x != nil {
-		return x.CollaboratorUserId
-	}
-	return ""
-}
-
-type RemoveCollaboratorResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AffectedRows  int64                  `protobuf:"varint,1,opt,name=affected_rows,json=affectedRows,proto3" json:"affected_rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RemoveCollaboratorResponse) Reset() {
-	*x = RemoveCollaboratorResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RemoveCollaboratorResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RemoveCollaboratorResponse) ProtoMessage() {}
-
-func (x *RemoveCollaboratorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RemoveCollaboratorResponse.ProtoReflect.Descriptor instead.
-func (*RemoveCollaboratorResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *RemoveCollaboratorResponse) GetAffectedRows() int64 {
-	if x != nil {
-		return x.AffectedRows
-	}
-	return 0
-}
-
-type ListCollaboratorsRequest struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	RequestingUserId string                 `protobuf:"bytes,1,opt,name=requesting_user_id,json=requestingUserId,proto3" json:"requesting_user_id,omitempty"` // UUID
-	AccountId        int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *ListCollaboratorsRequest) Reset() {
-	*x = ListCollaboratorsRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListCollaboratorsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListCollaboratorsRequest) ProtoMessage() {}
-
-func (x *ListCollaboratorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListCollaboratorsRequest.ProtoReflect.Descriptor instead.
-func (*ListCollaboratorsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{22}
-}
-
-func (x *ListCollaboratorsRequest) GetRequestingUserId() string {
-	if x != nil {
-		return x.RequestingUserId
-	}
-	return ""
-}
-
-func (x *ListCollaboratorsRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-type ListCollaboratorsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Collaborators []*AccountCollaborator `protobuf:"bytes,1,rep,name=collaborators,proto3" json:"collaborators,omitempty"`
-	TotalCount    int64                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListCollaboratorsResponse) Reset() {
-	*x = ListCollaboratorsResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListCollaboratorsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListCollaboratorsResponse) ProtoMessage() {}
-
-func (x *ListCollaboratorsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListCollaboratorsResponse.ProtoReflect.Descriptor instead.
-func (*ListCollaboratorsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *ListCollaboratorsResponse) GetCollaborators() []*AccountCollaborator {
-	if x != nil {
-		return x.Collaborators
-	}
-	return nil
-}
-
-func (x *ListCollaboratorsResponse) GetTotalCount() int64 {
-	if x != nil {
-		return x.TotalCount
-	}
-	return 0
-}
-
-type ListUserCollaborationsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListUserCollaborationsRequest) Reset() {
-	*x = ListUserCollaborationsRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListUserCollaborationsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListUserCollaborationsRequest) ProtoMessage() {}
-
-func (x *ListUserCollaborationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListUserCollaborationsRequest.ProtoReflect.Descriptor instead.
-func (*ListUserCollaborationsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{24}
-}
-
-func (x *ListUserCollaborationsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-type ListUserCollaborationsResponse struct {
-	state          protoimpl.MessageState  `protogen:"open.v1"`
-	Collaborations []*AccountCollaboration `protobuf:"bytes,1,rep,name=collaborations,proto3" json:"collaborations,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *ListUserCollaborationsResponse) Reset() {
-	*x = ListUserCollaborationsResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListUserCollaborationsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListUserCollaborationsResponse) ProtoMessage() {}
-
-func (x *ListUserCollaborationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListUserCollaborationsResponse.ProtoReflect.Descriptor instead.
-func (*ListUserCollaborationsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *ListUserCollaborationsResponse) GetCollaborations() []*AccountCollaboration {
-	if x != nil {
-		return x.Collaborations
-	}
-	return nil
-}
-
-type LeaveCollaborationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // UUID
-	AccountId     int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LeaveCollaborationRequest) Reset() {
-	*x = LeaveCollaborationRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LeaveCollaborationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LeaveCollaborationRequest) ProtoMessage() {}
-
-func (x *LeaveCollaborationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LeaveCollaborationRequest.ProtoReflect.Descriptor instead.
-func (*LeaveCollaborationRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{26}
-}
-
-func (x *LeaveCollaborationRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *LeaveCollaborationRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-type LeaveCollaborationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AffectedRows  int64                  `protobuf:"varint,1,opt,name=affected_rows,json=affectedRows,proto3" json:"affected_rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LeaveCollaborationResponse) Reset() {
-	*x = LeaveCollaborationResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LeaveCollaborationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LeaveCollaborationResponse) ProtoMessage() {}
-
-func (x *LeaveCollaborationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LeaveCollaborationResponse.ProtoReflect.Descriptor instead.
-func (*LeaveCollaborationResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *LeaveCollaborationResponse) GetAffectedRows() int64 {
-	if x != nil {
-		return x.AffectedRows
-	}
-	return 0
-}
-
-type TransferOwnershipRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	CurrentOwnerId string                 `protobuf:"bytes,1,opt,name=current_owner_id,json=currentOwnerId,proto3" json:"current_owner_id,omitempty"` // UUID
-	AccountId      int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	NewOwnerId     string                 `protobuf:"bytes,3,opt,name=new_owner_id,json=newOwnerId,proto3" json:"new_owner_id,omitempty"` // UUID
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *TransferOwnershipRequest) Reset() {
-	*x = TransferOwnershipRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TransferOwnershipRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TransferOwnershipRequest) ProtoMessage() {}
-
-func (x *TransferOwnershipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TransferOwnershipRequest.ProtoReflect.Descriptor instead.
-func (*TransferOwnershipRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *TransferOwnershipRequest) GetCurrentOwnerId() string {
-	if x != nil {
-		return x.CurrentOwnerId
-	}
-	return ""
-}
-
-func (x *TransferOwnershipRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-func (x *TransferOwnershipRequest) GetNewOwnerId() string {
-	if x != nil {
-		return x.NewOwnerId
-	}
-	return ""
-}
-
-type TransferOwnershipResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AffectedRows  int64                  `protobuf:"varint,1,opt,name=affected_rows,json=affectedRows,proto3" json:"affected_rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TransferOwnershipResponse) Reset() {
-	*x = TransferOwnershipResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TransferOwnershipResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TransferOwnershipResponse) ProtoMessage() {}
-
-func (x *TransferOwnershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TransferOwnershipResponse.ProtoReflect.Descriptor instead.
-func (*TransferOwnershipResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *TransferOwnershipResponse) GetAffectedRows() int64 {
-	if x != nil {
-		return x.AffectedRows
-	}
-	return 0
-}
-
 type GetAnchorBalanceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1546,7 +947,7 @@ type GetAnchorBalanceRequest struct {
 
 func (x *GetAnchorBalanceRequest) Reset() {
 	*x = GetAnchorBalanceRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[30]
+	mi := &file_arian_v1_account_services_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1558,7 +959,7 @@ func (x *GetAnchorBalanceRequest) String() string {
 func (*GetAnchorBalanceRequest) ProtoMessage() {}
 
 func (x *GetAnchorBalanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[30]
+	mi := &file_arian_v1_account_services_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1571,7 +972,7 @@ func (x *GetAnchorBalanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAnchorBalanceRequest.ProtoReflect.Descriptor instead.
 func (*GetAnchorBalanceRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{30}
+	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetAnchorBalanceRequest) GetId() int64 {
@@ -1591,7 +992,7 @@ type GetAnchorBalanceResponse struct {
 
 func (x *GetAnchorBalanceResponse) Reset() {
 	*x = GetAnchorBalanceResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[31]
+	mi := &file_arian_v1_account_services_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1603,7 +1004,7 @@ func (x *GetAnchorBalanceResponse) String() string {
 func (*GetAnchorBalanceResponse) ProtoMessage() {}
 
 func (x *GetAnchorBalanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[31]
+	mi := &file_arian_v1_account_services_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1616,7 +1017,7 @@ func (x *GetAnchorBalanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAnchorBalanceResponse.ProtoReflect.Descriptor instead.
 func (*GetAnchorBalanceResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{31}
+	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetAnchorBalanceResponse) GetAnchorBalance() *money.Money {
@@ -1643,7 +1044,7 @@ type CheckUserAccountAccessRequest struct {
 
 func (x *CheckUserAccountAccessRequest) Reset() {
 	*x = CheckUserAccountAccessRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[32]
+	mi := &file_arian_v1_account_services_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1655,7 +1056,7 @@ func (x *CheckUserAccountAccessRequest) String() string {
 func (*CheckUserAccountAccessRequest) ProtoMessage() {}
 
 func (x *CheckUserAccountAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[32]
+	mi := &file_arian_v1_account_services_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1668,7 +1069,7 @@ func (x *CheckUserAccountAccessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckUserAccountAccessRequest.ProtoReflect.Descriptor instead.
 func (*CheckUserAccountAccessRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{32}
+	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CheckUserAccountAccessRequest) GetUserId() string {
@@ -1694,7 +1095,7 @@ type CheckUserAccountAccessResponse struct {
 
 func (x *CheckUserAccountAccessResponse) Reset() {
 	*x = CheckUserAccountAccessResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[33]
+	mi := &file_arian_v1_account_services_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1706,7 +1107,7 @@ func (x *CheckUserAccountAccessResponse) String() string {
 func (*CheckUserAccountAccessResponse) ProtoMessage() {}
 
 func (x *CheckUserAccountAccessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[33]
+	mi := &file_arian_v1_account_services_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1719,7 +1120,7 @@ func (x *CheckUserAccountAccessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckUserAccountAccessResponse.ProtoReflect.Descriptor instead.
 func (*CheckUserAccountAccessResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{33}
+	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CheckUserAccountAccessResponse) GetHasAccess() bool {
@@ -1729,223 +1130,39 @@ func (x *CheckUserAccountAccessResponse) GetHasAccess() bool {
 	return false
 }
 
-type GetCollaboratorCountRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountId     int64                  `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCollaboratorCountRequest) Reset() {
-	*x = GetCollaboratorCountRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[34]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCollaboratorCountRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCollaboratorCountRequest) ProtoMessage() {}
-
-func (x *GetCollaboratorCountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[34]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCollaboratorCountRequest.ProtoReflect.Descriptor instead.
-func (*GetCollaboratorCountRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{34}
-}
-
-func (x *GetCollaboratorCountRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-type GetCollaboratorCountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Count         int64                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCollaboratorCountResponse) Reset() {
-	*x = GetCollaboratorCountResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[35]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCollaboratorCountResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCollaboratorCountResponse) ProtoMessage() {}
-
-func (x *GetCollaboratorCountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[35]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCollaboratorCountResponse.ProtoReflect.Descriptor instead.
-func (*GetCollaboratorCountResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{35}
-}
-
-func (x *GetCollaboratorCountResponse) GetCount() int64 {
-	if x != nil {
-		return x.Count
-	}
-	return 0
-}
-
-type CheckCollaboratorRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	AccountId     int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CheckCollaboratorRequest) Reset() {
-	*x = CheckCollaboratorRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[36]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CheckCollaboratorRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CheckCollaboratorRequest) ProtoMessage() {}
-
-func (x *CheckCollaboratorRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[36]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CheckCollaboratorRequest.ProtoReflect.Descriptor instead.
-func (*CheckCollaboratorRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{36}
-}
-
-func (x *CheckCollaboratorRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *CheckCollaboratorRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-type CheckCollaboratorResponse struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	IsCollaborator bool                   `protobuf:"varint,1,opt,name=is_collaborator,json=isCollaborator,proto3" json:"is_collaborator,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *CheckCollaboratorResponse) Reset() {
-	*x = CheckCollaboratorResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[37]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CheckCollaboratorResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CheckCollaboratorResponse) ProtoMessage() {}
-
-func (x *CheckCollaboratorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[37]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CheckCollaboratorResponse.ProtoReflect.Descriptor instead.
-func (*CheckCollaboratorResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{37}
-}
-
-func (x *CheckCollaboratorResponse) GetIsCollaborator() bool {
-	if x != nil {
-		return x.IsCollaborator
-	}
-	return false
-}
-
 var File_arian_v1_account_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\n" +
-	"\x1farian/v1/account_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x14arian/v1/enums.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\".\n" +
-	"\x13ListAccountsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"E\n" +
+	"\x1farian/v1/account_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x14arian/v1/enums.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a\x1bbuf/validate/validate.proto\"8\n" +
+	"\x13ListAccountsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"E\n" +
 	"\x14ListAccountsResponse\x12-\n" +
-	"\baccounts\x18\x01 \x03(\v2\x11.arian.v1.AccountR\baccounts\"<\n" +
-	"\x11GetAccountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\"A\n" +
+	"\baccounts\x18\x01 \x03(\v2\x11.arian.v1.AccountR\baccounts\"O\n" +
+	"\x11GetAccountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"A\n" +
 	"\x12GetAccountResponse\x12+\n" +
-	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\xe2\x01\n" +
-	"\x14CreateAccountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04bank\x18\x03 \x01(\tR\x04bank\x12)\n" +
-	"\x04type\x18\x04 \x01(\x0e2\x15.arian.v1.AccountTypeR\x04type\x12\x19\n" +
-	"\x05alias\x18\x05 \x01(\tH\x00R\x05alias\x88\x01\x01\x129\n" +
+	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x97\x02\n" +
+	"\x14CreateAccountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12\x1d\n" +
+	"\x04bank\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\x04bank\x123\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x15.arian.v1.AccountTypeB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04type\x12$\n" +
+	"\x05alias\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x00R\x05alias\x88\x01\x01\x129\n" +
 	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalanceB\b\n" +
 	"\x06_alias\"D\n" +
 	"\x15CreateAccountResponse\x12+\n" +
-	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\xda\x03\n" +
-	"\x14UpdateAccountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\x12;\n" +
+	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x98\x04\n" +
+	"\x14UpdateAccountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\x12\x17\n" +
-	"\x04name\x18\x04 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x17\n" +
-	"\x04bank\x18\x05 \x01(\tH\x01R\x04bank\x88\x01\x01\x12=\n" +
-	"\faccount_type\x18\x06 \x01(\x0e2\x15.arian.v1.AccountTypeH\x02R\vaccountType\x88\x01\x01\x12\x19\n" +
-	"\x05alias\x18\a \x01(\tH\x03R\x05alias\x88\x01\x01\x12@\n" +
+	"updateMask\x12\"\n" +
+	"\x04name\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dH\x00R\x04name\x88\x01\x01\x12\"\n" +
+	"\x04bank\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x01R\x04bank\x88\x01\x01\x12G\n" +
+	"\faccount_type\x18\x06 \x01(\x0e2\x15.arian.v1.AccountTypeB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\vaccountType\x88\x01\x01\x12$\n" +
+	"\x05alias\x18\a \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x03R\x05alias\x88\x01\x01\x12@\n" +
 	"\vanchor_date\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x04R\n" +
 	"anchorDate\x88\x01\x01\x12>\n" +
 	"\x0eanchor_balance\x18\t \x01(\v2\x12.google.type.MoneyH\x05R\ranchorBalance\x88\x01\x01B\a\n" +
@@ -1956,92 +1173,41 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\f_anchor_dateB\x11\n" +
 	"\x0f_anchor_balance\"D\n" +
 	"\x15UpdateAccountResponse\x12+\n" +
-	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"?\n" +
-	"\x14DeleteAccountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\"<\n" +
+	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"R\n" +
+	"\x14DeleteAccountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"<\n" +
 	"\x15DeleteAccountResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"W\n" +
-	"\x17SetAccountAnchorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12,\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"`\n" +
+	"\x17SetAccountAnchorRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12,\n" +
 	"\abalance\x18\x02 \x01(\v2\x12.google.type.MoneyR\abalance\"?\n" +
 	"\x18SetAccountAnchorResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"*\n" +
-	"\x18GetAccountBalanceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"I\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"3\n" +
+	"\x18GetAccountBalanceRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"I\n" +
 	"\x19GetAccountBalanceResponse\x12,\n" +
-	"\abalance\x18\x01 \x01(\v2\x12.google.type.MoneyR\abalance\"2\n" +
-	"\x17GetAccountsCountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"0\n" +
+	"\abalance\x18\x01 \x01(\v2\x12.google.type.MoneyR\abalance\"<\n" +
+	"\x17GetAccountsCountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"0\n" +
 	"\x18GetAccountsCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x03R\x05count\";\n" +
-	"\x1aSyncAccountBalancesRequest\x12\x1d\n" +
+	"\x05count\x18\x01 \x01(\x03R\x05count\"D\n" +
+	"\x1aSyncAccountBalancesRequest\x12&\n" +
 	"\n" +
-	"account_id\x18\x01 \x01(\x03R\taccountId\"\x1d\n" +
-	"\x1bSyncAccountBalancesResponse\"\x8d\x01\n" +
-	"\x16AddCollaboratorRequest\x12\"\n" +
-	"\rowner_user_id\x18\x01 \x01(\tR\vownerUserId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\x120\n" +
-	"\x14collaborator_user_id\x18\x03 \x01(\tR\x12collaboratorUserId\"\\\n" +
-	"\x17AddCollaboratorResponse\x12A\n" +
-	"\fcollaborator\x18\x01 \x01(\v2\x1d.arian.v1.AccountCollaboratorR\fcollaborator\"\x90\x01\n" +
-	"\x19RemoveCollaboratorRequest\x12\"\n" +
-	"\rowner_user_id\x18\x01 \x01(\tR\vownerUserId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\x120\n" +
-	"\x14collaborator_user_id\x18\x03 \x01(\tR\x12collaboratorUserId\"A\n" +
-	"\x1aRemoveCollaboratorResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"g\n" +
-	"\x18ListCollaboratorsRequest\x12,\n" +
-	"\x12requesting_user_id\x18\x01 \x01(\tR\x10requestingUserId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\"\x81\x01\n" +
-	"\x19ListCollaboratorsResponse\x12C\n" +
-	"\rcollaborators\x18\x01 \x03(\v2\x1d.arian.v1.AccountCollaboratorR\rcollaborators\x12\x1f\n" +
-	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"8\n" +
-	"\x1dListUserCollaborationsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"h\n" +
-	"\x1eListUserCollaborationsResponse\x12F\n" +
-	"\x0ecollaborations\x18\x01 \x03(\v2\x1e.arian.v1.AccountCollaborationR\x0ecollaborations\"S\n" +
-	"\x19LeaveCollaborationRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\"A\n" +
-	"\x1aLeaveCollaborationResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\x85\x01\n" +
-	"\x18TransferOwnershipRequest\x12(\n" +
-	"\x10current_owner_id\x18\x01 \x01(\tR\x0ecurrentOwnerId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\x12 \n" +
-	"\fnew_owner_id\x18\x03 \x01(\tR\n" +
-	"newOwnerId\"@\n" +
-	"\x19TransferOwnershipResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\")\n" +
-	"\x17GetAnchorBalanceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"q\n" +
+	"account_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\"\x1d\n" +
+	"\x1bSyncAccountBalancesResponse\"2\n" +
+	"\x17GetAnchorBalanceRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"q\n" +
 	"\x18GetAnchorBalanceResponse\x129\n" +
 	"\x0eanchor_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x12\x1a\n" +
-	"\bcurrency\x18\x02 \x01(\tR\bcurrency\"W\n" +
-	"\x1dCheckUserAccountAccessRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\bcurrency\x18\x02 \x01(\tR\bcurrency\"j\n" +
+	"\x1dCheckUserAccountAccessRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\"?\n" +
+	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\"?\n" +
 	"\x1eCheckUserAccountAccessResponse\x12\x1d\n" +
 	"\n" +
-	"has_access\x18\x01 \x01(\bR\thasAccess\"<\n" +
-	"\x1bGetCollaboratorCountRequest\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x01 \x01(\x03R\taccountId\"4\n" +
-	"\x1cGetCollaboratorCountResponse\x12\x14\n" +
-	"\x05count\x18\x01 \x01(\x03R\x05count\"R\n" +
-	"\x18CheckCollaboratorRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\"D\n" +
-	"\x19CheckCollaboratorResponse\x12'\n" +
-	"\x0fis_collaborator\x18\x01 \x01(\bR\x0eisCollaborator2\xde\a\n" +
+	"has_access\x18\x01 \x01(\bR\thasAccess2\xde\a\n" +
 	"\x0eAccountService\x12M\n" +
 	"\fListAccounts\x12\x1d.arian.v1.ListAccountsRequest\x1a\x1e.arian.v1.ListAccountsResponse\x12G\n" +
 	"\n" +
@@ -2054,16 +1220,7 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\x10GetAnchorBalance\x12!.arian.v1.GetAnchorBalanceRequest\x1a\".arian.v1.GetAnchorBalanceResponse\x12Y\n" +
 	"\x10GetAccountsCount\x12!.arian.v1.GetAccountsCountRequest\x1a\".arian.v1.GetAccountsCountResponse\x12k\n" +
 	"\x16CheckUserAccountAccess\x12'.arian.v1.CheckUserAccountAccessRequest\x1a(.arian.v1.CheckUserAccountAccessResponse\x12b\n" +
-	"\x13SyncAccountBalances\x12$.arian.v1.SyncAccountBalancesRequest\x1a%.arian.v1.SyncAccountBalancesResponse2\xa5\x06\n" +
-	"\x1bAccountCollaborationService\x12V\n" +
-	"\x0fAddCollaborator\x12 .arian.v1.AddCollaboratorRequest\x1a!.arian.v1.AddCollaboratorResponse\x12_\n" +
-	"\x12RemoveCollaborator\x12#.arian.v1.RemoveCollaboratorRequest\x1a$.arian.v1.RemoveCollaboratorResponse\x12\\\n" +
-	"\x11ListCollaborators\x12\".arian.v1.ListCollaboratorsRequest\x1a#.arian.v1.ListCollaboratorsResponse\x12e\n" +
-	"\x14GetCollaboratorCount\x12%.arian.v1.GetCollaboratorCountRequest\x1a&.arian.v1.GetCollaboratorCountResponse\x12\\\n" +
-	"\x11CheckCollaborator\x12\".arian.v1.CheckCollaboratorRequest\x1a#.arian.v1.CheckCollaboratorResponse\x12k\n" +
-	"\x16ListUserCollaborations\x12'.arian.v1.ListUserCollaborationsRequest\x1a(.arian.v1.ListUserCollaborationsResponse\x12_\n" +
-	"\x12LeaveCollaboration\x12#.arian.v1.LeaveCollaborationRequest\x1a$.arian.v1.LeaveCollaborationResponse\x12\\\n" +
-	"\x11TransferOwnership\x12\".arian.v1.TransferOwnershipRequest\x1a#.arian.v1.TransferOwnershipResponseB\x8b\x01\n" +
+	"\x13SyncAccountBalances\x12$.arian.v1.SyncAccountBalancesRequest\x1a%.arian.v1.SyncAccountBalancesResponseB\x8b\x01\n" +
 	"\fcom.arian.v1B\x14AccountServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
@@ -2078,7 +1235,7 @@ func file_arian_v1_account_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_account_services_proto_rawDescData
 }
 
-var file_arian_v1_account_services_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_arian_v1_account_services_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_arian_v1_account_services_proto_goTypes = []any{
 	(*ListAccountsRequest)(nil),            // 0: arian.v1.ListAccountsRequest
 	(*ListAccountsResponse)(nil),           // 1: arian.v1.ListAccountsResponse
@@ -2098,94 +1255,57 @@ var file_arian_v1_account_services_proto_goTypes = []any{
 	(*GetAccountsCountResponse)(nil),       // 15: arian.v1.GetAccountsCountResponse
 	(*SyncAccountBalancesRequest)(nil),     // 16: arian.v1.SyncAccountBalancesRequest
 	(*SyncAccountBalancesResponse)(nil),    // 17: arian.v1.SyncAccountBalancesResponse
-	(*AddCollaboratorRequest)(nil),         // 18: arian.v1.AddCollaboratorRequest
-	(*AddCollaboratorResponse)(nil),        // 19: arian.v1.AddCollaboratorResponse
-	(*RemoveCollaboratorRequest)(nil),      // 20: arian.v1.RemoveCollaboratorRequest
-	(*RemoveCollaboratorResponse)(nil),     // 21: arian.v1.RemoveCollaboratorResponse
-	(*ListCollaboratorsRequest)(nil),       // 22: arian.v1.ListCollaboratorsRequest
-	(*ListCollaboratorsResponse)(nil),      // 23: arian.v1.ListCollaboratorsResponse
-	(*ListUserCollaborationsRequest)(nil),  // 24: arian.v1.ListUserCollaborationsRequest
-	(*ListUserCollaborationsResponse)(nil), // 25: arian.v1.ListUserCollaborationsResponse
-	(*LeaveCollaborationRequest)(nil),      // 26: arian.v1.LeaveCollaborationRequest
-	(*LeaveCollaborationResponse)(nil),     // 27: arian.v1.LeaveCollaborationResponse
-	(*TransferOwnershipRequest)(nil),       // 28: arian.v1.TransferOwnershipRequest
-	(*TransferOwnershipResponse)(nil),      // 29: arian.v1.TransferOwnershipResponse
-	(*GetAnchorBalanceRequest)(nil),        // 30: arian.v1.GetAnchorBalanceRequest
-	(*GetAnchorBalanceResponse)(nil),       // 31: arian.v1.GetAnchorBalanceResponse
-	(*CheckUserAccountAccessRequest)(nil),  // 32: arian.v1.CheckUserAccountAccessRequest
-	(*CheckUserAccountAccessResponse)(nil), // 33: arian.v1.CheckUserAccountAccessResponse
-	(*GetCollaboratorCountRequest)(nil),    // 34: arian.v1.GetCollaboratorCountRequest
-	(*GetCollaboratorCountResponse)(nil),   // 35: arian.v1.GetCollaboratorCountResponse
-	(*CheckCollaboratorRequest)(nil),       // 36: arian.v1.CheckCollaboratorRequest
-	(*CheckCollaboratorResponse)(nil),      // 37: arian.v1.CheckCollaboratorResponse
-	(*Account)(nil),                        // 38: arian.v1.Account
-	(AccountType)(0),                       // 39: arian.v1.AccountType
-	(*money.Money)(nil),                    // 40: google.type.Money
-	(*fieldmaskpb.FieldMask)(nil),          // 41: google.protobuf.FieldMask
-	(*timestamppb.Timestamp)(nil),          // 42: google.protobuf.Timestamp
-	(*AccountCollaborator)(nil),            // 43: arian.v1.AccountCollaborator
-	(*AccountCollaboration)(nil),           // 44: arian.v1.AccountCollaboration
+	(*GetAnchorBalanceRequest)(nil),        // 18: arian.v1.GetAnchorBalanceRequest
+	(*GetAnchorBalanceResponse)(nil),       // 19: arian.v1.GetAnchorBalanceResponse
+	(*CheckUserAccountAccessRequest)(nil),  // 20: arian.v1.CheckUserAccountAccessRequest
+	(*CheckUserAccountAccessResponse)(nil), // 21: arian.v1.CheckUserAccountAccessResponse
+	(*Account)(nil),                        // 22: arian.v1.Account
+	(AccountType)(0),                       // 23: arian.v1.AccountType
+	(*money.Money)(nil),                    // 24: google.type.Money
+	(*fieldmaskpb.FieldMask)(nil),          // 25: google.protobuf.FieldMask
+	(*timestamppb.Timestamp)(nil),          // 26: google.protobuf.Timestamp
 }
 var file_arian_v1_account_services_proto_depIdxs = []int32{
-	38, // 0: arian.v1.ListAccountsResponse.accounts:type_name -> arian.v1.Account
-	38, // 1: arian.v1.GetAccountResponse.account:type_name -> arian.v1.Account
-	39, // 2: arian.v1.CreateAccountRequest.type:type_name -> arian.v1.AccountType
-	40, // 3: arian.v1.CreateAccountRequest.anchor_balance:type_name -> google.type.Money
-	38, // 4: arian.v1.CreateAccountResponse.account:type_name -> arian.v1.Account
-	41, // 5: arian.v1.UpdateAccountRequest.update_mask:type_name -> google.protobuf.FieldMask
-	39, // 6: arian.v1.UpdateAccountRequest.account_type:type_name -> arian.v1.AccountType
-	42, // 7: arian.v1.UpdateAccountRequest.anchor_date:type_name -> google.protobuf.Timestamp
-	40, // 8: arian.v1.UpdateAccountRequest.anchor_balance:type_name -> google.type.Money
-	38, // 9: arian.v1.UpdateAccountResponse.account:type_name -> arian.v1.Account
-	40, // 10: arian.v1.SetAccountAnchorRequest.balance:type_name -> google.type.Money
-	40, // 11: arian.v1.GetAccountBalanceResponse.balance:type_name -> google.type.Money
-	43, // 12: arian.v1.AddCollaboratorResponse.collaborator:type_name -> arian.v1.AccountCollaborator
-	43, // 13: arian.v1.ListCollaboratorsResponse.collaborators:type_name -> arian.v1.AccountCollaborator
-	44, // 14: arian.v1.ListUserCollaborationsResponse.collaborations:type_name -> arian.v1.AccountCollaboration
-	40, // 15: arian.v1.GetAnchorBalanceResponse.anchor_balance:type_name -> google.type.Money
-	0,  // 16: arian.v1.AccountService.ListAccounts:input_type -> arian.v1.ListAccountsRequest
-	2,  // 17: arian.v1.AccountService.GetAccount:input_type -> arian.v1.GetAccountRequest
-	4,  // 18: arian.v1.AccountService.CreateAccount:input_type -> arian.v1.CreateAccountRequest
-	6,  // 19: arian.v1.AccountService.UpdateAccount:input_type -> arian.v1.UpdateAccountRequest
-	8,  // 20: arian.v1.AccountService.DeleteAccount:input_type -> arian.v1.DeleteAccountRequest
-	10, // 21: arian.v1.AccountService.SetAccountAnchor:input_type -> arian.v1.SetAccountAnchorRequest
-	12, // 22: arian.v1.AccountService.GetAccountBalance:input_type -> arian.v1.GetAccountBalanceRequest
-	30, // 23: arian.v1.AccountService.GetAnchorBalance:input_type -> arian.v1.GetAnchorBalanceRequest
-	14, // 24: arian.v1.AccountService.GetAccountsCount:input_type -> arian.v1.GetAccountsCountRequest
-	32, // 25: arian.v1.AccountService.CheckUserAccountAccess:input_type -> arian.v1.CheckUserAccountAccessRequest
-	16, // 26: arian.v1.AccountService.SyncAccountBalances:input_type -> arian.v1.SyncAccountBalancesRequest
-	18, // 27: arian.v1.AccountCollaborationService.AddCollaborator:input_type -> arian.v1.AddCollaboratorRequest
-	20, // 28: arian.v1.AccountCollaborationService.RemoveCollaborator:input_type -> arian.v1.RemoveCollaboratorRequest
-	22, // 29: arian.v1.AccountCollaborationService.ListCollaborators:input_type -> arian.v1.ListCollaboratorsRequest
-	34, // 30: arian.v1.AccountCollaborationService.GetCollaboratorCount:input_type -> arian.v1.GetCollaboratorCountRequest
-	36, // 31: arian.v1.AccountCollaborationService.CheckCollaborator:input_type -> arian.v1.CheckCollaboratorRequest
-	24, // 32: arian.v1.AccountCollaborationService.ListUserCollaborations:input_type -> arian.v1.ListUserCollaborationsRequest
-	26, // 33: arian.v1.AccountCollaborationService.LeaveCollaboration:input_type -> arian.v1.LeaveCollaborationRequest
-	28, // 34: arian.v1.AccountCollaborationService.TransferOwnership:input_type -> arian.v1.TransferOwnershipRequest
-	1,  // 35: arian.v1.AccountService.ListAccounts:output_type -> arian.v1.ListAccountsResponse
-	3,  // 36: arian.v1.AccountService.GetAccount:output_type -> arian.v1.GetAccountResponse
-	5,  // 37: arian.v1.AccountService.CreateAccount:output_type -> arian.v1.CreateAccountResponse
-	7,  // 38: arian.v1.AccountService.UpdateAccount:output_type -> arian.v1.UpdateAccountResponse
-	9,  // 39: arian.v1.AccountService.DeleteAccount:output_type -> arian.v1.DeleteAccountResponse
-	11, // 40: arian.v1.AccountService.SetAccountAnchor:output_type -> arian.v1.SetAccountAnchorResponse
-	13, // 41: arian.v1.AccountService.GetAccountBalance:output_type -> arian.v1.GetAccountBalanceResponse
-	31, // 42: arian.v1.AccountService.GetAnchorBalance:output_type -> arian.v1.GetAnchorBalanceResponse
-	15, // 43: arian.v1.AccountService.GetAccountsCount:output_type -> arian.v1.GetAccountsCountResponse
-	33, // 44: arian.v1.AccountService.CheckUserAccountAccess:output_type -> arian.v1.CheckUserAccountAccessResponse
-	17, // 45: arian.v1.AccountService.SyncAccountBalances:output_type -> arian.v1.SyncAccountBalancesResponse
-	19, // 46: arian.v1.AccountCollaborationService.AddCollaborator:output_type -> arian.v1.AddCollaboratorResponse
-	21, // 47: arian.v1.AccountCollaborationService.RemoveCollaborator:output_type -> arian.v1.RemoveCollaboratorResponse
-	23, // 48: arian.v1.AccountCollaborationService.ListCollaborators:output_type -> arian.v1.ListCollaboratorsResponse
-	35, // 49: arian.v1.AccountCollaborationService.GetCollaboratorCount:output_type -> arian.v1.GetCollaboratorCountResponse
-	37, // 50: arian.v1.AccountCollaborationService.CheckCollaborator:output_type -> arian.v1.CheckCollaboratorResponse
-	25, // 51: arian.v1.AccountCollaborationService.ListUserCollaborations:output_type -> arian.v1.ListUserCollaborationsResponse
-	27, // 52: arian.v1.AccountCollaborationService.LeaveCollaboration:output_type -> arian.v1.LeaveCollaborationResponse
-	29, // 53: arian.v1.AccountCollaborationService.TransferOwnership:output_type -> arian.v1.TransferOwnershipResponse
-	35, // [35:54] is the sub-list for method output_type
-	16, // [16:35] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	22, // 0: arian.v1.ListAccountsResponse.accounts:type_name -> arian.v1.Account
+	22, // 1: arian.v1.GetAccountResponse.account:type_name -> arian.v1.Account
+	23, // 2: arian.v1.CreateAccountRequest.type:type_name -> arian.v1.AccountType
+	24, // 3: arian.v1.CreateAccountRequest.anchor_balance:type_name -> google.type.Money
+	22, // 4: arian.v1.CreateAccountResponse.account:type_name -> arian.v1.Account
+	25, // 5: arian.v1.UpdateAccountRequest.update_mask:type_name -> google.protobuf.FieldMask
+	23, // 6: arian.v1.UpdateAccountRequest.account_type:type_name -> arian.v1.AccountType
+	26, // 7: arian.v1.UpdateAccountRequest.anchor_date:type_name -> google.protobuf.Timestamp
+	24, // 8: arian.v1.UpdateAccountRequest.anchor_balance:type_name -> google.type.Money
+	22, // 9: arian.v1.UpdateAccountResponse.account:type_name -> arian.v1.Account
+	24, // 10: arian.v1.SetAccountAnchorRequest.balance:type_name -> google.type.Money
+	24, // 11: arian.v1.GetAccountBalanceResponse.balance:type_name -> google.type.Money
+	24, // 12: arian.v1.GetAnchorBalanceResponse.anchor_balance:type_name -> google.type.Money
+	0,  // 13: arian.v1.AccountService.ListAccounts:input_type -> arian.v1.ListAccountsRequest
+	2,  // 14: arian.v1.AccountService.GetAccount:input_type -> arian.v1.GetAccountRequest
+	4,  // 15: arian.v1.AccountService.CreateAccount:input_type -> arian.v1.CreateAccountRequest
+	6,  // 16: arian.v1.AccountService.UpdateAccount:input_type -> arian.v1.UpdateAccountRequest
+	8,  // 17: arian.v1.AccountService.DeleteAccount:input_type -> arian.v1.DeleteAccountRequest
+	10, // 18: arian.v1.AccountService.SetAccountAnchor:input_type -> arian.v1.SetAccountAnchorRequest
+	12, // 19: arian.v1.AccountService.GetAccountBalance:input_type -> arian.v1.GetAccountBalanceRequest
+	18, // 20: arian.v1.AccountService.GetAnchorBalance:input_type -> arian.v1.GetAnchorBalanceRequest
+	14, // 21: arian.v1.AccountService.GetAccountsCount:input_type -> arian.v1.GetAccountsCountRequest
+	20, // 22: arian.v1.AccountService.CheckUserAccountAccess:input_type -> arian.v1.CheckUserAccountAccessRequest
+	16, // 23: arian.v1.AccountService.SyncAccountBalances:input_type -> arian.v1.SyncAccountBalancesRequest
+	1,  // 24: arian.v1.AccountService.ListAccounts:output_type -> arian.v1.ListAccountsResponse
+	3,  // 25: arian.v1.AccountService.GetAccount:output_type -> arian.v1.GetAccountResponse
+	5,  // 26: arian.v1.AccountService.CreateAccount:output_type -> arian.v1.CreateAccountResponse
+	7,  // 27: arian.v1.AccountService.UpdateAccount:output_type -> arian.v1.UpdateAccountResponse
+	9,  // 28: arian.v1.AccountService.DeleteAccount:output_type -> arian.v1.DeleteAccountResponse
+	11, // 29: arian.v1.AccountService.SetAccountAnchor:output_type -> arian.v1.SetAccountAnchorResponse
+	13, // 30: arian.v1.AccountService.GetAccountBalance:output_type -> arian.v1.GetAccountBalanceResponse
+	19, // 31: arian.v1.AccountService.GetAnchorBalance:output_type -> arian.v1.GetAnchorBalanceResponse
+	15, // 32: arian.v1.AccountService.GetAccountsCount:output_type -> arian.v1.GetAccountsCountResponse
+	21, // 33: arian.v1.AccountService.CheckUserAccountAccess:output_type -> arian.v1.CheckUserAccountAccessResponse
+	17, // 34: arian.v1.AccountService.SyncAccountBalances:output_type -> arian.v1.SyncAccountBalancesResponse
+	24, // [24:35] is the sub-list for method output_type
+	13, // [13:24] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_account_services_proto_init() }
@@ -2203,9 +1323,9 @@ func file_arian_v1_account_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_account_services_proto_rawDesc), len(file_arian_v1_account_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   22,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   1,
 		},
 		GoTypes:           file_arian_v1_account_services_proto_goTypes,
 		DependencyIndexes: file_arian_v1_account_services_proto_depIdxs,

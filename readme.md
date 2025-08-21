@@ -1,38 +1,39 @@
 # ariand
 
-the main backend service for the arian project.
+ariand is a high-performance gRPC (or rather [connect-go](https://github.com/connectrpc/connect-go)) API built in Go that handles core financial operations including user management, account management, transaction processing, and categorization, among other things.
 
-## development
+## ⚙️ config
 
-> behold, this codebase is the pinnacle of DDD (dilly-dally driven development)
+### cli params
 
-### environment
+| param     | description       | default  |
+|-----------|-------------------|----------|
+| `--port`  | gRPC server port  | `55555`  |
 
-i use devenv to manage my development environment. that includes installing the dependencies and setting up the necessary tools and scripts. you can find the configuration in the [devenv.nix](./devenv.nix) file. it's not required, but highly recommended for a consistent development experience.
+### environment variables
 
-### sql migrations
+| variable                  | description                                | default  | required?  |
+|---------------------------|--------------------------------------------|----------|------------|
+| `API_KEY`                 | Authentication key for gRPC API access     |          | [x]        |
+| `DATABASE_URL`            | PostgreSQL connection string               |          | [x]        |
+| `ARIAN_RECEIPTS_URL`      | gRPC endpoint for receipt parsing service  |          | [x]        |
+| `BETTER_AUTH_URL`         | URL for BetterAuth service                 |          | [x]        |
+| `RECEIPT_PARSER_TIMEOUT`  | Timeout for receipt parser requests        |          | [ ]        |
+| `LOG_LEVEL`               | Log level: debug, info, warn, error        | `info`   | [ ]        |
+| `OPENAI_API_KEY`          | OpenAI API access                          |          | [ ]        |
+| `ANTHROPIC_API_KEY`       | Anthropic API access                       |          | [ ]        |
+| `OLLAMA_API_KEY`          | Ollama API access                          |          | [ ]        |
+| `GOOGLE_API_KEY`          | Google/Gemini API access                   |          | [ ]        |
 
-i use [goose 🪿](https://github.com/pressly/goose) to manage sql migrations. migration files are located in [migrations](./internal/db/migrations). you can run them using the `migrate` script defined in [devenv.nix](./devenv.nix). it will automatically apply the migrations to the database.
+## 🌱 ecosystem
 
-### notes
-
-#### dev postgres
-
-```shell
-docker run -d \
-  --name arian-postgres \
-  -p 5432:5432 \
-  -e POSTGRES_USER=arian \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=arian \
-  -v postgres_data:/var/lib/postgresql/data \
-  postgres:17-alpine
+```definition
+arian (n.) /ˈarjan/ [Welsh] Silver; money; wealth.  
 ```
 
-```shell
-migrate
-```
-
-```shell
-docker run -p 6969:6969 -d gusaul/grpcox
-```
+- [ariand](https://github.com/xhos/ariand) - main backend service
+- [arian-web](https://github.com/xhos/arian-web) - frontend web application
+- [arian-mobile](https://github.com/xhos/arian-mobile) - mobile appplication
+- [arian-protos](https://github.com/xhos/arian-protos) - shared protobuf definitions
+- [arian-receipts](https://github.com/xhos/arian-receipts) - receipt parsing microservice
+- [arian-email-parser](https://github.com/xhos/arian-email-parser) - email parsing service

@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -22,7 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Geographic location
+// geographic location
 type Location struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Latitude      float64                `protobuf:"fixed64,1,opt,name=latitude,proto3" json:"latitude,omitempty"`   // WGS84 decimal degrees
@@ -91,7 +92,7 @@ func (x *Location) GetLabel() string {
 	return ""
 }
 
-// Pagination cursor for list operations
+// pagination cursor for list operations
 type Cursor struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Date          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"`
@@ -144,7 +145,7 @@ func (x *Cursor) GetId() int64 {
 	return 0
 }
 
-// Time of day for filtering
+// time of day for filtering
 type TimeOfDay struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Hours         int32                  `protobuf:"varint,1,opt,name=hours,proto3" json:"hours,omitempty"`     // 0-23
@@ -201,20 +202,21 @@ var File_arian_v1_common_proto protoreflect.FileDescriptor
 
 const file_arian_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x15arian/v1/common.proto\x12\barian.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x81\x01\n" +
-	"\bLocation\x12\x1a\n" +
-	"\blatitude\x18\x01 \x01(\x01R\blatitude\x12\x1c\n" +
-	"\tlongitude\x18\x02 \x01(\x01R\tlongitude\x12\x16\n" +
-	"\x06source\x18\x03 \x01(\tR\x06source\x12\x19\n" +
-	"\x05label\x18\x04 \x01(\tH\x00R\x05label\x88\x01\x01B\b\n" +
+	"\x15arian/v1/common.proto\x12\barian.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\"\xca\x01\n" +
+	"\bLocation\x123\n" +
+	"\blatitude\x18\x01 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80V@)\x00\x00\x00\x00\x00\x80V\xc0R\blatitude\x125\n" +
+	"\tlongitude\x18\x02 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80f@)\x00\x00\x00\x00\x00\x80f\xc0R\tlongitude\x12!\n" +
+	"\x06source\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\x06source\x12%\n" +
+	"\x05label\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01H\x00R\x05label\x88\x01\x01B\b\n" +
 	"\x06_label\"T\n" +
 	"\x06Cursor\x12.\n" +
 	"\x04date\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04date\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\x03H\x00R\x02id\x88\x01\x01B\x05\n" +
-	"\x03_id\";\n" +
-	"\tTimeOfDay\x12\x14\n" +
-	"\x05hours\x18\x01 \x01(\x05R\x05hours\x12\x18\n" +
-	"\aminutes\x18\x02 \x01(\x05R\aminutesB\x82\x01\n" +
+	"\x03_id\"Q\n" +
+	"\tTimeOfDay\x12\x1f\n" +
+	"\x05hours\x18\x01 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\x17(\x00R\x05hours\x12#\n" +
+	"\aminutes\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18;(\x00R\aminutesB\x82\x01\n" +
 	"\fcom.arian.v1B\vCommonProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (

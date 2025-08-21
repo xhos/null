@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -23,7 +24,7 @@ const (
 
 type GetUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -295,7 +296,7 @@ func (x *CreateUserResponse) GetUser() *User {
 
 type UpdateUserRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Email            *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	DisplayName      *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
 	DefaultAccountId *int64                 `protobuf:"varint,4,opt,name=default_account_id,json=defaultAccountId,proto3,oneof" json:"default_account_id,omitempty"`
@@ -407,7 +408,7 @@ func (x *UpdateUserResponse) GetUser() *User {
 
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -487,7 +488,7 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 
 type UpdateUserDisplayNameRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -583,7 +584,7 @@ func (x *UpdateUserDisplayNameResponse) GetUser() *User {
 
 type SetUserDefaultAccountRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	DefaultAccountId int64                  `protobuf:"varint,2,opt,name=default_account_id,json=defaultAccountId,proto3" json:"default_account_id,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -783,7 +784,7 @@ func (x *ListUsersResponse) GetTotalCount() int64 {
 
 type CheckUserExistsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUID
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -873,55 +874,56 @@ var File_arian_v1_user_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_user_services_proto_rawDesc = "" +
 	"\n" +
-	"\x1carian/v1/user_services.proto\x12\barian.v1\x1a\x13arian/v1/user.proto\" \n" +
-	"\x0eGetUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"5\n" +
+	"\x1carian/v1/user_services.proto\x12\barian.v1\x1a\x13arian/v1/user.proto\x1a\x1bbuf/validate/validate.proto\"*\n" +
+	"\x0eGetUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"5\n" +
 	"\x0fGetUserResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"-\n" +
-	"\x15GetUserByEmailRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\"<\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"6\n" +
+	"\x15GetUserByEmailRequest\x12\x1d\n" +
+	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\"<\n" +
 	"\x16GetUserByEmailResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"b\n" +
-	"\x11CreateUserRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12&\n" +
-	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01B\x0f\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"v\n" +
+	"\x11CreateUserRequest\x12\x1d\n" +
+	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x121\n" +
+	"\fdisplay_name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dH\x00R\vdisplayName\x88\x01\x01B\x0f\n" +
 	"\r_display_name\"8\n" +
 	"\x12CreateUserResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\xcb\x01\n" +
-	"\x11UpdateUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12&\n" +
-	"\fdisplay_name\x18\x03 \x01(\tH\x01R\vdisplayName\x88\x01\x01\x121\n" +
-	"\x12default_account_id\x18\x04 \x01(\x03H\x02R\x10defaultAccountId\x88\x01\x01B\b\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\xf2\x01\n" +
+	"\x11UpdateUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\"\n" +
+	"\x05email\x18\x02 \x01(\tB\a\xbaH\x04r\x02`\x01H\x00R\x05email\x88\x01\x01\x121\n" +
+	"\fdisplay_name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dH\x01R\vdisplayName\x88\x01\x01\x12:\n" +
+	"\x12default_account_id\x18\x04 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x02R\x10defaultAccountId\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_display_nameB\x15\n" +
 	"\x13_default_account_id\"8\n" +
 	"\x12UpdateUserResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"#\n" +
-	"\x11DeleteUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteUserResponse\"Q\n" +
-	"\x1cUpdateUserDisplayNameRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"C\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"-\n" +
+	"\x11DeleteUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x14\n" +
+	"\x12DeleteUserResponse\"f\n" +
+	"\x1cUpdateUserDisplayNameRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12,\n" +
+	"\fdisplay_name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\vdisplayName\"C\n" +
 	"\x1dUpdateUserDisplayNameResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\\\n" +
-	"\x1cSetUserDefaultAccountRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
-	"\x12default_account_id\x18\x02 \x01(\x03R\x10defaultAccountId\"C\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"o\n" +
+	"\x1cSetUserDefaultAccountRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x125\n" +
+	"\x12default_account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x10defaultAccountId\"C\n" +
 	"\x1dSetUserDefaultAccountResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"_\n" +
-	"\x10ListUsersRequest\x12\x19\n" +
-	"\x05limit\x18\x01 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x02 \x01(\x05H\x01R\x06offset\x88\x01\x01B\b\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"t\n" +
+	"\x10ListUsersRequest\x12%\n" +
+	"\x05limit\x18\x01 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x01R\x06offset\x88\x01\x01B\b\n" +
 	"\x06_limitB\t\n" +
 	"\a_offset\"Z\n" +
 	"\x11ListUsersResponse\x12$\n" +
 	"\x05users\x18\x01 \x03(\v2\x0e.arian.v1.UserR\x05users\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"(\n" +
-	"\x16CheckUserExistsRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"1\n" +
+	"totalCount\"2\n" +
+	"\x16CheckUserExistsRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"1\n" +
 	"\x17CheckUserExistsResponse\x12\x16\n" +
 	"\x06exists\x18\x01 \x01(\bR\x06exists2\xef\x05\n" +
 	"\vUserService\x12>\n" +

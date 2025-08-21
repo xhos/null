@@ -35,8 +35,6 @@ const (
 // AccountServiceClient is the client API for AccountService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Account management service
 type AccountServiceClient interface {
 	ListAccounts(ctx context.Context, in *ListAccountsRequest, opts ...grpc.CallOption) (*ListAccountsResponse, error)
 	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*GetAccountResponse, error)
@@ -170,10 +168,8 @@ func (c *accountServiceClient) SyncAccountBalances(ctx context.Context, in *Sync
 }
 
 // AccountServiceServer is the server API for AccountService service.
-// All implementations should embed UnimplementedAccountServiceServer
+// All implementations must embed UnimplementedAccountServiceServer
 // for forward compatibility.
-//
-// Account management service
 type AccountServiceServer interface {
 	ListAccounts(context.Context, *ListAccountsRequest) (*ListAccountsResponse, error)
 	GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error)
@@ -186,9 +182,10 @@ type AccountServiceServer interface {
 	GetAccountsCount(context.Context, *GetAccountsCountRequest) (*GetAccountsCountResponse, error)
 	CheckUserAccountAccess(context.Context, *CheckUserAccountAccessRequest) (*CheckUserAccountAccessResponse, error)
 	SyncAccountBalances(context.Context, *SyncAccountBalancesRequest) (*SyncAccountBalancesResponse, error)
+	mustEmbedUnimplementedAccountServiceServer()
 }
 
-// UnimplementedAccountServiceServer should be embedded to have
+// UnimplementedAccountServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -228,7 +225,8 @@ func (UnimplementedAccountServiceServer) CheckUserAccountAccess(context.Context,
 func (UnimplementedAccountServiceServer) SyncAccountBalances(context.Context, *SyncAccountBalancesRequest) (*SyncAccountBalancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncAccountBalances not implemented")
 }
-func (UnimplementedAccountServiceServer) testEmbeddedByValue() {}
+func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
+func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
 
 // UnsafeAccountServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to AccountServiceServer will
@@ -496,376 +494,6 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncAccountBalances",
 			Handler:    _AccountService_SyncAccountBalances_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "arian/v1/account_services.proto",
-}
-
-const (
-	AccountCollaborationService_AddCollaborator_FullMethodName        = "/arian.v1.AccountCollaborationService/AddCollaborator"
-	AccountCollaborationService_RemoveCollaborator_FullMethodName     = "/arian.v1.AccountCollaborationService/RemoveCollaborator"
-	AccountCollaborationService_ListCollaborators_FullMethodName      = "/arian.v1.AccountCollaborationService/ListCollaborators"
-	AccountCollaborationService_GetCollaboratorCount_FullMethodName   = "/arian.v1.AccountCollaborationService/GetCollaboratorCount"
-	AccountCollaborationService_CheckCollaborator_FullMethodName      = "/arian.v1.AccountCollaborationService/CheckCollaborator"
-	AccountCollaborationService_ListUserCollaborations_FullMethodName = "/arian.v1.AccountCollaborationService/ListUserCollaborations"
-	AccountCollaborationService_LeaveCollaboration_FullMethodName     = "/arian.v1.AccountCollaborationService/LeaveCollaboration"
-	AccountCollaborationService_TransferOwnership_FullMethodName      = "/arian.v1.AccountCollaborationService/TransferOwnership"
-)
-
-// AccountCollaborationServiceClient is the client API for AccountCollaborationService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Account collaboration service
-type AccountCollaborationServiceClient interface {
-	AddCollaborator(ctx context.Context, in *AddCollaboratorRequest, opts ...grpc.CallOption) (*AddCollaboratorResponse, error)
-	RemoveCollaborator(ctx context.Context, in *RemoveCollaboratorRequest, opts ...grpc.CallOption) (*RemoveCollaboratorResponse, error)
-	ListCollaborators(ctx context.Context, in *ListCollaboratorsRequest, opts ...grpc.CallOption) (*ListCollaboratorsResponse, error)
-	GetCollaboratorCount(ctx context.Context, in *GetCollaboratorCountRequest, opts ...grpc.CallOption) (*GetCollaboratorCountResponse, error)
-	CheckCollaborator(ctx context.Context, in *CheckCollaboratorRequest, opts ...grpc.CallOption) (*CheckCollaboratorResponse, error)
-	ListUserCollaborations(ctx context.Context, in *ListUserCollaborationsRequest, opts ...grpc.CallOption) (*ListUserCollaborationsResponse, error)
-	LeaveCollaboration(ctx context.Context, in *LeaveCollaborationRequest, opts ...grpc.CallOption) (*LeaveCollaborationResponse, error)
-	TransferOwnership(ctx context.Context, in *TransferOwnershipRequest, opts ...grpc.CallOption) (*TransferOwnershipResponse, error)
-}
-
-type accountCollaborationServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewAccountCollaborationServiceClient(cc grpc.ClientConnInterface) AccountCollaborationServiceClient {
-	return &accountCollaborationServiceClient{cc}
-}
-
-func (c *accountCollaborationServiceClient) AddCollaborator(ctx context.Context, in *AddCollaboratorRequest, opts ...grpc.CallOption) (*AddCollaboratorResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddCollaboratorResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_AddCollaborator_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) RemoveCollaborator(ctx context.Context, in *RemoveCollaboratorRequest, opts ...grpc.CallOption) (*RemoveCollaboratorResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RemoveCollaboratorResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_RemoveCollaborator_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) ListCollaborators(ctx context.Context, in *ListCollaboratorsRequest, opts ...grpc.CallOption) (*ListCollaboratorsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCollaboratorsResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_ListCollaborators_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) GetCollaboratorCount(ctx context.Context, in *GetCollaboratorCountRequest, opts ...grpc.CallOption) (*GetCollaboratorCountResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetCollaboratorCountResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_GetCollaboratorCount_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) CheckCollaborator(ctx context.Context, in *CheckCollaboratorRequest, opts ...grpc.CallOption) (*CheckCollaboratorResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CheckCollaboratorResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_CheckCollaborator_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) ListUserCollaborations(ctx context.Context, in *ListUserCollaborationsRequest, opts ...grpc.CallOption) (*ListUserCollaborationsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListUserCollaborationsResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_ListUserCollaborations_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) LeaveCollaboration(ctx context.Context, in *LeaveCollaborationRequest, opts ...grpc.CallOption) (*LeaveCollaborationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LeaveCollaborationResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_LeaveCollaboration_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountCollaborationServiceClient) TransferOwnership(ctx context.Context, in *TransferOwnershipRequest, opts ...grpc.CallOption) (*TransferOwnershipResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(TransferOwnershipResponse)
-	err := c.cc.Invoke(ctx, AccountCollaborationService_TransferOwnership_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// AccountCollaborationServiceServer is the server API for AccountCollaborationService service.
-// All implementations should embed UnimplementedAccountCollaborationServiceServer
-// for forward compatibility.
-//
-// Account collaboration service
-type AccountCollaborationServiceServer interface {
-	AddCollaborator(context.Context, *AddCollaboratorRequest) (*AddCollaboratorResponse, error)
-	RemoveCollaborator(context.Context, *RemoveCollaboratorRequest) (*RemoveCollaboratorResponse, error)
-	ListCollaborators(context.Context, *ListCollaboratorsRequest) (*ListCollaboratorsResponse, error)
-	GetCollaboratorCount(context.Context, *GetCollaboratorCountRequest) (*GetCollaboratorCountResponse, error)
-	CheckCollaborator(context.Context, *CheckCollaboratorRequest) (*CheckCollaboratorResponse, error)
-	ListUserCollaborations(context.Context, *ListUserCollaborationsRequest) (*ListUserCollaborationsResponse, error)
-	LeaveCollaboration(context.Context, *LeaveCollaborationRequest) (*LeaveCollaborationResponse, error)
-	TransferOwnership(context.Context, *TransferOwnershipRequest) (*TransferOwnershipResponse, error)
-}
-
-// UnimplementedAccountCollaborationServiceServer should be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedAccountCollaborationServiceServer struct{}
-
-func (UnimplementedAccountCollaborationServiceServer) AddCollaborator(context.Context, *AddCollaboratorRequest) (*AddCollaboratorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddCollaborator not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) RemoveCollaborator(context.Context, *RemoveCollaboratorRequest) (*RemoveCollaboratorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveCollaborator not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) ListCollaborators(context.Context, *ListCollaboratorsRequest) (*ListCollaboratorsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCollaborators not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) GetCollaboratorCount(context.Context, *GetCollaboratorCountRequest) (*GetCollaboratorCountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCollaboratorCount not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) CheckCollaborator(context.Context, *CheckCollaboratorRequest) (*CheckCollaboratorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckCollaborator not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) ListUserCollaborations(context.Context, *ListUserCollaborationsRequest) (*ListUserCollaborationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListUserCollaborations not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) LeaveCollaboration(context.Context, *LeaveCollaborationRequest) (*LeaveCollaborationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LeaveCollaboration not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) TransferOwnership(context.Context, *TransferOwnershipRequest) (*TransferOwnershipResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TransferOwnership not implemented")
-}
-func (UnimplementedAccountCollaborationServiceServer) testEmbeddedByValue() {}
-
-// UnsafeAccountCollaborationServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AccountCollaborationServiceServer will
-// result in compilation errors.
-type UnsafeAccountCollaborationServiceServer interface {
-	mustEmbedUnimplementedAccountCollaborationServiceServer()
-}
-
-func RegisterAccountCollaborationServiceServer(s grpc.ServiceRegistrar, srv AccountCollaborationServiceServer) {
-	// If the following call pancis, it indicates UnimplementedAccountCollaborationServiceServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&AccountCollaborationService_ServiceDesc, srv)
-}
-
-func _AccountCollaborationService_AddCollaborator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddCollaboratorRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).AddCollaborator(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_AddCollaborator_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).AddCollaborator(ctx, req.(*AddCollaboratorRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_RemoveCollaborator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveCollaboratorRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).RemoveCollaborator(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_RemoveCollaborator_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).RemoveCollaborator(ctx, req.(*RemoveCollaboratorRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_ListCollaborators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCollaboratorsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).ListCollaborators(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_ListCollaborators_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).ListCollaborators(ctx, req.(*ListCollaboratorsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_GetCollaboratorCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCollaboratorCountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).GetCollaboratorCount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_GetCollaboratorCount_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).GetCollaboratorCount(ctx, req.(*GetCollaboratorCountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_CheckCollaborator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckCollaboratorRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).CheckCollaborator(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_CheckCollaborator_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).CheckCollaborator(ctx, req.(*CheckCollaboratorRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_ListUserCollaborations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListUserCollaborationsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).ListUserCollaborations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_ListUserCollaborations_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).ListUserCollaborations(ctx, req.(*ListUserCollaborationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_LeaveCollaboration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LeaveCollaborationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).LeaveCollaboration(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_LeaveCollaboration_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).LeaveCollaboration(ctx, req.(*LeaveCollaborationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountCollaborationService_TransferOwnership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TransferOwnershipRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountCollaborationServiceServer).TransferOwnership(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountCollaborationService_TransferOwnership_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountCollaborationServiceServer).TransferOwnership(ctx, req.(*TransferOwnershipRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// AccountCollaborationService_ServiceDesc is the grpc.ServiceDesc for AccountCollaborationService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var AccountCollaborationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "arian.v1.AccountCollaborationService",
-	HandlerType: (*AccountCollaborationServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "AddCollaborator",
-			Handler:    _AccountCollaborationService_AddCollaborator_Handler,
-		},
-		{
-			MethodName: "RemoveCollaborator",
-			Handler:    _AccountCollaborationService_RemoveCollaborator_Handler,
-		},
-		{
-			MethodName: "ListCollaborators",
-			Handler:    _AccountCollaborationService_ListCollaborators_Handler,
-		},
-		{
-			MethodName: "GetCollaboratorCount",
-			Handler:    _AccountCollaborationService_GetCollaboratorCount_Handler,
-		},
-		{
-			MethodName: "CheckCollaborator",
-			Handler:    _AccountCollaborationService_CheckCollaborator_Handler,
-		},
-		{
-			MethodName: "ListUserCollaborations",
-			Handler:    _AccountCollaborationService_ListUserCollaborations_Handler,
-		},
-		{
-			MethodName: "LeaveCollaboration",
-			Handler:    _AccountCollaborationService_LeaveCollaboration_Handler,
-		},
-		{
-			MethodName: "TransferOwnership",
-			Handler:    _AccountCollaborationService_TransferOwnership_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

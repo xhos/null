@@ -168,7 +168,7 @@ func (c *dashboardServiceClient) GetNetBalance(ctx context.Context, in *GetNetBa
 }
 
 // DashboardServiceServer is the server API for DashboardService service.
-// All implementations should embed UnimplementedDashboardServiceServer
+// All implementations must embed UnimplementedDashboardServiceServer
 // for forward compatibility.
 type DashboardServiceServer interface {
 	GetDashboardSummary(context.Context, *GetDashboardSummaryRequest) (*GetDashboardSummaryResponse, error)
@@ -182,9 +182,10 @@ type DashboardServiceServer interface {
 	GetTotalBalance(context.Context, *GetTotalBalanceRequest) (*GetTotalBalanceResponse, error)
 	GetTotalDebt(context.Context, *GetTotalDebtRequest) (*GetTotalDebtResponse, error)
 	GetNetBalance(context.Context, *GetNetBalanceRequest) (*GetNetBalanceResponse, error)
+	mustEmbedUnimplementedDashboardServiceServer()
 }
 
-// UnimplementedDashboardServiceServer should be embedded to have
+// UnimplementedDashboardServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -224,7 +225,8 @@ func (UnimplementedDashboardServiceServer) GetTotalDebt(context.Context, *GetTot
 func (UnimplementedDashboardServiceServer) GetNetBalance(context.Context, *GetNetBalanceRequest) (*GetNetBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNetBalance not implemented")
 }
-func (UnimplementedDashboardServiceServer) testEmbeddedByValue() {}
+func (UnimplementedDashboardServiceServer) mustEmbedUnimplementedDashboardServiceServer() {}
+func (UnimplementedDashboardServiceServer) testEmbeddedByValue()                          {}
 
 // UnsafeDashboardServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to DashboardServiceServer will

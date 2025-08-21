@@ -216,7 +216,7 @@ func (c *transactionServiceClient) SetTransactionReceipt(ctx context.Context, in
 }
 
 // TransactionServiceServer is the server API for TransactionService service.
-// All implementations should embed UnimplementedTransactionServiceServer
+// All implementations must embed UnimplementedTransactionServiceServer
 // for forward compatibility.
 type TransactionServiceServer interface {
 	ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error)
@@ -234,9 +234,10 @@ type TransactionServiceServer interface {
 	FindCandidateTransactions(context.Context, *FindCandidateTransactionsRequest) (*FindCandidateTransactionsResponse, error)
 	IdentifyMerchant(context.Context, *IdentifyMerchantRequest) (*IdentifyMerchantResponse, error)
 	SetTransactionReceipt(context.Context, *SetTransactionReceiptRequest) (*SetTransactionReceiptResponse, error)
+	mustEmbedUnimplementedTransactionServiceServer()
 }
 
-// UnimplementedTransactionServiceServer should be embedded to have
+// UnimplementedTransactionServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -288,7 +289,8 @@ func (UnimplementedTransactionServiceServer) IdentifyMerchant(context.Context, *
 func (UnimplementedTransactionServiceServer) SetTransactionReceipt(context.Context, *SetTransactionReceiptRequest) (*SetTransactionReceiptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetTransactionReceipt not implemented")
 }
-func (UnimplementedTransactionServiceServer) testEmbeddedByValue() {}
+func (UnimplementedTransactionServiceServer) mustEmbedUnimplementedTransactionServiceServer() {}
+func (UnimplementedTransactionServiceServer) testEmbeddedByValue()                            {}
 
 // UnsafeTransactionServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TransactionServiceServer will

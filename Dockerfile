@@ -50,13 +50,13 @@ LABEL org.opencontainers.image.title="ariand" \
       org.opencontainers.image.source="https://github.com/xhos/ariand"
 
 # runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache ca-certificates tzdata curl && \
     addgroup -g 1001 -S app && \
     adduser -u 1001 -S -G app -h /app app
 
 # copy binaries and migrations
 COPY --from=builder --chown=app:app /out/ariand /app/ariand
-COPY --from=builder --chown=app:app /src/internal/db/migrations /app/migrations
+COPY --from=builder --chown=app:app /src/internal/ /app/internal/
 COPY --from=health-probe --chown=app:app /grpc_health_probe /usr/local/bin/grpc_health_probe
 
 USER app
@@ -65,6 +65,8 @@ WORKDIR /app
 EXPOSE 55555
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD ["/usr/local/bin/grpc_health_probe", "-addr=:55555"]
+    CMD curl -f http://localhost:55555/grpc.health.v1.Health/Check \
+        -H "Content-Type: application/json" \
+        -d "{}" || exit 1
 
 ENTRYPOINT ["/app/ariand"]

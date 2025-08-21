@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1916,13 +1917,14 @@ var File_arian_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
-	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x89\b\n" +
-	"\x17ListTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\"\n" +
+	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a\x1bbuf/validate/validate.proto\"\xcf\b\n" +
+	"\x17ListTransactionsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12+\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x03H\x00R\taccountId\x88\x01\x01\x12\x19\n" +
-	"\x05limit\x18\x03 \x01(\x05H\x01R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x04 \x01(\x05H\x02R\x06offset\x88\x01\x01\x12>\n" +
+	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\taccountId\x88\x01\x01\x12%\n" +
+	"\x05limit\x18\x03 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x01R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x02R\x06offset\x88\x01\x01\x12>\n" +
 	"\n" +
 	"start_date\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\tstartDate\x88\x01\x01\x12:\n" +
 	"\bend_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x04R\aendDate\x88\x01\x01\x12-\n" +
@@ -1932,11 +1934,11 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
 	"amount_max\x18\t \x01(\v2\x12.google.type.MoneyH\aR\tamountMax\x88\x01\x01\x12A\n" +
 	"\tdirection\x18\n" +
-	" \x01(\x0e2\x1e.arian.v1.TransactionDirectionH\bR\tdirection\x88\x01\x01\x12\x1f\n" +
-	"\vaccount_ids\x18\v \x03(\x03R\n" +
-	"accountIds\x12\x1e\n" +
+	" \x01(\x0e2\x1e.arian.v1.TransactionDirectionH\bR\tdirection\x88\x01\x01\x12-\n" +
+	"\vaccount_ids\x18\v \x03(\x03B\f\xbaH\t\x92\x01\x06\"\x04\"\x02 \x00R\n" +
+	"accountIds\x12.\n" +
 	"\n" +
-	"categories\x18\f \x03(\tR\n" +
+	"categories\x18\f \x03(\tB\x0e\xbaH\v\x92\x01\b\"\x06r\x04\x10\x01\x18dR\n" +
 	"categories\x12*\n" +
 	"\x0emerchant_query\x18\r \x01(\tH\tR\rmerchantQuery\x88\x01\x01\x120\n" +
 	"\x11description_query\x18\x0e \x01(\tH\n" +
@@ -1965,24 +1967,24 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"totalCount\x126\n" +
 	"\vnext_cursor\x18\x03 \x01(\v2\x10.arian.v1.CursorH\x00R\n" +
 	"nextCursor\x88\x01\x01B\x0e\n" +
-	"\f_next_cursor\"@\n" +
-	"\x15GetTransactionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\"Q\n" +
+	"\f_next_cursor\"S\n" +
+	"\x15GetTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"Q\n" +
 	"\x16GetTransactionResponse\x127\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xd3\x04\n" +
-	"\x18CreateTransactionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xf9\x04\n" +
+	"\x18CreateTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\x123\n" +
+	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\x123\n" +
 	"\atx_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
-	"\ttx_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\btxAmount\x12<\n" +
-	"\tdirection\x18\x05 \x01(\x0e2\x1e.arian.v1.TransactionDirectionR\tdirection\x12%\n" +
+	"\ttx_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\btxAmount\x12F\n" +
+	"\tdirection\x18\x05 \x01(\x0e2\x1e.arian.v1.TransactionDirectionB\b\xbaH\x05\x82\x01\x02\x10\x01R\tdirection\x12%\n" +
 	"\vdescription\x18\x06 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1f\n" +
 	"\bmerchant\x18\a \x01(\tH\x01R\bmerchant\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"user_notes\x18\b \x01(\tH\x02R\tuserNotes\x88\x01\x01\x12$\n" +
-	"\vcategory_id\x18\t \x01(\x03H\x03R\n" +
+	"user_notes\x18\b \x01(\tH\x02R\tuserNotes\x88\x01\x01\x12-\n" +
+	"\vcategory_id\x18\t \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x03R\n" +
 	"categoryId\x88\x01\x01\x12>\n" +
 	"\x0eforeign_amount\x18\n" +
 	" \x01(\v2\x12.google.type.MoneyH\x04R\rforeignAmount\x88\x01\x01\x12(\n" +
@@ -1994,21 +1996,21 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x0f_foreign_amountB\x10\n" +
 	"\x0e_exchange_rate\"T\n" +
 	"\x19CreateTransactionResponse\x127\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xb8\x05\n" +
-	"\x18UpdateTransactionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\x12;\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xfc\x05\n" +
+	"\x18UpdateTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
 	"updateMask\x128\n" +
 	"\atx_date\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x06txDate\x88\x01\x01\x124\n" +
-	"\ttx_amount\x18\x05 \x01(\v2\x12.google.type.MoneyH\x01R\btxAmount\x88\x01\x01\x12A\n" +
-	"\tdirection\x18\x06 \x01(\x0e2\x1e.arian.v1.TransactionDirectionH\x02R\tdirection\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\a \x01(\tH\x03R\vdescription\x88\x01\x01\x12\x1f\n" +
-	"\bmerchant\x18\b \x01(\tH\x04R\bmerchant\x88\x01\x01\x12\"\n" +
+	"\ttx_amount\x18\x05 \x01(\v2\x12.google.type.MoneyH\x01R\btxAmount\x88\x01\x01\x12K\n" +
+	"\tdirection\x18\x06 \x01(\x0e2\x1e.arian.v1.TransactionDirectionB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\tdirection\x88\x01\x01\x12/\n" +
+	"\vdescription\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\x03R\vdescription\x88\x01\x01\x12)\n" +
+	"\bmerchant\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x04R\bmerchant\x88\x01\x01\x12,\n" +
 	"\n" +
-	"user_notes\x18\t \x01(\tH\x05R\tuserNotes\x88\x01\x01\x12$\n" +
+	"user_notes\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x05R\tuserNotes\x88\x01\x01\x12-\n" +
 	"\vcategory_id\x18\n" +
-	" \x01(\x03H\x06R\n" +
+	" \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x06R\n" +
 	"categoryId\x88\x01\x01\x12>\n" +
 	"\x0eforeign_amount\x18\v \x01(\v2\x12.google.type.MoneyH\aR\rforeignAmount\x88\x01\x01\x12(\n" +
 	"\rexchange_rate\x18\f \x01(\x01H\bR\fexchangeRate\x88\x01\x01B\n" +
@@ -2025,28 +2027,30 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x0f_foreign_amountB\x10\n" +
 	"\x0e_exchange_rate\"T\n" +
 	"\x19UpdateTransactionResponse\x127\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"C\n" +
-	"\x18DeleteTransactionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\"@\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"V\n" +
+	"\x18DeleteTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"@\n" +
 	"\x19DeleteTransactionResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\x7f\n" +
-	"\x1cCategorizeTransactionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12%\n" +
-	"\x0etransaction_id\x18\x02 \x01(\x03R\rtransactionId\x12\x1f\n" +
-	"\vcategory_id\x18\x03 \x01(\x03R\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\x9b\x01\n" +
+	"\x1cCategorizeTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12.\n" +
+	"\x0etransaction_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\x12(\n" +
+	"\vcategory_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\n" +
 	"categoryId\"X\n" +
 	"\x1dCategorizeTransactionResponse\x127\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\x80\x02\n" +
-	"\x19SearchTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05query\x18\x02 \x01(\tR\x05query\x12\"\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xbd\x02\n" +
+	"\x19SearchTransactionsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12 \n" +
+	"\x05query\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01R\x05query\x12+\n" +
 	"\n" +
-	"account_id\x18\x03 \x01(\x03H\x00R\taccountId\x88\x01\x01\x12$\n" +
-	"\vcategory_id\x18\x04 \x01(\x03H\x01R\n" +
-	"categoryId\x88\x01\x01\x12\x19\n" +
-	"\x05limit\x18\x05 \x01(\x05H\x02R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x06 \x01(\x05H\x03R\x06offset\x88\x01\x01B\r\n" +
+	"account_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\taccountId\x88\x01\x01\x12-\n" +
+	"\vcategory_id\x18\x04 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x01R\n" +
+	"categoryId\x88\x01\x01\x12%\n" +
+	"\x05limit\x18\x05 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x02R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x06 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x03R\x06offset\x88\x01\x01B\r\n" +
 	"\v_account_idB\x0e\n" +
 	"\f_category_idB\b\n" +
 	"\x06_limitB\t\n" +
@@ -2054,13 +2058,14 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x1aSearchTransactionsResponse\x12B\n" +
 	"\ftransactions\x18\x01 \x03(\v2\x1e.arian.v1.TransactionWithScoreR\ftransactions\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\xf8\x02\n" +
-	"\x1fGetTransactionsByAccountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"totalCount\"\xa0\x03\n" +
+	"\x1fGetTransactionsByAccountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x03R\taccountId\x12\x19\n" +
-	"\x05limit\x18\x03 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x04 \x01(\x05H\x01R\x06offset\x88\x01\x01\x12>\n" +
+	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\x12%\n" +
+	"\x05limit\x18\x03 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x01R\x06offset\x88\x01\x01\x12>\n" +
 	"\n" +
 	"start_date\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x02R\tstartDate\x88\x01\x01\x12:\n" +
 	"\bend_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\aendDate\x88\x01\x01\x12-\n" +
@@ -2076,13 +2081,14 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"totalCount\x126\n" +
 	"\vnext_cursor\x18\x03 \x01(\v2\x10.arian.v1.CursorH\x00R\n" +
 	"nextCursor\x88\x01\x01B\x0e\n" +
-	"\f_next_cursor\"\xf8\x01\n" +
-	"#GetUncategorizedTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\"\n" +
+	"\f_next_cursor\"\xa0\x02\n" +
+	"#GetUncategorizedTransactionsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12+\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x03H\x00R\taccountId\x88\x01\x01\x12\x19\n" +
-	"\x05limit\x18\x03 \x01(\x05H\x01R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x04 \x01(\x05H\x02R\x06offset\x88\x01\x01\x12-\n" +
+	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\taccountId\x88\x01\x01\x12%\n" +
+	"\x05limit\x18\x03 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x01R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x02R\x06offset\x88\x01\x01\x12-\n" +
 	"\x06cursor\x18\x05 \x01(\v2\x10.arian.v1.CursorH\x03R\x06cursor\x88\x01\x01B\r\n" +
 	"\v_account_idB\b\n" +
 	"\x06_limitB\t\n" +
@@ -2094,41 +2100,42 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"totalCount\x126\n" +
 	"\vnext_cursor\x18\x03 \x01(\v2\x10.arian.v1.CursorH\x00R\n" +
 	"nextCursor\x88\x01\x01B\x0e\n" +
-	"\f_next_cursor\"\x86\x01\n" +
-	"!BulkCategorizeTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12'\n" +
-	"\x0ftransaction_ids\x18\x02 \x03(\x03R\x0etransactionIds\x12\x1f\n" +
-	"\vcategory_id\x18\x03 \x01(\x03R\n" +
+	"\f_next_cursor\"\xac\x01\n" +
+	"!BulkCategorizeTransactionsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12:\n" +
+	"\x0ftransaction_ids\x18\x02 \x03(\x03B\x11\xbaH\x0e\x92\x01\v\b\x01\x10\xe8\a\"\x04\"\x02 \x00R\x0etransactionIds\x12(\n" +
+	"\vcategory_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\n" +
 	"categoryId\"I\n" +
 	"\"BulkCategorizeTransactionsResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"a\n" +
-	"\x1dBulkDeleteTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12'\n" +
-	"\x0ftransaction_ids\x18\x02 \x03(\x03R\x0etransactionIds\"E\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"~\n" +
+	"\x1dBulkDeleteTransactionsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12:\n" +
+	"\x0ftransaction_ids\x18\x02 \x03(\x03B\x11\xbaH\x0e\x92\x01\v\b\x01\x10\xe8\a\"\x04\"\x02 \x00R\x0etransactionIds\"E\n" +
 	"\x1eBulkDeleteTransactionsResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\">\n" +
-	"#GetTransactionCountByAccountRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"c\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"H\n" +
+	"#GetTransactionCountByAccountRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"c\n" +
 	"$GetTransactionCountByAccountResponse\x12;\n" +
-	"\x06counts\x18\x01 \x03(\v2#.arian.v1.TransactionCountByAccountR\x06counts\"\xcf\x01\n" +
-	" FindCandidateTransactionsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
-	"\bmerchant\x18\x02 \x01(\tR\bmerchant\x12?\n" +
+	"\x06counts\x18\x01 \x03(\v2#.arian.v1.TransactionCountByAccountR\x06counts\"\xe5\x01\n" +
+	" FindCandidateTransactionsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
+	"\bmerchant\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01R\bmerchant\x12?\n" +
 	"\rpurchase_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\fpurchaseDate\x125\n" +
 	"\ftotal_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\vtotalAmount\"c\n" +
 	"!FindCandidateTransactionsResponse\x12>\n" +
 	"\n" +
 	"candidates\x18\x01 \x03(\v2\x1e.arian.v1.TransactionWithScoreR\n" +
-	"candidates\"Y\n" +
-	"\x17IdentifyMerchantRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12%\n" +
-	"\x0etransaction_id\x18\x02 \x01(\x03R\rtransactionId\"6\n" +
+	"candidates\"l\n" +
+	"\x17IdentifyMerchantRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12.\n" +
+	"\x0etransaction_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\"6\n" +
 	"\x18IdentifyMerchantResponse\x12\x1a\n" +
-	"\bmerchant\x18\x01 \x01(\tR\bmerchant\"d\n" +
-	"\x1cSetTransactionReceiptRequest\x12%\n" +
-	"\x0etransaction_id\x18\x01 \x01(\x03R\rtransactionId\x12\x1d\n" +
+	"\bmerchant\x18\x01 \x01(\tR\bmerchant\"v\n" +
+	"\x1cSetTransactionReceiptRequest\x12.\n" +
+	"\x0etransaction_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\x12&\n" +
 	"\n" +
-	"receipt_id\x18\x02 \x01(\x03R\treceiptId\"D\n" +
+	"receipt_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\treceiptId\"D\n" +
 	"\x1dSetTransactionReceiptResponse\x12#\n" +
 	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows2\xbb\f\n" +
 	"\x12TransactionService\x12Y\n" +

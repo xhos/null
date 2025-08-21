@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -266,7 +267,7 @@ func (x *GetReceiptResponse) GetReceipt() *Receipt {
 type UploadReceiptRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	FileData      []byte                 `protobuf:"bytes,2,opt,name=file_data,json=fileData,proto3" json:"file_data,omitempty"`
+	FileData      []byte                 `protobuf:"bytes,2,opt,name=file_data,json=fileData,proto3" json:"file_data,omitempty"` // max 10MB
 	Filename      string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`
 	ContentType   string                 `protobuf:"bytes,4,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
 	Notes         *string                `protobuf:"bytes,5,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
@@ -970,8 +971,8 @@ type CreateReceiptRequest struct {
 	TotalAmount    *float64               `protobuf:"fixed64,7,opt,name=total_amount,json=totalAmount,proto3,oneof" json:"total_amount,omitempty"`
 	Currency       *string                `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	TaxAmount      *float64               `protobuf:"fixed64,9,opt,name=tax_amount,json=taxAmount,proto3,oneof" json:"tax_amount,omitempty"`
-	RawPayload     []byte                 `protobuf:"bytes,10,opt,name=raw_payload,json=rawPayload,proto3,oneof" json:"raw_payload,omitempty"`
-	CanonicalData  []byte                 `protobuf:"bytes,11,opt,name=canonical_data,json=canonicalData,proto3,oneof" json:"canonical_data,omitempty"`
+	RawPayload     []byte                 `protobuf:"bytes,10,opt,name=raw_payload,json=rawPayload,proto3,oneof" json:"raw_payload,omitempty"`          // max 1MB
+	CanonicalData  []byte                 `protobuf:"bytes,11,opt,name=canonical_data,json=canonicalData,proto3,oneof" json:"canonical_data,omitempty"` // max 1MB
 	ImageUrl       *string                `protobuf:"bytes,12,opt,name=image_url,json=imageUrl,proto3,oneof" json:"image_url,omitempty"`
 	ImageSha256    []byte                 `protobuf:"bytes,13,opt,name=image_sha256,json=imageSha256,proto3,oneof" json:"image_sha256,omitempty"`
 	Lat            *float64               `protobuf:"fixed64,14,opt,name=lat,proto3,oneof" json:"lat,omitempty"`
@@ -2093,14 +2094,15 @@ var File_arian_v1_receipt_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\n" +
-	"\x1farian/v1/receipt_services.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x17arian/v1/receipts.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbd\x03\n" +
-	"\x13ListReceiptsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
-	"\x05limit\x18\x02 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x03 \x01(\x05H\x01R\x06offset\x88\x01\x01\x12A\n" +
-	"\vlink_status\x18\x04 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusH\x02R\n" +
-	"linkStatus\x88\x01\x01\x12D\n" +
-	"\fparse_status\x18\x05 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusH\x03R\vparseStatus\x88\x01\x01\x12>\n" +
+	"\x1farian/v1/receipt_services.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x17arian/v1/receipts.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\"\xf0\x03\n" +
+	"\x13ListReceiptsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12%\n" +
+	"\x05limit\x18\x02 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x01R\x06offset\x88\x01\x01\x12K\n" +
+	"\vlink_status\x18\x04 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\n" +
+	"linkStatus\x88\x01\x01\x12N\n" +
+	"\fparse_status\x18\x05 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x03R\vparseStatus\x88\x01\x01\x12>\n" +
 	"\n" +
 	"start_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x04R\tstartDate\x88\x01\x01\x12:\n" +
 	"\bend_date\x18\a \x01(\v2\x1a.google.protobuf.TimestampH\x05R\aendDate\x88\x01\x01B\b\n" +
@@ -2113,65 +2115,68 @@ const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\x14ListReceiptsResponse\x12-\n" +
 	"\breceipts\x18\x01 \x03(\v2\x11.arian.v1.ReceiptR\breceipts\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"<\n" +
-	"\x11GetReceiptRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\"A\n" +
+	"totalCount\"O\n" +
+	"\x11GetReceiptRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"A\n" +
 	"\x12GetReceiptResponse\x12+\n" +
-	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"\xf1\x01\n" +
-	"\x14UploadReceiptRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tfile_data\x18\x02 \x01(\fR\bfileData\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\x12!\n" +
-	"\fcontent_type\x18\x04 \x01(\tR\vcontentType\x12\x19\n" +
-	"\x05notes\x18\x05 \x01(\tH\x00R\x05notes\x88\x01\x01\x124\n" +
-	"\x06engine\x18\x06 \x01(\x0e2\x17.arian.v1.ReceiptEngineH\x01R\x06engine\x88\x01\x01B\b\n" +
+	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"\xb4\x02\n" +
+	"\x14UploadReceiptRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12)\n" +
+	"\tfile_data\x18\x02 \x01(\fB\f\xbaH\tz\a\x10\x01\x18\x80\x80\x80\x05R\bfileData\x12&\n" +
+	"\bfilename\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\bfilename\x12,\n" +
+	"\fcontent_type\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\vcontentType\x12#\n" +
+	"\x05notes\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x00R\x05notes\x88\x01\x01\x12>\n" +
+	"\x06engine\x18\x06 \x01(\x0e2\x17.arian.v1.ReceiptEngineB\b\xbaH\x05\x82\x01\x02\x10\x01H\x01R\x06engine\x88\x01\x01B\b\n" +
 	"\x06_notesB\t\n" +
 	"\a_engine\"D\n" +
 	"\x15UploadReceiptResponse\x12+\n" +
-	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"\xcb\x02\n" +
-	"\x14UpdateReceiptRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\x12;\n" +
+	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"\xfc\x02\n" +
+	"\x14UpdateReceiptRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\x12\x19\n" +
-	"\x05notes\x18\x04 \x01(\tH\x00R\x05notes\x88\x01\x01\x12A\n" +
-	"\vlink_status\x18\x05 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusH\x01R\n" +
-	"linkStatus\x88\x01\x01\x12D\n" +
-	"\fparse_status\x18\x06 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusH\x02R\vparseStatus\x88\x01\x01B\b\n" +
+	"updateMask\x12#\n" +
+	"\x05notes\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x00R\x05notes\x88\x01\x01\x12K\n" +
+	"\vlink_status\x18\x05 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x01R\n" +
+	"linkStatus\x88\x01\x01\x12N\n" +
+	"\fparse_status\x18\x06 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\vparseStatus\x88\x01\x01B\b\n" +
 	"\x06_notesB\x0e\n" +
 	"\f_link_statusB\x0f\n" +
 	"\r_parse_status\"D\n" +
 	"\x15UpdateReceiptResponse\x12+\n" +
-	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"?\n" +
-	"\x14DeleteReceiptRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\"<\n" +
+	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"R\n" +
+	"\x14DeleteReceiptRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"<\n" +
 	"\x15DeleteReceiptResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\xca\x01\n" +
-	"\x13ParseReceiptRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\xe7\x01\n" +
+	"\x13ParseReceiptRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
 	"\n" +
-	"receipt_id\x18\x02 \x01(\x03R\treceiptId\x124\n" +
-	"\x06engine\x18\x03 \x01(\x0e2\x17.arian.v1.ReceiptEngineH\x00R\x06engine\x88\x01\x01\x12(\n" +
+	"receipt_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\treceiptId\x12>\n" +
+	"\x06engine\x18\x03 \x01(\x0e2\x17.arian.v1.ReceiptEngineB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\x06engine\x88\x01\x01\x12(\n" +
 	"\rforce_reparse\x18\x04 \x01(\bH\x01R\fforceReparse\x88\x01\x01B\t\n" +
 	"\a_engineB\x10\n" +
 	"\x0e_force_reparse\"C\n" +
 	"\x14ParseReceiptResponse\x12+\n" +
-	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"a\n" +
-	"\x1fGetReceiptsByTransactionRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12%\n" +
-	"\x0etransaction_id\x18\x02 \x01(\x03R\rtransactionId\"Q\n" +
+	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"t\n" +
+	"\x1fGetReceiptsByTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12.\n" +
+	"\x0etransaction_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\"Q\n" +
 	" GetReceiptsByTransactionResponse\x12-\n" +
-	"\breceipts\x18\x01 \x03(\v2\x11.arian.v1.ReceiptR\breceipts\"\xbd\x02\n" +
-	"\x15SearchReceiptsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05query\x18\x02 \x01(\tR\x05query\x12\x19\n" +
-	"\x05limit\x18\x03 \x01(\x05H\x00R\x05limit\x88\x01\x01\x12\x1b\n" +
-	"\x06offset\x18\x04 \x01(\x05H\x01R\x06offset\x88\x01\x01\x12A\n" +
-	"\vlink_status\x18\x05 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusH\x02R\n" +
-	"linkStatus\x88\x01\x01\x12D\n" +
-	"\fparse_status\x18\x06 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusH\x03R\vparseStatus\x88\x01\x01B\b\n" +
+	"\breceipts\x18\x01 \x03(\v2\x11.arian.v1.ReceiptR\breceipts\"\xfc\x02\n" +
+	"\x15SearchReceiptsRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12 \n" +
+	"\x05query\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01R\x05query\x12%\n" +
+	"\x05limit\x18\x03 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
+	"\x06offset\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x01R\x06offset\x88\x01\x01\x12K\n" +
+	"\vlink_status\x18\x05 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\n" +
+	"linkStatus\x88\x01\x01\x12N\n" +
+	"\fparse_status\x18\x06 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x03R\vparseStatus\x88\x01\x01B\b\n" +
 	"\x06_limitB\t\n" +
 	"\a_offsetB\x0e\n" +
 	"\f_link_statusB\x0f\n" +
@@ -2179,30 +2184,32 @@ const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\x16SearchReceiptsResponse\x12-\n" +
 	"\breceipts\x18\x01 \x03(\v2\x11.arian.v1.ReceiptR\breceipts\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\xcb\a\n" +
-	"\x14CreateReceiptRequest\x12/\n" +
-	"\x06engine\x18\x01 \x01(\x0e2\x17.arian.v1.ReceiptEngineR\x06engine\x12D\n" +
-	"\fparse_status\x18\x02 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusH\x00R\vparseStatus\x88\x01\x01\x12A\n" +
-	"\vlink_status\x18\x03 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusH\x01R\n" +
-	"linkStatus\x88\x01\x01\x12\x1b\n" +
-	"\tmatch_ids\x18\x04 \x03(\x03R\bmatchIds\x12\x1f\n" +
-	"\bmerchant\x18\x05 \x01(\tH\x02R\bmerchant\x88\x01\x01\x12D\n" +
-	"\rpurchase_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\fpurchaseDate\x88\x01\x01\x12&\n" +
-	"\ftotal_amount\x18\a \x01(\x01H\x04R\vtotalAmount\x88\x01\x01\x12\x1f\n" +
-	"\bcurrency\x18\b \x01(\tH\x05R\bcurrency\x88\x01\x01\x12\"\n" +
+	"totalCount\"\xa7\t\n" +
+	"\x14CreateReceiptRequest\x129\n" +
+	"\x06engine\x18\x01 \x01(\x0e2\x17.arian.v1.ReceiptEngineB\b\xbaH\x05\x82\x01\x02\x10\x01R\x06engine\x12N\n" +
+	"\fparse_status\x18\x02 \x01(\x0e2\x1c.arian.v1.ReceiptParseStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x00R\vparseStatus\x88\x01\x01\x12K\n" +
+	"\vlink_status\x18\x03 \x01(\x0e2\x1b.arian.v1.ReceiptLinkStatusB\b\xbaH\x05\x82\x01\x02\x10\x01H\x01R\n" +
+	"linkStatus\x88\x01\x01\x12)\n" +
+	"\tmatch_ids\x18\x04 \x03(\x03B\f\xbaH\t\x92\x01\x06\"\x04\"\x02 \x00R\bmatchIds\x12+\n" +
+	"\bmerchant\x18\x05 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01H\x02R\bmerchant\x88\x01\x01\x12D\n" +
+	"\rpurchase_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\fpurchaseDate\x88\x01\x01\x126\n" +
+	"\ftotal_amount\x18\a \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00H\x04R\vtotalAmount\x88\x01\x01\x125\n" +
+	"\bcurrency\x18\b \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03H\x05R\bcurrency\x88\x01\x01\x122\n" +
 	"\n" +
-	"tax_amount\x18\t \x01(\x01H\x06R\ttaxAmount\x88\x01\x01\x12$\n" +
+	"tax_amount\x18\t \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00H\x06R\ttaxAmount\x88\x01\x01\x12/\n" +
 	"\vraw_payload\x18\n" +
-	" \x01(\fH\aR\n" +
-	"rawPayload\x88\x01\x01\x12*\n" +
-	"\x0ecanonical_data\x18\v \x01(\fH\bR\rcanonicalData\x88\x01\x01\x12 \n" +
-	"\timage_url\x18\f \x01(\tH\tR\bimageUrl\x88\x01\x01\x12&\n" +
-	"\fimage_sha256\x18\r \x01(\fH\n" +
-	"R\vimageSha256\x88\x01\x01\x12\x15\n" +
-	"\x03lat\x18\x0e \x01(\x01H\vR\x03lat\x88\x01\x01\x12\x15\n" +
-	"\x03lon\x18\x0f \x01(\x01H\fR\x03lon\x88\x01\x01\x12,\n" +
-	"\x0flocation_source\x18\x10 \x01(\tH\rR\x0elocationSource\x88\x01\x01\x12*\n" +
-	"\x0elocation_label\x18\x11 \x01(\tH\x0eR\rlocationLabel\x88\x01\x01B\x0f\n" +
+	" \x01(\fB\t\xbaH\x06z\x04\x18\x80\x80@H\aR\n" +
+	"rawPayload\x88\x01\x01\x125\n" +
+	"\x0ecanonical_data\x18\v \x01(\fB\t\xbaH\x06z\x04\x18\x80\x80@H\bR\rcanonicalData\x88\x01\x01\x12*\n" +
+	"\timage_url\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\tR\bimageUrl\x88\x01\x01\x12/\n" +
+	"\fimage_sha256\x18\r \x01(\fB\a\xbaH\x04z\x02h H\n" +
+	"R\vimageSha256\x88\x01\x01\x12.\n" +
+	"\x03lat\x18\x0e \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80V@)\x00\x00\x00\x00\x00\x80V\xc0H\vR\x03lat\x88\x01\x01\x12.\n" +
+	"\x03lon\x18\x0f \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x80f@)\x00\x00\x00\x00\x00\x80f\xc0H\fR\x03lon\x88\x01\x01\x125\n" +
+	"\x0flocation_source\x18\x10 \x01(\tB\a\xbaH\x04r\x02\x182H\rR\x0elocationSource\x88\x01\x01\x124\n" +
+	"\x0elocation_label\x18\x11 \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x0eR\rlocationLabel\x88\x01\x01B\x0f\n" +
 	"\r_parse_statusB\x0e\n" +
 	"\f_link_statusB\v\n" +
 	"\t_merchantB\x10\n" +
@@ -2220,28 +2227,29 @@ const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\x10_location_sourceB\x11\n" +
 	"\x0f_location_label\"D\n" +
 	"\x15CreateReceiptResponse\x12+\n" +
-	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"8\n" +
-	"\x17ListReceiptItemsRequest\x12\x1d\n" +
+	"\areceipt\x18\x01 \x01(\v2\x11.arian.v1.ReceiptR\areceipt\"A\n" +
+	"\x17ListReceiptItemsRequest\x12&\n" +
 	"\n" +
-	"receipt_id\x18\x01 \x01(\x03R\treceiptId\"G\n" +
+	"receipt_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\treceiptId\"G\n" +
 	"\x18ListReceiptItemsResponse\x12+\n" +
-	"\x05items\x18\x01 \x03(\v2\x15.arian.v1.ReceiptItemR\x05items\"'\n" +
-	"\x15GetReceiptItemRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"C\n" +
+	"\x05items\x18\x01 \x03(\v2\x15.arian.v1.ReceiptItemR\x05items\"0\n" +
+	"\x15GetReceiptItemRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"C\n" +
 	"\x16GetReceiptItemResponse\x12)\n" +
-	"\x04item\x18\x01 \x01(\v2\x15.arian.v1.ReceiptItemR\x04item\"\xd7\x02\n" +
-	"\x18CreateReceiptItemRequest\x12\x1d\n" +
+	"\x04item\x18\x01 \x01(\v2\x15.arian.v1.ReceiptItemR\x04item\"\xb7\x03\n" +
+	"\x18CreateReceiptItemRequest\x12&\n" +
 	"\n" +
-	"receipt_id\x18\x01 \x01(\x03R\treceiptId\x12\x1c\n" +
-	"\aline_no\x18\x02 \x01(\x05H\x00R\x06lineNo\x88\x01\x01\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x15\n" +
-	"\x03qty\x18\x04 \x01(\x01H\x01R\x03qty\x88\x01\x01\x12\"\n" +
+	"receipt_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\treceiptId\x12%\n" +
+	"\aline_no\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x00R\x06lineNo\x88\x01\x01\x12\x1e\n" +
+	"\x04name\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01R\x04name\x12%\n" +
+	"\x03qty\x18\x04 \x01(\x01B\x0e\xbaH\v\x12\t!\x00\x00\x00\x00\x00\x00\x00\x00H\x01R\x03qty\x88\x01\x01\x122\n" +
 	"\n" +
-	"unit_price\x18\x05 \x01(\x01H\x02R\tunitPrice\x88\x01\x01\x12\"\n" +
+	"unit_price\x18\x05 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00H\x02R\tunitPrice\x88\x01\x01\x122\n" +
 	"\n" +
-	"line_total\x18\x06 \x01(\x01H\x03R\tlineTotal\x88\x01\x01\x12\x15\n" +
-	"\x03sku\x18\a \x01(\tH\x04R\x03sku\x88\x01\x01\x12(\n" +
-	"\rcategory_hint\x18\b \x01(\tH\x05R\fcategoryHint\x88\x01\x01B\n" +
+	"line_total\x18\x06 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00H\x03R\tlineTotal\x88\x01\x01\x12\x1e\n" +
+	"\x03sku\x18\a \x01(\tB\a\xbaH\x04r\x02\x18dH\x04R\x03sku\x88\x01\x01\x121\n" +
+	"\rcategory_hint\x18\b \x01(\tB\a\xbaH\x04r\x02\x18dH\x05R\fcategoryHint\x88\x01\x01B\n" +
 	"\n" +
 	"\b_line_noB\x06\n" +
 	"\x04_qtyB\r\n" +
@@ -2250,20 +2258,21 @@ const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\x04_skuB\x10\n" +
 	"\x0e_category_hint\"F\n" +
 	"\x19CreateReceiptItemResponse\x12)\n" +
-	"\x04item\x18\x01 \x01(\v2\x15.arian.v1.ReceiptItemR\x04item\"\x93\x03\n" +
-	"\x18UpdateReceiptItemRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12;\n" +
+	"\x04item\x18\x01 \x01(\v2\x15.arian.v1.ReceiptItemR\x04item\"\xf3\x03\n" +
+	"\x18UpdateReceiptItemRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\x12\x1c\n" +
-	"\aline_no\x18\x03 \x01(\x05H\x00R\x06lineNo\x88\x01\x01\x12\x17\n" +
-	"\x04name\x18\x04 \x01(\tH\x01R\x04name\x88\x01\x01\x12\x15\n" +
-	"\x03qty\x18\x05 \x01(\x01H\x02R\x03qty\x88\x01\x01\x12\"\n" +
+	"updateMask\x12%\n" +
+	"\aline_no\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x00R\x06lineNo\x88\x01\x01\x12#\n" +
+	"\x04name\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xc8\x01H\x01R\x04name\x88\x01\x01\x12%\n" +
+	"\x03qty\x18\x05 \x01(\x01B\x0e\xbaH\v\x12\t!\x00\x00\x00\x00\x00\x00\x00\x00H\x02R\x03qty\x88\x01\x01\x122\n" +
 	"\n" +
-	"unit_price\x18\x06 \x01(\x01H\x03R\tunitPrice\x88\x01\x01\x12\"\n" +
+	"unit_price\x18\x06 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00H\x03R\tunitPrice\x88\x01\x01\x122\n" +
 	"\n" +
-	"line_total\x18\a \x01(\x01H\x04R\tlineTotal\x88\x01\x01\x12\x15\n" +
-	"\x03sku\x18\b \x01(\tH\x05R\x03sku\x88\x01\x01\x12(\n" +
-	"\rcategory_hint\x18\t \x01(\tH\x06R\fcategoryHint\x88\x01\x01B\n" +
+	"line_total\x18\a \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00H\x04R\tlineTotal\x88\x01\x01\x12\x1e\n" +
+	"\x03sku\x18\b \x01(\tB\a\xbaH\x04r\x02\x18dH\x05R\x03sku\x88\x01\x01\x121\n" +
+	"\rcategory_hint\x18\t \x01(\tB\a\xbaH\x04r\x02\x18dH\x06R\fcategoryHint\x88\x01\x01B\n" +
 	"\n" +
 	"\b_line_noB\a\n" +
 	"\x05_nameB\x06\n" +
@@ -2273,23 +2282,25 @@ const file_arian_v1_receipt_services_proto_rawDesc = "" +
 	"\x04_skuB\x10\n" +
 	"\x0e_category_hint\"F\n" +
 	"\x19UpdateReceiptItemResponse\x12)\n" +
-	"\x04item\x18\x01 \x01(\v2\x15.arian.v1.ReceiptItemR\x04item\"*\n" +
-	"\x18DeleteReceiptItemRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"@\n" +
+	"\x04item\x18\x01 \x01(\v2\x15.arian.v1.ReceiptItemR\x04item\"3\n" +
+	"\x18DeleteReceiptItemRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"@\n" +
 	"\x19DeleteReceiptItemResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"Y\n" +
-	"\x1dBulkCreateReceiptItemsRequest\x128\n" +
-	"\x05items\x18\x01 \x03(\v2\".arian.v1.CreateReceiptItemRequestR\x05items\"r\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"e\n" +
+	"\x1dBulkCreateReceiptItemsRequest\x12D\n" +
+	"\x05items\x18\x01 \x03(\v2\".arian.v1.CreateReceiptItemRequestB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10dR\x05items\"r\n" +
 	"\x1eBulkCreateReceiptItemsResponse\x12+\n" +
 	"\x05items\x18\x01 \x03(\v2\x15.arian.v1.ReceiptItemR\x05items\x12#\n" +
-	"\raffected_rows\x18\x02 \x01(\x03R\faffectedRows\"C\n" +
-	"\"DeleteReceiptItemsByReceiptRequest\x12\x1d\n" +
+	"\raffected_rows\x18\x02 \x01(\x03R\faffectedRows\"L\n" +
+	"\"DeleteReceiptItemsByReceiptRequest\x12&\n" +
 	"\n" +
-	"receipt_id\x18\x01 \x01(\x03R\treceiptId\"J\n" +
+	"receipt_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\treceiptId\"J\n" +
 	"#DeleteReceiptItemsByReceiptResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"A\n" +
-	"\x1aGetUnlinkedReceiptsRequest\x12\x19\n" +
-	"\x05limit\x18\x01 \x01(\x05H\x00R\x05limit\x88\x01\x01B\b\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"M\n" +
+	"\x1aGetUnlinkedReceiptsRequest\x12%\n" +
+	"\x05limit\x18\x01 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xe8\a(\x01H\x00R\x05limit\x88\x01\x01B\b\n" +
 	"\x06_limit\"S\n" +
 	"\x1bGetUnlinkedReceiptsResponse\x124\n" +
 	"\breceipts\x18\x01 \x03(\v2\x18.arian.v1.ReceiptSummaryR\breceipts\"\"\n" +

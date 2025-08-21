@@ -60,14 +60,15 @@ func (c *receiptParsingServiceClient) GetStatus(ctx context.Context, in *GetStat
 }
 
 // ReceiptParsingServiceServer is the server API for ReceiptParsingService service.
-// All implementations should embed UnimplementedReceiptParsingServiceServer
+// All implementations must embed UnimplementedReceiptParsingServiceServer
 // for forward compatibility.
 type ReceiptParsingServiceServer interface {
 	ParseImage(context.Context, *ParseImageRequest) (*ParseImageResponse, error)
 	GetStatus(context.Context, *GetStatusRequest) (*GetStatusResponse, error)
+	mustEmbedUnimplementedReceiptParsingServiceServer()
 }
 
-// UnimplementedReceiptParsingServiceServer should be embedded to have
+// UnimplementedReceiptParsingServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -80,7 +81,8 @@ func (UnimplementedReceiptParsingServiceServer) ParseImage(context.Context, *Par
 func (UnimplementedReceiptParsingServiceServer) GetStatus(context.Context, *GetStatusRequest) (*GetStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
 }
-func (UnimplementedReceiptParsingServiceServer) testEmbeddedByValue() {}
+func (UnimplementedReceiptParsingServiceServer) mustEmbedUnimplementedReceiptParsingServiceServer() {}
+func (UnimplementedReceiptParsingServiceServer) testEmbeddedByValue()                               {}
 
 // UnsafeReceiptParsingServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to ReceiptParsingServiceServer will

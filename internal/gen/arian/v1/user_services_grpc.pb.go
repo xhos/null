@@ -33,8 +33,6 @@ const (
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// User management service
 type UserServiceClient interface {
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 	GetUserByEmail(ctx context.Context, in *GetUserByEmailRequest, opts ...grpc.CallOption) (*GetUserByEmailResponse, error)
@@ -146,10 +144,8 @@ func (c *userServiceClient) CheckUserExists(ctx context.Context, in *CheckUserEx
 }
 
 // UserServiceServer is the server API for UserService service.
-// All implementations should embed UnimplementedUserServiceServer
+// All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
-//
-// User management service
 type UserServiceServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	GetUserByEmail(context.Context, *GetUserByEmailRequest) (*GetUserByEmailResponse, error)
@@ -160,9 +156,10 @@ type UserServiceServer interface {
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	CheckUserExists(context.Context, *CheckUserExistsRequest) (*CheckUserExistsResponse, error)
+	mustEmbedUnimplementedUserServiceServer()
 }
 
-// UnimplementedUserServiceServer should be embedded to have
+// UnimplementedUserServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -196,7 +193,8 @@ func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersReque
 func (UnimplementedUserServiceServer) CheckUserExists(context.Context, *CheckUserExistsRequest) (*CheckUserExistsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckUserExists not implemented")
 }
-func (UnimplementedUserServiceServer) testEmbeddedByValue() {}
+func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
+func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
 
 // UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserServiceServer will
