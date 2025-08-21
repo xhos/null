@@ -1,7 +1,7 @@
 package service
 
 import (
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 	"context"
 	"time"
 
@@ -10,20 +10,20 @@ import (
 )
 
 type AccountSummary struct {
-	Summary interface{}
-	Trends  interface{}
+	Summary *sqlc.GetDashboardSummaryForAccountRow
+	Trends  []sqlc.GetDashboardTrendsForAccountRow
 }
 
 type DashboardService interface {
-	BalanceForUser(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
-	DebtForUser(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
-	NetBalanceForUser(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
-	TrendsForUser(ctx context.Context, params sqlc.GetDashboardTrendsForUserParams) ([]sqlc.GetDashboardTrendsForUserRow, error)
-	SummaryForUser(ctx context.Context, params sqlc.GetDashboardSummaryForUserParams) (*sqlc.GetDashboardSummaryForUserRow, error)
-	MonthlyComparisonForUser(ctx context.Context, params sqlc.GetMonthlyComparisonForUserParams) ([]sqlc.GetMonthlyComparisonForUserRow, error)
-	TopCategoriesForUser(ctx context.Context, params sqlc.GetTopCategoriesForUserParams) ([]sqlc.GetTopCategoriesForUserRow, error)
-	TopMerchantsForUser(ctx context.Context, params sqlc.GetTopMerchantsForUserParams) ([]sqlc.GetTopMerchantsForUserRow, error)
-	AccountBalancesForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesForUserRow, error)
+	Balance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
+	Debt(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
+	NetBalance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
+	Trends(ctx context.Context, params sqlc.GetDashboardTrendsForUserParams) ([]sqlc.GetDashboardTrendsForUserRow, error)
+	Summary(ctx context.Context, params sqlc.GetDashboardSummaryForUserParams) (*sqlc.GetDashboardSummaryForUserRow, error)
+	MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonForUserParams) ([]sqlc.GetMonthlyComparisonForUserRow, error)
+	TopCategories(ctx context.Context, params sqlc.GetTopCategoriesForUserParams) ([]sqlc.GetTopCategoriesForUserRow, error)
+	TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsForUserParams) ([]sqlc.GetTopMerchantsForUserRow, error)
+	AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesForUserRow, error)
 	GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error)
 	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsForUserRow, error)
 }
@@ -36,8 +36,8 @@ func newDashSvc(queries *sqlc.Queries) DashboardService {
 	return &dashSvc{queries: queries}
 }
 
-func (s *dashSvc) BalanceForUser(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
-	balances, err := s.AccountBalancesForUser(ctx, userID)
+func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
+	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
 		return decimal.Zero, wrapErr("DashboardService.BalanceForUser", err)
 	}
@@ -53,8 +53,8 @@ func (s *dashSvc) BalanceForUser(ctx context.Context, userID uuid.UUID) (decimal
 	return total, nil
 }
 
-func (s *dashSvc) DebtForUser(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
-	balances, err := s.AccountBalancesForUser(ctx, userID)
+func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
+	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
 		return decimal.Zero, wrapErr("DashboardService.DebtForUser", err)
 	}
@@ -70,7 +70,7 @@ func (s *dashSvc) DebtForUser(ctx context.Context, userID uuid.UUID) (decimal.De
 	return total, nil
 }
 
-func (s *dashSvc) TrendsForUser(ctx context.Context, params sqlc.GetDashboardTrendsForUserParams) ([]sqlc.GetDashboardTrendsForUserRow, error) {
+func (s *dashSvc) Trends(ctx context.Context, params sqlc.GetDashboardTrendsForUserParams) ([]sqlc.GetDashboardTrendsForUserRow, error) {
 	trends, err := s.queries.GetDashboardTrendsForUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.TrendsForUser", err)
@@ -78,7 +78,7 @@ func (s *dashSvc) TrendsForUser(ctx context.Context, params sqlc.GetDashboardTre
 	return trends, nil
 }
 
-func (s *dashSvc) SummaryForUser(ctx context.Context, params sqlc.GetDashboardSummaryForUserParams) (*sqlc.GetDashboardSummaryForUserRow, error) {
+func (s *dashSvc) Summary(ctx context.Context, params sqlc.GetDashboardSummaryForUserParams) (*sqlc.GetDashboardSummaryForUserRow, error) {
 	summary, err := s.queries.GetDashboardSummaryForUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.SummaryForUser", err)
@@ -86,7 +86,7 @@ func (s *dashSvc) SummaryForUser(ctx context.Context, params sqlc.GetDashboardSu
 	return &summary, nil
 }
 
-func (s *dashSvc) MonthlyComparisonForUser(ctx context.Context, params sqlc.GetMonthlyComparisonForUserParams) ([]sqlc.GetMonthlyComparisonForUserRow, error) {
+func (s *dashSvc) MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonForUserParams) ([]sqlc.GetMonthlyComparisonForUserRow, error) {
 	comparison, err := s.queries.GetMonthlyComparisonForUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.MonthlyComparisonForUser", err)
@@ -94,7 +94,7 @@ func (s *dashSvc) MonthlyComparisonForUser(ctx context.Context, params sqlc.GetM
 	return comparison, nil
 }
 
-func (s *dashSvc) TopCategoriesForUser(ctx context.Context, params sqlc.GetTopCategoriesForUserParams) ([]sqlc.GetTopCategoriesForUserRow, error) {
+func (s *dashSvc) TopCategories(ctx context.Context, params sqlc.GetTopCategoriesForUserParams) ([]sqlc.GetTopCategoriesForUserRow, error) {
 	categories, err := s.queries.GetTopCategoriesForUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.TopCategoriesForUser", err)
@@ -102,7 +102,7 @@ func (s *dashSvc) TopCategoriesForUser(ctx context.Context, params sqlc.GetTopCa
 	return categories, nil
 }
 
-func (s *dashSvc) TopMerchantsForUser(ctx context.Context, params sqlc.GetTopMerchantsForUserParams) ([]sqlc.GetTopMerchantsForUserRow, error) {
+func (s *dashSvc) TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsForUserParams) ([]sqlc.GetTopMerchantsForUserRow, error) {
 	merchants, err := s.queries.GetTopMerchantsForUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.TopMerchantsForUser", err)
@@ -110,8 +110,8 @@ func (s *dashSvc) TopMerchantsForUser(ctx context.Context, params sqlc.GetTopMer
 	return merchants, nil
 }
 
-func (s *dashSvc) NetBalanceForUser(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
-	balances, err := s.AccountBalancesForUser(ctx, userID)
+func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
+	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
 		return decimal.Zero, wrapErr("DashboardService.NetBalanceForUser", err)
 	}
@@ -125,7 +125,7 @@ func (s *dashSvc) NetBalanceForUser(ctx context.Context, userID uuid.UUID) (deci
 	return total, nil
 }
 
-func (s *dashSvc) AccountBalancesForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesForUserRow, error) {
+func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesForUserRow, error) {
 	balances, err := s.queries.GetAccountBalancesForUser(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.AccountBalancesForUser", err)
@@ -136,12 +136,16 @@ func (s *dashSvc) AccountBalancesForUser(ctx context.Context, userID uuid.UUID) 
 func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error) {
 	var start, end *time.Time
 	if startDate != nil {
-		if parsed, err := time.Parse("2006-01-02", *startDate); err == nil {
+		if parsed, err := time.Parse("2006-01-02", *startDate); err != nil {
+			return nil, wrapErr("DashboardService.GetAccountSummary.ParseStartDate", err)
+		} else {
 			start = &parsed
 		}
 	}
 	if endDate != nil {
-		if parsed, err := time.Parse("2006-01-02", *endDate); err == nil {
+		if parsed, err := time.Parse("2006-01-02", *endDate); err != nil {
+			return nil, wrapErr("DashboardService.GetAccountSummary.ParseEndDate", err)
+		} else {
 			end = &parsed
 		}
 	}
@@ -165,7 +169,7 @@ func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accou
 	}
 	trends, err := s.queries.GetDashboardTrendsForAccount(ctx, trendsParams)
 	if err != nil {
-		return nil, wrapErr("DashboardService.GetAccountSummary", err)
+		return nil, wrapErr("DashboardService.GetAccountSummary.GetTrends", err)
 	}
 
 	return &AccountSummary{
@@ -176,10 +180,15 @@ func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accou
 
 func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsForUserRow, error) {
 	var start, end *time.Time
-	if parsed, err := time.Parse("2006-01-02", startDate); err == nil {
+	if parsed, err := time.Parse("2006-01-02", startDate); err != nil {
+		return nil, wrapErr("DashboardService.GetSpendingTrends.ParseStartDate", err)
+	} else {
 		start = &parsed
 	}
-	if parsed, err := time.Parse("2006-01-02", endDate); err == nil {
+
+	if parsed, err := time.Parse("2006-01-02", endDate); err != nil {
+		return nil, wrapErr("DashboardService.GetSpendingTrends.ParseEndDate", err)
+	} else {
 		end = &parsed
 	}
 
@@ -189,5 +198,10 @@ func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, start
 		End:    end,
 	}
 
-	return s.TrendsForUser(ctx, params)
+	// note: currently the database query doesn't support filtering by category or account
+	// these parameters are included for future extensibility but ignored for now in this MVP
+	_ = categoryID
+	_ = accountID
+
+	return s.Trends(ctx, params)
 }

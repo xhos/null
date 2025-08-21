@@ -5,7 +5,7 @@ sql:
     queries: internal/db/queries
     gen:
       go:
-        package: sqlcdb
+        package: sqlc
         out: internal/db/sqlc
         sql_package: 'pgx/v5'
         emit_pointers_for_null_types: true

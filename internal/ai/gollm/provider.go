@@ -2,7 +2,7 @@ package gollm
 
 import (
 	"ariand/internal/ai"
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 	"context"
 	"fmt"
 	"os"

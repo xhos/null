@@ -3,7 +3,7 @@
 //   sqlc v1.29.0
 // source: transactions.sql
 
-package sqlcdb
+package sqlc
 
 import (
 	"context"

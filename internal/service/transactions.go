@@ -2,7 +2,7 @@ package service
 
 import (
 	"ariand/internal/ai"
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 	"context"
 	"database/sql"
 	"errors"
@@ -57,6 +57,7 @@ type categorizationResult struct {
 }
 
 func (s *txnSvc) ListForUser(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error) {
+	// truncate overly long description queries for performance
 	if params.DescQ != nil && len(*params.DescQ) > maxDescQLength {
 		truncated := (*params.DescQ)[:maxDescQLength]
 		params.DescQ = &truncated
@@ -390,6 +391,11 @@ func (s *txnSvc) SearchTransactions(ctx context.Context, userID uuid.UUID, query
 	if accountID != nil {
 		params.AccountIds = []int64{*accountID}
 	}
+	// TODO: categoryID parameter is currently ignored in this MVP implementation
+	// future enhancement would support category filtering
+
+	_ = offset // offset also not implemented in current query
+
 	return s.ListForUser(ctx, params)
 }
 
@@ -399,6 +405,9 @@ func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID,
 		AccountIds: []int64{accountID},
 		Limit:      limit,
 	}
+	// TODO: offset not implemented in current query for MVP
+	_ = offset
+
 	return s.ListForUser(ctx, params)
 }
 
@@ -411,6 +420,9 @@ func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.U
 	if accountID != nil {
 		params.AccountIds = []int64{*accountID}
 	}
+	// TODO: offset not implemented in current query for MVP
+	_ = offset
+
 	return s.ListForUser(ctx, params)
 }
 

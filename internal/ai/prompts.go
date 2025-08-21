@@ -1,7 +1,7 @@
 package ai
 
 import (
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 	"encoding/json"
 	"fmt"
 	"strings"

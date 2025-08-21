@@ -1,5 +1,0 @@
-{
-  "protoc": {
-    "options": ["--proto_path=/home/xhos/personal/ariand/proto"]
-  }
-}

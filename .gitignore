@@ -8,3 +8,6 @@ devenv.local.nix
 *.sh
 *.txt
 .env
+
+# air
+tmp

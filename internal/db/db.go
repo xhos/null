@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 
 	"github.com/charmbracelet/log"
 	"github.com/jackc/pgx/v5/pgxpool"

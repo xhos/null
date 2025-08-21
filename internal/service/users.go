@@ -2,7 +2,7 @@ package service
 
 import (
 	"ariand/internal/db"
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 	"context"
 	"database/sql"
 	"errors"
@@ -112,7 +112,6 @@ func (s *userSvc) Delete(ctx context.Context, id uuid.UUID) error {
 	defer tx.Rollback(ctx)
 
 	txQueries := s.queries.WithTx(tx)
-
 
 	// remove from all accounts
 	_, err = txQueries.RemoveUserFromAllAccounts(ctx, id)

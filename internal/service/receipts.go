@@ -1,7 +1,7 @@
 package service
 
 import (
-	sqlc "ariand/internal/db/sqlc"
+	"ariand/internal/db/sqlc"
 	"ariand/internal/linking"
 	"ariand/internal/receiptparser"
 	"ariand/internal/storage"
