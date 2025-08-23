@@ -1917,7 +1917,7 @@ var File_arian_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
-	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a\x1bbuf/validate/validate.proto\"\xcf\b\n" +
+	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xf9\b\n" +
 	"\x17ListTransactionsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12+\n" +
 	"\n" +
@@ -1932,18 +1932,19 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
 	"amount_min\x18\b \x01(\v2\x12.google.type.MoneyH\x06R\tamountMin\x88\x01\x01\x126\n" +
 	"\n" +
-	"amount_max\x18\t \x01(\v2\x12.google.type.MoneyH\aR\tamountMax\x88\x01\x01\x12A\n" +
+	"amount_max\x18\t \x01(\v2\x12.google.type.MoneyH\aR\tamountMax\x88\x01\x01\x12K\n" +
 	"\tdirection\x18\n" +
-	" \x01(\x0e2\x1e.arian.v1.TransactionDirectionH\bR\tdirection\x88\x01\x01\x12-\n" +
-	"\vaccount_ids\x18\v \x03(\x03B\f\xbaH\t\x92\x01\x06\"\x04\"\x02 \x00R\n" +
-	"accountIds\x12.\n" +
+	" \x01(\x0e2\x1e.arian.v1.TransactionDirectionB\b\xbaH\x05\x82\x01\x02\x10\x01H\bR\tdirection\x88\x01\x01\x12)\n" +
+	"\vaccount_ids\x18\v \x03(\x03B\b\xbaH\x05\x92\x01\x02\x102R\n" +
+	"accountIds\x12(\n" +
 	"\n" +
-	"categories\x18\f \x03(\tB\x0e\xbaH\v\x92\x01\b\"\x06r\x04\x10\x01\x18dR\n" +
-	"categories\x12*\n" +
-	"\x0emerchant_query\x18\r \x01(\tH\tR\rmerchantQuery\x88\x01\x01\x120\n" +
-	"\x11description_query\x18\x0e \x01(\tH\n" +
-	"R\x10descriptionQuery\x88\x01\x01\x12\x1f\n" +
-	"\bcurrency\x18\x0f \x01(\tH\vR\bcurrency\x88\x01\x01\x12C\n" +
+	"categories\x18\f \x03(\tB\b\xbaH\x05\x92\x01\x02\x10\x14R\n" +
+	"categories\x124\n" +
+	"\x0emerchant_query\x18\r \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\tR\rmerchantQuery\x88\x01\x01\x12:\n" +
+	"\x11description_query\x18\x0e \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\n" +
+	"R\x10descriptionQuery\x88\x01\x01\x125\n" +
+	"\bcurrency\x18\x0f \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03H\vR\bcurrency\x88\x01\x01\x12C\n" +
 	"\x11time_of_day_start\x18\x10 \x01(\v2\x13.arian.v1.TimeOfDayH\fR\x0etimeOfDayStart\x88\x01\x01\x12?\n" +
 	"\x0ftime_of_day_end\x18\x11 \x01(\v2\x13.arian.v1.TimeOfDayH\rR\ftimeOfDayEnd\x88\x01\x01B\r\n" +
 	"\v_account_idB\b\n" +
@@ -1972,23 +1973,23 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"Q\n" +
 	"\x16GetTransactionResponse\x127\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xf9\x04\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xb0\x05\n" +
 	"\x18CreateTransactionRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
 	"\n" +
 	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\x123\n" +
 	"\atx_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
 	"\ttx_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\btxAmount\x12F\n" +
-	"\tdirection\x18\x05 \x01(\x0e2\x1e.arian.v1.TransactionDirectionB\b\xbaH\x05\x82\x01\x02\x10\x01R\tdirection\x12%\n" +
-	"\vdescription\x18\x06 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1f\n" +
-	"\bmerchant\x18\a \x01(\tH\x01R\bmerchant\x88\x01\x01\x12\"\n" +
+	"\tdirection\x18\x05 \x01(\x0e2\x1e.arian.v1.TransactionDirectionB\b\xbaH\x05\x82\x01\x02\x10\x01R\tdirection\x12/\n" +
+	"\vdescription\x18\x06 \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\x00R\vdescription\x88\x01\x01\x12)\n" +
+	"\bmerchant\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x01R\bmerchant\x88\x01\x01\x12,\n" +
 	"\n" +
-	"user_notes\x18\b \x01(\tH\x02R\tuserNotes\x88\x01\x01\x12-\n" +
+	"user_notes\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x02R\tuserNotes\x88\x01\x01\x12-\n" +
 	"\vcategory_id\x18\t \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x03R\n" +
 	"categoryId\x88\x01\x01\x12>\n" +
 	"\x0eforeign_amount\x18\n" +
-	" \x01(\v2\x12.google.type.MoneyH\x04R\rforeignAmount\x88\x01\x01\x12(\n" +
-	"\rexchange_rate\x18\v \x01(\x01H\x05R\fexchangeRate\x88\x01\x01B\x0e\n" +
+	" \x01(\v2\x12.google.type.MoneyH\x04R\rforeignAmount\x88\x01\x01\x12A\n" +
+	"\rexchange_rate\x18\v \x01(\x01B\x17\xbaH\x14\x12\x12\x11\x00\x00\x00\x00\x00@\x8f@!\x00\x00\x00\x00\x00\x00\x00\x00H\x05R\fexchangeRate\x88\x01\x01B\x0e\n" +
 	"\f_descriptionB\v\n" +
 	"\t_merchantB\r\n" +
 	"\v_user_notesB\x0e\n" +
@@ -1996,7 +1997,7 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x0f_foreign_amountB\x10\n" +
 	"\x0e_exchange_rate\"T\n" +
 	"\x19CreateTransactionResponse\x127\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\xfc\x05\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x15.arian.v1.TransactionR\vtransaction\"\x95\x06\n" +
 	"\x18UpdateTransactionRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
@@ -2012,8 +2013,8 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\vcategory_id\x18\n" +
 	" \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x06R\n" +
 	"categoryId\x88\x01\x01\x12>\n" +
-	"\x0eforeign_amount\x18\v \x01(\v2\x12.google.type.MoneyH\aR\rforeignAmount\x88\x01\x01\x12(\n" +
-	"\rexchange_rate\x18\f \x01(\x01H\bR\fexchangeRate\x88\x01\x01B\n" +
+	"\x0eforeign_amount\x18\v \x01(\v2\x12.google.type.MoneyH\aR\rforeignAmount\x88\x01\x01\x12A\n" +
+	"\rexchange_rate\x18\f \x01(\x01B\x17\xbaH\x14\x12\x12\x11\x00\x00\x00\x00\x00@\x8f@!\x00\x00\x00\x00\x00\x00\x00\x00H\bR\fexchangeRate\x88\x01\x01B\n" +
 	"\n" +
 	"\b_tx_dateB\f\n" +
 	"\n" +
@@ -2043,7 +2044,7 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x19SearchTransactionsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12 \n" +
 	"\x05query\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\xc8\x01R\x05query\x12+\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xf4\x03R\x05query\x12+\n" +
 	"\n" +
 	"account_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\taccountId\x88\x01\x01\x12-\n" +
 	"\vcategory_id\x18\x04 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x01R\n" +
@@ -2100,17 +2101,19 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"totalCount\x126\n" +
 	"\vnext_cursor\x18\x03 \x01(\v2\x10.arian.v1.CursorH\x00R\n" +
 	"nextCursor\x88\x01\x01B\x0e\n" +
-	"\f_next_cursor\"\xac\x01\n" +
+	"\f_next_cursor\"\xa5\x01\n" +
 	"!BulkCategorizeTransactionsRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12:\n" +
-	"\x0ftransaction_ids\x18\x02 \x03(\x03B\x11\xbaH\x0e\x92\x01\v\b\x01\x10\xe8\a\"\x04\"\x02 \x00R\x0etransactionIds\x12(\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x123\n" +
+	"\x0ftransaction_ids\x18\x02 \x03(\x03B\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10dR\x0etransactionIds\x12(\n" +
 	"\vcategory_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\n" +
 	"categoryId\"I\n" +
 	"\"BulkCategorizeTransactionsResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"~\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"w\n" +
 	"\x1dBulkDeleteTransactionsRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12:\n" +
-	"\x0ftransaction_ids\x18\x02 \x03(\x03B\x11\xbaH\x0e\x92\x01\v\b\x01\x10\xe8\a\"\x04\"\x02 \x00R\x0etransactionIds\"E\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x123\n" +
+	"\x0ftransaction_ids\x18\x02 \x03(\x03B\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10dR\x0etransactionIds\"E\n" +
 	"\x1eBulkDeleteTransactionsResponse\x12#\n" +
 	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"H\n" +
 	"#GetTransactionCountByAccountRequest\x12!\n" +

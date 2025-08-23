@@ -23,7 +23,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Daily trend data point
 type TrendPoint struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Date          *date.Date             `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"` // YYYY-MM-DD
@@ -84,7 +83,6 @@ func (x *TrendPoint) GetExpenses() *money.Money {
 	return nil
 }
 
-// Monthly comparison data
 type MonthlyComparison struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Month         string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"` // YYYY-MM
@@ -153,7 +151,6 @@ func (x *MonthlyComparison) GetNet() *money.Money {
 	return nil
 }
 
-// Dashboard summary statistics
 type DashboardSummary struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
 	TotalAccounts             int64                  `protobuf:"varint,1,opt,name=total_accounts,json=totalAccounts,proto3" json:"total_accounts,omitempty"`
@@ -238,7 +235,6 @@ func (x *DashboardSummary) GetUncategorizedTransactions() int64 {
 	return 0
 }
 
-// Top spending category
 type TopCategory struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Slug             string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
@@ -315,7 +311,6 @@ func (x *TopCategory) GetTotalAmount() *money.Money {
 	return nil
 }
 
-// Top merchant by spending
 type TopMerchant struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Merchant         string                 `protobuf:"bytes,1,opt,name=merchant,proto3" json:"merchant,omitempty"`

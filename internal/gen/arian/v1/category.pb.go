@@ -23,7 +23,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Transaction category
 type Category struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -32,7 +31,7 @@ type Category struct {
 	Color     string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"` // hex code, e.g. "#FF0000"
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// Usage statistics (populated in some contexts)
+	// usage statistics (populated in some contexts)
 	UsageCount    *int64                 `protobuf:"varint,7,opt,name=usage_count,json=usageCount,proto3,oneof" json:"usage_count,omitempty"`
 	TotalAmount   *money.Money           `protobuf:"bytes,8,opt,name=total_amount,json=totalAmount,proto3,oneof" json:"total_amount,omitempty"`
 	AvgAmount     *money.Money           `protobuf:"bytes,9,opt,name=avg_amount,json=avgAmount,proto3,oneof" json:"avg_amount,omitempty"`
@@ -149,7 +148,6 @@ func (x *Category) GetLastUsed() *timestamppb.Timestamp {
 	return nil
 }
 
-// Category with usage statistics
 type CategoryWithUsage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Category      *Category              `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
@@ -210,7 +208,6 @@ func (x *CategoryWithUsage) GetTotalAmount() *money.Money {
 	return nil
 }
 
-// Category with user-specific usage statistics
 type CategoryWithUserUsage struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Category        *Category              `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
@@ -271,7 +268,6 @@ func (x *CategoryWithUserUsage) GetUserTotalAmount() *money.Money {
 	return nil
 }
 
-// Detailed category statistics
 type CategoryStats struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UsageCount    int64                  `protobuf:"varint,1,opt,name=usage_count,json=usageCount,proto3" json:"usage_count,omitempty"`

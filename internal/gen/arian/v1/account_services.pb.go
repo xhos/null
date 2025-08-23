@@ -1034,107 +1034,11 @@ func (x *GetAnchorBalanceResponse) GetCurrency() string {
 	return ""
 }
 
-type CheckUserAccountAccessRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	AccountId     int64                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CheckUserAccountAccessRequest) Reset() {
-	*x = CheckUserAccountAccessRequest{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[20]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CheckUserAccountAccessRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CheckUserAccountAccessRequest) ProtoMessage() {}
-
-func (x *CheckUserAccountAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[20]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CheckUserAccountAccessRequest.ProtoReflect.Descriptor instead.
-func (*CheckUserAccountAccessRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{20}
-}
-
-func (x *CheckUserAccountAccessRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *CheckUserAccountAccessRequest) GetAccountId() int64 {
-	if x != nil {
-		return x.AccountId
-	}
-	return 0
-}
-
-type CheckUserAccountAccessResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	HasAccess     bool                   `protobuf:"varint,1,opt,name=has_access,json=hasAccess,proto3" json:"has_access,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CheckUserAccountAccessResponse) Reset() {
-	*x = CheckUserAccountAccessResponse{}
-	mi := &file_arian_v1_account_services_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CheckUserAccountAccessResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CheckUserAccountAccessResponse) ProtoMessage() {}
-
-func (x *CheckUserAccountAccessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_account_services_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CheckUserAccountAccessResponse.ProtoReflect.Descriptor instead.
-func (*CheckUserAccountAccessResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_account_services_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *CheckUserAccountAccessResponse) GetHasAccess() bool {
-	if x != nil {
-		return x.HasAccess
-	}
-	return false
-}
-
 var File_arian_v1_account_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\n" +
-	"\x1farian/v1/account_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x14arian/v1/enums.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\x1a\x1bbuf/validate/validate.proto\"8\n" +
+	"\x1farian/v1/account_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x14arian/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"8\n" +
 	"\x13ListAccountsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"E\n" +
 	"\x14ListAccountsResponse\x12-\n" +
@@ -1147,7 +1051,7 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\x14CreateAccountRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12\x1d\n" +
-	"\x04bank\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\x04bank\x123\n" +
+	"\x04bank\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04bank\x123\n" +
 	"\x04type\x18\x04 \x01(\x0e2\x15.arian.v1.AccountTypeB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04type\x12$\n" +
 	"\x05alias\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x00R\x05alias\x88\x01\x01\x129\n" +
 	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalanceB\b\n" +
@@ -1160,7 +1064,7 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
 	"updateMask\x12\"\n" +
 	"\x04name\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dH\x00R\x04name\x88\x01\x01\x12\"\n" +
-	"\x04bank\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x01R\x04bank\x88\x01\x01\x12G\n" +
+	"\x04bank\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dH\x01R\x04bank\x88\x01\x01\x12G\n" +
 	"\faccount_type\x18\x06 \x01(\x0e2\x15.arian.v1.AccountTypeB\b\xbaH\x05\x82\x01\x02\x10\x01H\x02R\vaccountType\x88\x01\x01\x12$\n" +
 	"\x05alias\x18\a \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x03R\x05alias\x88\x01\x01\x12@\n" +
 	"\vanchor_date\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x04R\n" +
@@ -1197,17 +1101,11 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"account_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\"\x1d\n" +
 	"\x1bSyncAccountBalancesResponse\"2\n" +
 	"\x17GetAnchorBalanceRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"q\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"\x87\x01\n" +
 	"\x18GetAnchorBalanceResponse\x129\n" +
-	"\x0eanchor_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x12\x1a\n" +
-	"\bcurrency\x18\x02 \x01(\tR\bcurrency\"j\n" +
-	"\x1dCheckUserAccountAccessRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\"?\n" +
-	"\x1eCheckUserAccountAccessResponse\x12\x1d\n" +
-	"\n" +
-	"has_access\x18\x01 \x01(\bR\thasAccess2\xde\a\n" +
+	"\x0eanchor_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x120\n" +
+	"\bcurrency\x18\x02 \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03R\bcurrency2\xf1\x06\n" +
 	"\x0eAccountService\x12M\n" +
 	"\fListAccounts\x12\x1d.arian.v1.ListAccountsRequest\x1a\x1e.arian.v1.ListAccountsResponse\x12G\n" +
 	"\n" +
@@ -1218,8 +1116,7 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\x10SetAccountAnchor\x12!.arian.v1.SetAccountAnchorRequest\x1a\".arian.v1.SetAccountAnchorResponse\x12\\\n" +
 	"\x11GetAccountBalance\x12\".arian.v1.GetAccountBalanceRequest\x1a#.arian.v1.GetAccountBalanceResponse\x12Y\n" +
 	"\x10GetAnchorBalance\x12!.arian.v1.GetAnchorBalanceRequest\x1a\".arian.v1.GetAnchorBalanceResponse\x12Y\n" +
-	"\x10GetAccountsCount\x12!.arian.v1.GetAccountsCountRequest\x1a\".arian.v1.GetAccountsCountResponse\x12k\n" +
-	"\x16CheckUserAccountAccess\x12'.arian.v1.CheckUserAccountAccessRequest\x1a(.arian.v1.CheckUserAccountAccessResponse\x12b\n" +
+	"\x10GetAccountsCount\x12!.arian.v1.GetAccountsCountRequest\x1a\".arian.v1.GetAccountsCountResponse\x12b\n" +
 	"\x13SyncAccountBalances\x12$.arian.v1.SyncAccountBalancesRequest\x1a%.arian.v1.SyncAccountBalancesResponseB\x8b\x01\n" +
 	"\fcom.arian.v1B\x14AccountServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
@@ -1235,50 +1132,48 @@ func file_arian_v1_account_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_account_services_proto_rawDescData
 }
 
-var file_arian_v1_account_services_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_arian_v1_account_services_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_arian_v1_account_services_proto_goTypes = []any{
-	(*ListAccountsRequest)(nil),            // 0: arian.v1.ListAccountsRequest
-	(*ListAccountsResponse)(nil),           // 1: arian.v1.ListAccountsResponse
-	(*GetAccountRequest)(nil),              // 2: arian.v1.GetAccountRequest
-	(*GetAccountResponse)(nil),             // 3: arian.v1.GetAccountResponse
-	(*CreateAccountRequest)(nil),           // 4: arian.v1.CreateAccountRequest
-	(*CreateAccountResponse)(nil),          // 5: arian.v1.CreateAccountResponse
-	(*UpdateAccountRequest)(nil),           // 6: arian.v1.UpdateAccountRequest
-	(*UpdateAccountResponse)(nil),          // 7: arian.v1.UpdateAccountResponse
-	(*DeleteAccountRequest)(nil),           // 8: arian.v1.DeleteAccountRequest
-	(*DeleteAccountResponse)(nil),          // 9: arian.v1.DeleteAccountResponse
-	(*SetAccountAnchorRequest)(nil),        // 10: arian.v1.SetAccountAnchorRequest
-	(*SetAccountAnchorResponse)(nil),       // 11: arian.v1.SetAccountAnchorResponse
-	(*GetAccountBalanceRequest)(nil),       // 12: arian.v1.GetAccountBalanceRequest
-	(*GetAccountBalanceResponse)(nil),      // 13: arian.v1.GetAccountBalanceResponse
-	(*GetAccountsCountRequest)(nil),        // 14: arian.v1.GetAccountsCountRequest
-	(*GetAccountsCountResponse)(nil),       // 15: arian.v1.GetAccountsCountResponse
-	(*SyncAccountBalancesRequest)(nil),     // 16: arian.v1.SyncAccountBalancesRequest
-	(*SyncAccountBalancesResponse)(nil),    // 17: arian.v1.SyncAccountBalancesResponse
-	(*GetAnchorBalanceRequest)(nil),        // 18: arian.v1.GetAnchorBalanceRequest
-	(*GetAnchorBalanceResponse)(nil),       // 19: arian.v1.GetAnchorBalanceResponse
-	(*CheckUserAccountAccessRequest)(nil),  // 20: arian.v1.CheckUserAccountAccessRequest
-	(*CheckUserAccountAccessResponse)(nil), // 21: arian.v1.CheckUserAccountAccessResponse
-	(*Account)(nil),                        // 22: arian.v1.Account
-	(AccountType)(0),                       // 23: arian.v1.AccountType
-	(*money.Money)(nil),                    // 24: google.type.Money
-	(*fieldmaskpb.FieldMask)(nil),          // 25: google.protobuf.FieldMask
-	(*timestamppb.Timestamp)(nil),          // 26: google.protobuf.Timestamp
+	(*ListAccountsRequest)(nil),         // 0: arian.v1.ListAccountsRequest
+	(*ListAccountsResponse)(nil),        // 1: arian.v1.ListAccountsResponse
+	(*GetAccountRequest)(nil),           // 2: arian.v1.GetAccountRequest
+	(*GetAccountResponse)(nil),          // 3: arian.v1.GetAccountResponse
+	(*CreateAccountRequest)(nil),        // 4: arian.v1.CreateAccountRequest
+	(*CreateAccountResponse)(nil),       // 5: arian.v1.CreateAccountResponse
+	(*UpdateAccountRequest)(nil),        // 6: arian.v1.UpdateAccountRequest
+	(*UpdateAccountResponse)(nil),       // 7: arian.v1.UpdateAccountResponse
+	(*DeleteAccountRequest)(nil),        // 8: arian.v1.DeleteAccountRequest
+	(*DeleteAccountResponse)(nil),       // 9: arian.v1.DeleteAccountResponse
+	(*SetAccountAnchorRequest)(nil),     // 10: arian.v1.SetAccountAnchorRequest
+	(*SetAccountAnchorResponse)(nil),    // 11: arian.v1.SetAccountAnchorResponse
+	(*GetAccountBalanceRequest)(nil),    // 12: arian.v1.GetAccountBalanceRequest
+	(*GetAccountBalanceResponse)(nil),   // 13: arian.v1.GetAccountBalanceResponse
+	(*GetAccountsCountRequest)(nil),     // 14: arian.v1.GetAccountsCountRequest
+	(*GetAccountsCountResponse)(nil),    // 15: arian.v1.GetAccountsCountResponse
+	(*SyncAccountBalancesRequest)(nil),  // 16: arian.v1.SyncAccountBalancesRequest
+	(*SyncAccountBalancesResponse)(nil), // 17: arian.v1.SyncAccountBalancesResponse
+	(*GetAnchorBalanceRequest)(nil),     // 18: arian.v1.GetAnchorBalanceRequest
+	(*GetAnchorBalanceResponse)(nil),    // 19: arian.v1.GetAnchorBalanceResponse
+	(*Account)(nil),                     // 20: arian.v1.Account
+	(AccountType)(0),                    // 21: arian.v1.AccountType
+	(*money.Money)(nil),                 // 22: google.type.Money
+	(*fieldmaskpb.FieldMask)(nil),       // 23: google.protobuf.FieldMask
+	(*timestamppb.Timestamp)(nil),       // 24: google.protobuf.Timestamp
 }
 var file_arian_v1_account_services_proto_depIdxs = []int32{
-	22, // 0: arian.v1.ListAccountsResponse.accounts:type_name -> arian.v1.Account
-	22, // 1: arian.v1.GetAccountResponse.account:type_name -> arian.v1.Account
-	23, // 2: arian.v1.CreateAccountRequest.type:type_name -> arian.v1.AccountType
-	24, // 3: arian.v1.CreateAccountRequest.anchor_balance:type_name -> google.type.Money
-	22, // 4: arian.v1.CreateAccountResponse.account:type_name -> arian.v1.Account
-	25, // 5: arian.v1.UpdateAccountRequest.update_mask:type_name -> google.protobuf.FieldMask
-	23, // 6: arian.v1.UpdateAccountRequest.account_type:type_name -> arian.v1.AccountType
-	26, // 7: arian.v1.UpdateAccountRequest.anchor_date:type_name -> google.protobuf.Timestamp
-	24, // 8: arian.v1.UpdateAccountRequest.anchor_balance:type_name -> google.type.Money
-	22, // 9: arian.v1.UpdateAccountResponse.account:type_name -> arian.v1.Account
-	24, // 10: arian.v1.SetAccountAnchorRequest.balance:type_name -> google.type.Money
-	24, // 11: arian.v1.GetAccountBalanceResponse.balance:type_name -> google.type.Money
-	24, // 12: arian.v1.GetAnchorBalanceResponse.anchor_balance:type_name -> google.type.Money
+	20, // 0: arian.v1.ListAccountsResponse.accounts:type_name -> arian.v1.Account
+	20, // 1: arian.v1.GetAccountResponse.account:type_name -> arian.v1.Account
+	21, // 2: arian.v1.CreateAccountRequest.type:type_name -> arian.v1.AccountType
+	22, // 3: arian.v1.CreateAccountRequest.anchor_balance:type_name -> google.type.Money
+	20, // 4: arian.v1.CreateAccountResponse.account:type_name -> arian.v1.Account
+	23, // 5: arian.v1.UpdateAccountRequest.update_mask:type_name -> google.protobuf.FieldMask
+	21, // 6: arian.v1.UpdateAccountRequest.account_type:type_name -> arian.v1.AccountType
+	24, // 7: arian.v1.UpdateAccountRequest.anchor_date:type_name -> google.protobuf.Timestamp
+	22, // 8: arian.v1.UpdateAccountRequest.anchor_balance:type_name -> google.type.Money
+	20, // 9: arian.v1.UpdateAccountResponse.account:type_name -> arian.v1.Account
+	22, // 10: arian.v1.SetAccountAnchorRequest.balance:type_name -> google.type.Money
+	22, // 11: arian.v1.GetAccountBalanceResponse.balance:type_name -> google.type.Money
+	22, // 12: arian.v1.GetAnchorBalanceResponse.anchor_balance:type_name -> google.type.Money
 	0,  // 13: arian.v1.AccountService.ListAccounts:input_type -> arian.v1.ListAccountsRequest
 	2,  // 14: arian.v1.AccountService.GetAccount:input_type -> arian.v1.GetAccountRequest
 	4,  // 15: arian.v1.AccountService.CreateAccount:input_type -> arian.v1.CreateAccountRequest
@@ -1288,21 +1183,19 @@ var file_arian_v1_account_services_proto_depIdxs = []int32{
 	12, // 19: arian.v1.AccountService.GetAccountBalance:input_type -> arian.v1.GetAccountBalanceRequest
 	18, // 20: arian.v1.AccountService.GetAnchorBalance:input_type -> arian.v1.GetAnchorBalanceRequest
 	14, // 21: arian.v1.AccountService.GetAccountsCount:input_type -> arian.v1.GetAccountsCountRequest
-	20, // 22: arian.v1.AccountService.CheckUserAccountAccess:input_type -> arian.v1.CheckUserAccountAccessRequest
-	16, // 23: arian.v1.AccountService.SyncAccountBalances:input_type -> arian.v1.SyncAccountBalancesRequest
-	1,  // 24: arian.v1.AccountService.ListAccounts:output_type -> arian.v1.ListAccountsResponse
-	3,  // 25: arian.v1.AccountService.GetAccount:output_type -> arian.v1.GetAccountResponse
-	5,  // 26: arian.v1.AccountService.CreateAccount:output_type -> arian.v1.CreateAccountResponse
-	7,  // 27: arian.v1.AccountService.UpdateAccount:output_type -> arian.v1.UpdateAccountResponse
-	9,  // 28: arian.v1.AccountService.DeleteAccount:output_type -> arian.v1.DeleteAccountResponse
-	11, // 29: arian.v1.AccountService.SetAccountAnchor:output_type -> arian.v1.SetAccountAnchorResponse
-	13, // 30: arian.v1.AccountService.GetAccountBalance:output_type -> arian.v1.GetAccountBalanceResponse
-	19, // 31: arian.v1.AccountService.GetAnchorBalance:output_type -> arian.v1.GetAnchorBalanceResponse
-	15, // 32: arian.v1.AccountService.GetAccountsCount:output_type -> arian.v1.GetAccountsCountResponse
-	21, // 33: arian.v1.AccountService.CheckUserAccountAccess:output_type -> arian.v1.CheckUserAccountAccessResponse
-	17, // 34: arian.v1.AccountService.SyncAccountBalances:output_type -> arian.v1.SyncAccountBalancesResponse
-	24, // [24:35] is the sub-list for method output_type
-	13, // [13:24] is the sub-list for method input_type
+	16, // 22: arian.v1.AccountService.SyncAccountBalances:input_type -> arian.v1.SyncAccountBalancesRequest
+	1,  // 23: arian.v1.AccountService.ListAccounts:output_type -> arian.v1.ListAccountsResponse
+	3,  // 24: arian.v1.AccountService.GetAccount:output_type -> arian.v1.GetAccountResponse
+	5,  // 25: arian.v1.AccountService.CreateAccount:output_type -> arian.v1.CreateAccountResponse
+	7,  // 26: arian.v1.AccountService.UpdateAccount:output_type -> arian.v1.UpdateAccountResponse
+	9,  // 27: arian.v1.AccountService.DeleteAccount:output_type -> arian.v1.DeleteAccountResponse
+	11, // 28: arian.v1.AccountService.SetAccountAnchor:output_type -> arian.v1.SetAccountAnchorResponse
+	13, // 29: arian.v1.AccountService.GetAccountBalance:output_type -> arian.v1.GetAccountBalanceResponse
+	19, // 30: arian.v1.AccountService.GetAnchorBalance:output_type -> arian.v1.GetAnchorBalanceResponse
+	15, // 31: arian.v1.AccountService.GetAccountsCount:output_type -> arian.v1.GetAccountsCountResponse
+	17, // 32: arian.v1.AccountService.SyncAccountBalances:output_type -> arian.v1.SyncAccountBalancesResponse
+	23, // [23:33] is the sub-list for method output_type
+	13, // [13:23] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
 	13, // [13:13] is the sub-list for extension extendee
 	0,  // [0:13] is the sub-list for field type_name
@@ -1323,7 +1216,7 @@ func file_arian_v1_account_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_account_services_proto_rawDesc), len(file_arian_v1_account_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

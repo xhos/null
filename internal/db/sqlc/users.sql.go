@@ -23,18 +23,19 @@ func (q *Queries) CheckUserExists(ctx context.Context, id uuid.UUID) (bool, erro
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, display_name)
-VALUES ($1::text, $2::text)
+INSERT INTO users (id, email, display_name)
+VALUES ($1::uuid, $2::text, $3::text)
 RETURNING id, email, display_name, default_account_id, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Email       string  `json:"email"`
-	DisplayName *string `json:"display_name"`
+	ID          uuid.UUID `json:"id"`
+	Email       string    `json:"email"`
+	DisplayName *string   `json:"display_name"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.DisplayName)
+	row := q.db.QueryRow(ctx, createUser, arg.ID, arg.Email, arg.DisplayName)
 	var i User
 	err := row.Scan(
 		&i.ID,

@@ -24,7 +24,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Receipt item
 type ReceiptItem struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -149,7 +148,6 @@ func (x *ReceiptItem) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// Receipt
 type Receipt struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	Id          int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -351,7 +349,6 @@ func (x *Receipt) GetItems() []*ReceiptItem {
 	return nil
 }
 
-// Receipt with match count
 type ReceiptMatchCandidate struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Receipt          *Receipt               `protobuf:"bytes,1,opt,name=receipt,proto3" json:"receipt,omitempty"`
@@ -404,7 +401,6 @@ func (x *ReceiptMatchCandidate) GetPotentialMatches() int64 {
 	return 0
 }
 
-// Receipt summary for listing unlinked receipts
 type ReceiptSummary struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`

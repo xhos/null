@@ -36,7 +36,11 @@ func (s *Server) GetUserByEmail(ctx context.Context, req *connect.Request[pb.Get
 }
 
 func (s *Server) CreateUser(ctx context.Context, req *connect.Request[pb.CreateUserRequest]) (*connect.Response[pb.CreateUserResponse], error) {
-	params := createUserParamsFromProto(req.Msg)
+	params, err := createUserParamsFromProto(req.Msg)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.services.Users.Create(ctx, params)
 	if err != nil {
 		return nil, handleError(err)

@@ -35,8 +35,6 @@ type Account struct {
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Alias         *string                `protobuf:"bytes,10,opt,name=alias,proto3,oneof" json:"alias,omitempty"`
-	IsOwner       bool                   `protobuf:"varint,11,opt,name=is_owner,json=isOwner,proto3" json:"is_owner,omitempty"`
-	Owner         *User                  `protobuf:"bytes,12,opt,name=owner,proto3,oneof" json:"owner,omitempty"` // TODO: why
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -141,20 +139,6 @@ func (x *Account) GetAlias() string {
 	return ""
 }
 
-func (x *Account) GetIsOwner() bool {
-	if x != nil {
-		return x.IsOwner
-	}
-	return false
-}
-
-func (x *Account) GetOwner() *User {
-	if x != nil {
-		return x.Owner
-	}
-	return nil
-}
-
 type AccountBalance struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -235,7 +219,7 @@ var File_arian_v1_account_proto protoreflect.FileDescriptor
 
 const file_arian_v1_account_proto_rawDesc = "" +
 	"\n" +
-	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x13arian/v1/user.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xea\x03\n" +
+	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x9a\x03\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
@@ -250,11 +234,8 @@ const file_arian_v1_account_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x19\n" +
 	"\x05alias\x18\n" +
-	" \x01(\tH\x00R\x05alias\x88\x01\x01\x12\x19\n" +
-	"\bis_owner\x18\v \x01(\bR\aisOwner\x12)\n" +
-	"\x05owner\x18\f \x01(\v2\x0e.arian.v1.UserH\x01R\x05owner\x88\x01\x01B\b\n" +
-	"\x06_aliasB\b\n" +
-	"\x06_owner\"\xc7\x01\n" +
+	" \x01(\tH\x00R\x05alias\x88\x01\x01B\b\n" +
+	"\x06_alias\"\xc7\x01\n" +
 	"\x0eAccountBalance\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x128\n" +
@@ -282,7 +263,6 @@ var file_arian_v1_account_proto_goTypes = []any{
 	(AccountType)(0),              // 2: arian.v1.AccountType
 	(*money.Money)(nil),           // 3: google.type.Money
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*User)(nil),                  // 5: arian.v1.User
 }
 var file_arian_v1_account_proto_depIdxs = []int32{
 	2, // 0: arian.v1.Account.type:type_name -> arian.v1.AccountType
@@ -290,14 +270,13 @@ var file_arian_v1_account_proto_depIdxs = []int32{
 	4, // 2: arian.v1.Account.anchor_date:type_name -> google.protobuf.Timestamp
 	4, // 3: arian.v1.Account.created_at:type_name -> google.protobuf.Timestamp
 	4, // 4: arian.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
-	5, // 5: arian.v1.Account.owner:type_name -> arian.v1.User
-	2, // 6: arian.v1.AccountBalance.account_type:type_name -> arian.v1.AccountType
-	3, // 7: arian.v1.AccountBalance.current_balance:type_name -> google.type.Money
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	2, // 5: arian.v1.AccountBalance.account_type:type_name -> arian.v1.AccountType
+	3, // 6: arian.v1.AccountBalance.current_balance:type_name -> google.type.Money
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_account_proto_init() }
@@ -306,7 +285,6 @@ func file_arian_v1_account_proto_init() {
 		return
 	}
 	file_arian_v1_enums_proto_init()
-	file_arian_v1_user_proto_init()
 	file_arian_v1_account_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

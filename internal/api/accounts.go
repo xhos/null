@@ -144,20 +144,6 @@ func (s *Server) SyncAccountBalances(ctx context.Context, req *connect.Request[p
 	return connect.NewResponse(&pb.SyncAccountBalancesResponse{}), nil
 }
 
-func (s *Server) CheckUserAccountAccess(ctx context.Context, req *connect.Request[pb.CheckUserAccountAccessRequest]) (*connect.Response[pb.CheckUserAccountAccessResponse], error) {
-	userID, err := getUserFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// check if user has access to this account (either owner or collaborator)
-	_, err = s.services.Accounts.GetForUser(ctx, userID, req.Msg.GetAccountId())
-	hasAccess := err == nil
-
-	return connect.NewResponse(&pb.CheckUserAccountAccessResponse{
-		HasAccess: hasAccess,
-	}), nil
-}
 
 func (s *Server) GetAnchorBalance(ctx context.Context, req *connect.Request[pb.GetAnchorBalanceRequest]) (*connect.Response[pb.GetAnchorBalanceResponse], error) {
 	// placeholder implementation - would need to fetch anchor balance from database

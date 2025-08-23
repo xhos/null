@@ -14,8 +14,8 @@ FROM users
 WHERE lower(email) = lower(@email::text);
 
 -- name: CreateUser :one
-INSERT INTO users (email, display_name)
-VALUES (@email::text, sqlc.narg('display_name')::text)
+INSERT INTO users (id, email, display_name)
+VALUES (@id::uuid, @email::text, sqlc.narg('display_name')::text)
 RETURNING id, email, display_name, default_account_id, created_at, updated_at;
 
 -- name: UpdateUser :one

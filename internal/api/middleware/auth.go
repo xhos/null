@@ -18,11 +18,6 @@ type AuthConfig struct {
 	BetterAuthURL  string
 }
 
-var (
-	ErrMissingUserID = errors.New("missing user id")
-	ErrInvalidJWT    = errors.New("invalid JWT token")
-)
-
 func validateJWT(ctx context.Context, tokenString, betterAuthURL string) (*User, error) {
 	if betterAuthURL == "" {
 		return nil, fmt.Errorf("better-auth URL not configured")
@@ -42,7 +37,7 @@ func validateJWT(ctx context.Context, tokenString, betterAuthURL string) (*User,
 
 	userID, exists := token.Subject()
 	if !exists {
-		return nil, ErrMissingUserID
+		return nil, errors.New("missing user id")
 	}
 
 	var email, name string

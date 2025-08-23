@@ -4,6 +4,7 @@ import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
 	"context"
+	"errors"
 
 	"connectrpc.com/connect"
 )
@@ -108,6 +109,66 @@ func (s *Server) GetCategoryBySlug(ctx context.Context, req *connect.Request[pb.
 	return connect.NewResponse(&pb.GetCategoryBySlugResponse{
 		Category: toProtoCategory(cat),
 	}), nil
+}
+
+func (s *Server) BulkCreateCategories(ctx context.Context, req *connect.Request[pb.BulkCreateCategoriesRequest]) (*connect.Response[pb.BulkCreateCategoriesResponse], error) {
+	categories := make([]*pb.Category, 0, len(req.Msg.Categories))
+	
+	for _, catReq := range req.Msg.Categories {
+		params := sqlc.CreateCategoryParams{
+			Slug:  catReq.GetSlug(),
+			Label: catReq.GetLabel(),
+			Color: catReq.GetColor(),
+		}
+
+		cat, err := s.services.Categories.Create(ctx, params)
+		if err != nil {
+			return nil, handleError(err)
+		}
+
+		categories = append(categories, toProtoCategory(cat))
+	}
+
+	return connect.NewResponse(&pb.BulkCreateCategoriesResponse{
+		Categories:   categories,
+		AffectedRows: int64(len(categories)),
+	}), nil
+}
+
+func (s *Server) ListCategoriesWithUsage(ctx context.Context, req *connect.Request[pb.ListCategoriesWithUsageRequest]) (*connect.Response[pb.ListCategoriesWithUsageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("ListCategoriesWithUsage not implemented"))
+}
+
+func (s *Server) ListCategoriesForUser(ctx context.Context, req *connect.Request[pb.ListCategoriesForUserRequest]) (*connect.Response[pb.ListCategoriesForUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("ListCategoriesForUser not implemented"))
+}
+
+func (s *Server) GetCategoryWithStats(ctx context.Context, req *connect.Request[pb.GetCategoryWithStatsRequest]) (*connect.Response[pb.GetCategoryWithStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetCategoryWithStats not implemented"))
+}
+
+func (s *Server) DeleteUnusedCategories(ctx context.Context, req *connect.Request[pb.DeleteUnusedCategoriesRequest]) (*connect.Response[pb.DeleteUnusedCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("DeleteUnusedCategories not implemented"))
+}
+
+func (s *Server) GetCategoryUsageStats(ctx context.Context, req *connect.Request[pb.GetCategoryUsageStatsRequest]) (*connect.Response[pb.GetCategoryUsageStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetCategoryUsageStats not implemented"))
+}
+
+func (s *Server) GetCategoriesWithStats(ctx context.Context, req *connect.Request[pb.GetCategoriesWithStatsRequest]) (*connect.Response[pb.GetCategoriesWithStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetCategoriesWithStats not implemented"))
+}
+
+func (s *Server) SearchCategories(ctx context.Context, req *connect.Request[pb.SearchCategoriesRequest]) (*connect.Response[pb.SearchCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("SearchCategories not implemented"))
+}
+
+func (s *Server) GetMostUsedCategoriesForUser(ctx context.Context, req *connect.Request[pb.GetMostUsedCategoriesForUserRequest]) (*connect.Response[pb.GetMostUsedCategoriesForUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetMostUsedCategoriesForUser not implemented"))
+}
+
+func (s *Server) GetUnusedCategories(ctx context.Context, req *connect.Request[pb.GetUnusedCategoriesRequest]) (*connect.Response[pb.GetUnusedCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetUnusedCategories not implemented"))
 }
 
 func (s *Server) ListCategorySlugs(ctx context.Context, req *connect.Request[pb.ListCategorySlugsRequest]) (*connect.Response[pb.ListCategorySlugsResponse], error) {

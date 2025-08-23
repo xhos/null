@@ -278,11 +278,17 @@ func toProtoUser(u *sqlc.User) *pb.User {
 	return user
 }
 
-func createUserParamsFromProto(req *pb.CreateUserRequest) sqlc.CreateUserParams {
+func createUserParamsFromProto(req *pb.CreateUserRequest) (sqlc.CreateUserParams, error) {
+	userID, err := parseUUID(req.GetId())
+	if err != nil {
+		return sqlc.CreateUserParams{}, err
+	}
+
 	return sqlc.CreateUserParams{
+		ID:          userID,
 		Email:       req.GetEmail(),
 		DisplayName: req.DisplayName,
-	}
+	}, nil
 }
 
 func updateUserParamsFromProto(req *pb.UpdateUserRequest) (sqlc.UpdateUserParams, error) {

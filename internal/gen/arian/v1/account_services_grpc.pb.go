@@ -19,17 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AccountService_ListAccounts_FullMethodName           = "/arian.v1.AccountService/ListAccounts"
-	AccountService_GetAccount_FullMethodName             = "/arian.v1.AccountService/GetAccount"
-	AccountService_CreateAccount_FullMethodName          = "/arian.v1.AccountService/CreateAccount"
-	AccountService_UpdateAccount_FullMethodName          = "/arian.v1.AccountService/UpdateAccount"
-	AccountService_DeleteAccount_FullMethodName          = "/arian.v1.AccountService/DeleteAccount"
-	AccountService_SetAccountAnchor_FullMethodName       = "/arian.v1.AccountService/SetAccountAnchor"
-	AccountService_GetAccountBalance_FullMethodName      = "/arian.v1.AccountService/GetAccountBalance"
-	AccountService_GetAnchorBalance_FullMethodName       = "/arian.v1.AccountService/GetAnchorBalance"
-	AccountService_GetAccountsCount_FullMethodName       = "/arian.v1.AccountService/GetAccountsCount"
-	AccountService_CheckUserAccountAccess_FullMethodName = "/arian.v1.AccountService/CheckUserAccountAccess"
-	AccountService_SyncAccountBalances_FullMethodName    = "/arian.v1.AccountService/SyncAccountBalances"
+	AccountService_ListAccounts_FullMethodName        = "/arian.v1.AccountService/ListAccounts"
+	AccountService_GetAccount_FullMethodName          = "/arian.v1.AccountService/GetAccount"
+	AccountService_CreateAccount_FullMethodName       = "/arian.v1.AccountService/CreateAccount"
+	AccountService_UpdateAccount_FullMethodName       = "/arian.v1.AccountService/UpdateAccount"
+	AccountService_DeleteAccount_FullMethodName       = "/arian.v1.AccountService/DeleteAccount"
+	AccountService_SetAccountAnchor_FullMethodName    = "/arian.v1.AccountService/SetAccountAnchor"
+	AccountService_GetAccountBalance_FullMethodName   = "/arian.v1.AccountService/GetAccountBalance"
+	AccountService_GetAnchorBalance_FullMethodName    = "/arian.v1.AccountService/GetAnchorBalance"
+	AccountService_GetAccountsCount_FullMethodName    = "/arian.v1.AccountService/GetAccountsCount"
+	AccountService_SyncAccountBalances_FullMethodName = "/arian.v1.AccountService/SyncAccountBalances"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -45,7 +44,6 @@ type AccountServiceClient interface {
 	GetAccountBalance(ctx context.Context, in *GetAccountBalanceRequest, opts ...grpc.CallOption) (*GetAccountBalanceResponse, error)
 	GetAnchorBalance(ctx context.Context, in *GetAnchorBalanceRequest, opts ...grpc.CallOption) (*GetAnchorBalanceResponse, error)
 	GetAccountsCount(ctx context.Context, in *GetAccountsCountRequest, opts ...grpc.CallOption) (*GetAccountsCountResponse, error)
-	CheckUserAccountAccess(ctx context.Context, in *CheckUserAccountAccessRequest, opts ...grpc.CallOption) (*CheckUserAccountAccessResponse, error)
 	SyncAccountBalances(ctx context.Context, in *SyncAccountBalancesRequest, opts ...grpc.CallOption) (*SyncAccountBalancesResponse, error)
 }
 
@@ -147,16 +145,6 @@ func (c *accountServiceClient) GetAccountsCount(ctx context.Context, in *GetAcco
 	return out, nil
 }
 
-func (c *accountServiceClient) CheckUserAccountAccess(ctx context.Context, in *CheckUserAccountAccessRequest, opts ...grpc.CallOption) (*CheckUserAccountAccessResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CheckUserAccountAccessResponse)
-	err := c.cc.Invoke(ctx, AccountService_CheckUserAccountAccess_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *accountServiceClient) SyncAccountBalances(ctx context.Context, in *SyncAccountBalancesRequest, opts ...grpc.CallOption) (*SyncAccountBalancesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SyncAccountBalancesResponse)
@@ -180,7 +168,6 @@ type AccountServiceServer interface {
 	GetAccountBalance(context.Context, *GetAccountBalanceRequest) (*GetAccountBalanceResponse, error)
 	GetAnchorBalance(context.Context, *GetAnchorBalanceRequest) (*GetAnchorBalanceResponse, error)
 	GetAccountsCount(context.Context, *GetAccountsCountRequest) (*GetAccountsCountResponse, error)
-	CheckUserAccountAccess(context.Context, *CheckUserAccountAccessRequest) (*CheckUserAccountAccessResponse, error)
 	SyncAccountBalances(context.Context, *SyncAccountBalancesRequest) (*SyncAccountBalancesResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
@@ -218,9 +205,6 @@ func (UnimplementedAccountServiceServer) GetAnchorBalance(context.Context, *GetA
 }
 func (UnimplementedAccountServiceServer) GetAccountsCount(context.Context, *GetAccountsCountRequest) (*GetAccountsCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccountsCount not implemented")
-}
-func (UnimplementedAccountServiceServer) CheckUserAccountAccess(context.Context, *CheckUserAccountAccessRequest) (*CheckUserAccountAccessResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckUserAccountAccess not implemented")
 }
 func (UnimplementedAccountServiceServer) SyncAccountBalances(context.Context, *SyncAccountBalancesRequest) (*SyncAccountBalancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncAccountBalances not implemented")
@@ -408,24 +392,6 @@ func _AccountService_GetAccountsCount_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_CheckUserAccountAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckUserAccountAccessRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountServiceServer).CheckUserAccountAccess(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountService_CheckUserAccountAccess_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).CheckUserAccountAccess(ctx, req.(*CheckUserAccountAccessRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AccountService_SyncAccountBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SyncAccountBalancesRequest)
 	if err := dec(in); err != nil {
@@ -486,10 +452,6 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccountsCount",
 			Handler:    _AccountService_GetAccountsCount_Handler,
-		},
-		{
-			MethodName: "CheckUserAccountAccess",
-			Handler:    _AccountService_CheckUserAccountAccess_Handler,
 		},
 		{
 			MethodName: "SyncAccountBalances",

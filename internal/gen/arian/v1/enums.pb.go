@@ -21,7 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Account types
 type AccountType int32
 
 const (
@@ -80,7 +79,6 @@ func (AccountType) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{0}
 }
 
-// Transaction flow direction
 type TransactionDirection int32
 
 const (
@@ -130,7 +128,6 @@ func (TransactionDirection) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{1}
 }
 
-// How a transaction was categorized
 type CategorizationStatus int32
 
 const (
@@ -186,7 +183,6 @@ func (CategorizationStatus) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{2}
 }
 
-// Receipt parsing engine
 type ReceiptEngine int32
 
 const (
@@ -236,7 +232,6 @@ func (ReceiptEngine) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{3}
 }
 
-// Receipt parsing status
 type ReceiptParseStatus int32
 
 const (
@@ -289,7 +284,6 @@ func (ReceiptParseStatus) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{4}
 }
 
-// Receipt linking status
 type ReceiptLinkStatus int32
 
 const (

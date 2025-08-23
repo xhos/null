@@ -36,35 +36,75 @@ const (
 	// CategoryServiceListCategoriesProcedure is the fully-qualified name of the CategoryService's
 	// ListCategories RPC.
 	CategoryServiceListCategoriesProcedure = "/arian.v1.CategoryService/ListCategories"
+	// CategoryServiceListCategoriesWithUsageProcedure is the fully-qualified name of the
+	// CategoryService's ListCategoriesWithUsage RPC.
+	CategoryServiceListCategoriesWithUsageProcedure = "/arian.v1.CategoryService/ListCategoriesWithUsage"
+	// CategoryServiceListCategoriesForUserProcedure is the fully-qualified name of the
+	// CategoryService's ListCategoriesForUser RPC.
+	CategoryServiceListCategoriesForUserProcedure = "/arian.v1.CategoryService/ListCategoriesForUser"
 	// CategoryServiceGetCategoryProcedure is the fully-qualified name of the CategoryService's
 	// GetCategory RPC.
 	CategoryServiceGetCategoryProcedure = "/arian.v1.CategoryService/GetCategory"
 	// CategoryServiceGetCategoryBySlugProcedure is the fully-qualified name of the CategoryService's
 	// GetCategoryBySlug RPC.
 	CategoryServiceGetCategoryBySlugProcedure = "/arian.v1.CategoryService/GetCategoryBySlug"
+	// CategoryServiceGetCategoryWithStatsProcedure is the fully-qualified name of the CategoryService's
+	// GetCategoryWithStats RPC.
+	CategoryServiceGetCategoryWithStatsProcedure = "/arian.v1.CategoryService/GetCategoryWithStats"
 	// CategoryServiceCreateCategoryProcedure is the fully-qualified name of the CategoryService's
 	// CreateCategory RPC.
 	CategoryServiceCreateCategoryProcedure = "/arian.v1.CategoryService/CreateCategory"
+	// CategoryServiceBulkCreateCategoriesProcedure is the fully-qualified name of the CategoryService's
+	// BulkCreateCategories RPC.
+	CategoryServiceBulkCreateCategoriesProcedure = "/arian.v1.CategoryService/BulkCreateCategories"
 	// CategoryServiceUpdateCategoryProcedure is the fully-qualified name of the CategoryService's
 	// UpdateCategory RPC.
 	CategoryServiceUpdateCategoryProcedure = "/arian.v1.CategoryService/UpdateCategory"
 	// CategoryServiceDeleteCategoryProcedure is the fully-qualified name of the CategoryService's
 	// DeleteCategory RPC.
 	CategoryServiceDeleteCategoryProcedure = "/arian.v1.CategoryService/DeleteCategory"
+	// CategoryServiceDeleteUnusedCategoriesProcedure is the fully-qualified name of the
+	// CategoryService's DeleteUnusedCategories RPC.
+	CategoryServiceDeleteUnusedCategoriesProcedure = "/arian.v1.CategoryService/DeleteUnusedCategories"
+	// CategoryServiceGetCategoryUsageStatsProcedure is the fully-qualified name of the
+	// CategoryService's GetCategoryUsageStats RPC.
+	CategoryServiceGetCategoryUsageStatsProcedure = "/arian.v1.CategoryService/GetCategoryUsageStats"
+	// CategoryServiceGetCategoriesWithStatsProcedure is the fully-qualified name of the
+	// CategoryService's GetCategoriesWithStats RPC.
+	CategoryServiceGetCategoriesWithStatsProcedure = "/arian.v1.CategoryService/GetCategoriesWithStats"
+	// CategoryServiceSearchCategoriesProcedure is the fully-qualified name of the CategoryService's
+	// SearchCategories RPC.
+	CategoryServiceSearchCategoriesProcedure = "/arian.v1.CategoryService/SearchCategories"
 	// CategoryServiceListCategorySlugsProcedure is the fully-qualified name of the CategoryService's
 	// ListCategorySlugs RPC.
 	CategoryServiceListCategorySlugsProcedure = "/arian.v1.CategoryService/ListCategorySlugs"
+	// CategoryServiceGetMostUsedCategoriesForUserProcedure is the fully-qualified name of the
+	// CategoryService's GetMostUsedCategoriesForUser RPC.
+	CategoryServiceGetMostUsedCategoriesForUserProcedure = "/arian.v1.CategoryService/GetMostUsedCategoriesForUser"
+	// CategoryServiceGetUnusedCategoriesProcedure is the fully-qualified name of the CategoryService's
+	// GetUnusedCategories RPC.
+	CategoryServiceGetUnusedCategoriesProcedure = "/arian.v1.CategoryService/GetUnusedCategories"
 )
 
 // CategoryServiceClient is a client for the arian.v1.CategoryService service.
 type CategoryServiceClient interface {
 	ListCategories(context.Context, *connect.Request[v1.ListCategoriesRequest]) (*connect.Response[v1.ListCategoriesResponse], error)
+	ListCategoriesWithUsage(context.Context, *connect.Request[v1.ListCategoriesWithUsageRequest]) (*connect.Response[v1.ListCategoriesWithUsageResponse], error)
+	ListCategoriesForUser(context.Context, *connect.Request[v1.ListCategoriesForUserRequest]) (*connect.Response[v1.ListCategoriesForUserResponse], error)
 	GetCategory(context.Context, *connect.Request[v1.GetCategoryRequest]) (*connect.Response[v1.GetCategoryResponse], error)
 	GetCategoryBySlug(context.Context, *connect.Request[v1.GetCategoryBySlugRequest]) (*connect.Response[v1.GetCategoryBySlugResponse], error)
+	GetCategoryWithStats(context.Context, *connect.Request[v1.GetCategoryWithStatsRequest]) (*connect.Response[v1.GetCategoryWithStatsResponse], error)
 	CreateCategory(context.Context, *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error)
+	BulkCreateCategories(context.Context, *connect.Request[v1.BulkCreateCategoriesRequest]) (*connect.Response[v1.BulkCreateCategoriesResponse], error)
 	UpdateCategory(context.Context, *connect.Request[v1.UpdateCategoryRequest]) (*connect.Response[v1.UpdateCategoryResponse], error)
 	DeleteCategory(context.Context, *connect.Request[v1.DeleteCategoryRequest]) (*connect.Response[v1.DeleteCategoryResponse], error)
+	DeleteUnusedCategories(context.Context, *connect.Request[v1.DeleteUnusedCategoriesRequest]) (*connect.Response[v1.DeleteUnusedCategoriesResponse], error)
+	GetCategoryUsageStats(context.Context, *connect.Request[v1.GetCategoryUsageStatsRequest]) (*connect.Response[v1.GetCategoryUsageStatsResponse], error)
+	GetCategoriesWithStats(context.Context, *connect.Request[v1.GetCategoriesWithStatsRequest]) (*connect.Response[v1.GetCategoriesWithStatsResponse], error)
+	SearchCategories(context.Context, *connect.Request[v1.SearchCategoriesRequest]) (*connect.Response[v1.SearchCategoriesResponse], error)
 	ListCategorySlugs(context.Context, *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error)
+	GetMostUsedCategoriesForUser(context.Context, *connect.Request[v1.GetMostUsedCategoriesForUserRequest]) (*connect.Response[v1.GetMostUsedCategoriesForUserResponse], error)
+	GetUnusedCategories(context.Context, *connect.Request[v1.GetUnusedCategoriesRequest]) (*connect.Response[v1.GetUnusedCategoriesResponse], error)
 }
 
 // NewCategoryServiceClient constructs a client for the arian.v1.CategoryService service. By
@@ -84,6 +124,18 @@ func NewCategoryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(categoryServiceMethods.ByName("ListCategories")),
 			connect.WithClientOptions(opts...),
 		),
+		listCategoriesWithUsage: connect.NewClient[v1.ListCategoriesWithUsageRequest, v1.ListCategoriesWithUsageResponse](
+			httpClient,
+			baseURL+CategoryServiceListCategoriesWithUsageProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("ListCategoriesWithUsage")),
+			connect.WithClientOptions(opts...),
+		),
+		listCategoriesForUser: connect.NewClient[v1.ListCategoriesForUserRequest, v1.ListCategoriesForUserResponse](
+			httpClient,
+			baseURL+CategoryServiceListCategoriesForUserProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("ListCategoriesForUser")),
+			connect.WithClientOptions(opts...),
+		),
 		getCategory: connect.NewClient[v1.GetCategoryRequest, v1.GetCategoryResponse](
 			httpClient,
 			baseURL+CategoryServiceGetCategoryProcedure,
@@ -96,10 +148,22 @@ func NewCategoryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(categoryServiceMethods.ByName("GetCategoryBySlug")),
 			connect.WithClientOptions(opts...),
 		),
+		getCategoryWithStats: connect.NewClient[v1.GetCategoryWithStatsRequest, v1.GetCategoryWithStatsResponse](
+			httpClient,
+			baseURL+CategoryServiceGetCategoryWithStatsProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("GetCategoryWithStats")),
+			connect.WithClientOptions(opts...),
+		),
 		createCategory: connect.NewClient[v1.CreateCategoryRequest, v1.CreateCategoryResponse](
 			httpClient,
 			baseURL+CategoryServiceCreateCategoryProcedure,
 			connect.WithSchema(categoryServiceMethods.ByName("CreateCategory")),
+			connect.WithClientOptions(opts...),
+		),
+		bulkCreateCategories: connect.NewClient[v1.BulkCreateCategoriesRequest, v1.BulkCreateCategoriesResponse](
+			httpClient,
+			baseURL+CategoryServiceBulkCreateCategoriesProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("BulkCreateCategories")),
 			connect.WithClientOptions(opts...),
 		),
 		updateCategory: connect.NewClient[v1.UpdateCategoryRequest, v1.UpdateCategoryResponse](
@@ -114,10 +178,46 @@ func NewCategoryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(categoryServiceMethods.ByName("DeleteCategory")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteUnusedCategories: connect.NewClient[v1.DeleteUnusedCategoriesRequest, v1.DeleteUnusedCategoriesResponse](
+			httpClient,
+			baseURL+CategoryServiceDeleteUnusedCategoriesProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("DeleteUnusedCategories")),
+			connect.WithClientOptions(opts...),
+		),
+		getCategoryUsageStats: connect.NewClient[v1.GetCategoryUsageStatsRequest, v1.GetCategoryUsageStatsResponse](
+			httpClient,
+			baseURL+CategoryServiceGetCategoryUsageStatsProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("GetCategoryUsageStats")),
+			connect.WithClientOptions(opts...),
+		),
+		getCategoriesWithStats: connect.NewClient[v1.GetCategoriesWithStatsRequest, v1.GetCategoriesWithStatsResponse](
+			httpClient,
+			baseURL+CategoryServiceGetCategoriesWithStatsProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("GetCategoriesWithStats")),
+			connect.WithClientOptions(opts...),
+		),
+		searchCategories: connect.NewClient[v1.SearchCategoriesRequest, v1.SearchCategoriesResponse](
+			httpClient,
+			baseURL+CategoryServiceSearchCategoriesProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("SearchCategories")),
+			connect.WithClientOptions(opts...),
+		),
 		listCategorySlugs: connect.NewClient[v1.ListCategorySlugsRequest, v1.ListCategorySlugsResponse](
 			httpClient,
 			baseURL+CategoryServiceListCategorySlugsProcedure,
 			connect.WithSchema(categoryServiceMethods.ByName("ListCategorySlugs")),
+			connect.WithClientOptions(opts...),
+		),
+		getMostUsedCategoriesForUser: connect.NewClient[v1.GetMostUsedCategoriesForUserRequest, v1.GetMostUsedCategoriesForUserResponse](
+			httpClient,
+			baseURL+CategoryServiceGetMostUsedCategoriesForUserProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("GetMostUsedCategoriesForUser")),
+			connect.WithClientOptions(opts...),
+		),
+		getUnusedCategories: connect.NewClient[v1.GetUnusedCategoriesRequest, v1.GetUnusedCategoriesResponse](
+			httpClient,
+			baseURL+CategoryServiceGetUnusedCategoriesProcedure,
+			connect.WithSchema(categoryServiceMethods.ByName("GetUnusedCategories")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -125,18 +225,38 @@ func NewCategoryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 
 // categoryServiceClient implements CategoryServiceClient.
 type categoryServiceClient struct {
-	listCategories    *connect.Client[v1.ListCategoriesRequest, v1.ListCategoriesResponse]
-	getCategory       *connect.Client[v1.GetCategoryRequest, v1.GetCategoryResponse]
-	getCategoryBySlug *connect.Client[v1.GetCategoryBySlugRequest, v1.GetCategoryBySlugResponse]
-	createCategory    *connect.Client[v1.CreateCategoryRequest, v1.CreateCategoryResponse]
-	updateCategory    *connect.Client[v1.UpdateCategoryRequest, v1.UpdateCategoryResponse]
-	deleteCategory    *connect.Client[v1.DeleteCategoryRequest, v1.DeleteCategoryResponse]
-	listCategorySlugs *connect.Client[v1.ListCategorySlugsRequest, v1.ListCategorySlugsResponse]
+	listCategories               *connect.Client[v1.ListCategoriesRequest, v1.ListCategoriesResponse]
+	listCategoriesWithUsage      *connect.Client[v1.ListCategoriesWithUsageRequest, v1.ListCategoriesWithUsageResponse]
+	listCategoriesForUser        *connect.Client[v1.ListCategoriesForUserRequest, v1.ListCategoriesForUserResponse]
+	getCategory                  *connect.Client[v1.GetCategoryRequest, v1.GetCategoryResponse]
+	getCategoryBySlug            *connect.Client[v1.GetCategoryBySlugRequest, v1.GetCategoryBySlugResponse]
+	getCategoryWithStats         *connect.Client[v1.GetCategoryWithStatsRequest, v1.GetCategoryWithStatsResponse]
+	createCategory               *connect.Client[v1.CreateCategoryRequest, v1.CreateCategoryResponse]
+	bulkCreateCategories         *connect.Client[v1.BulkCreateCategoriesRequest, v1.BulkCreateCategoriesResponse]
+	updateCategory               *connect.Client[v1.UpdateCategoryRequest, v1.UpdateCategoryResponse]
+	deleteCategory               *connect.Client[v1.DeleteCategoryRequest, v1.DeleteCategoryResponse]
+	deleteUnusedCategories       *connect.Client[v1.DeleteUnusedCategoriesRequest, v1.DeleteUnusedCategoriesResponse]
+	getCategoryUsageStats        *connect.Client[v1.GetCategoryUsageStatsRequest, v1.GetCategoryUsageStatsResponse]
+	getCategoriesWithStats       *connect.Client[v1.GetCategoriesWithStatsRequest, v1.GetCategoriesWithStatsResponse]
+	searchCategories             *connect.Client[v1.SearchCategoriesRequest, v1.SearchCategoriesResponse]
+	listCategorySlugs            *connect.Client[v1.ListCategorySlugsRequest, v1.ListCategorySlugsResponse]
+	getMostUsedCategoriesForUser *connect.Client[v1.GetMostUsedCategoriesForUserRequest, v1.GetMostUsedCategoriesForUserResponse]
+	getUnusedCategories          *connect.Client[v1.GetUnusedCategoriesRequest, v1.GetUnusedCategoriesResponse]
 }
 
 // ListCategories calls arian.v1.CategoryService.ListCategories.
 func (c *categoryServiceClient) ListCategories(ctx context.Context, req *connect.Request[v1.ListCategoriesRequest]) (*connect.Response[v1.ListCategoriesResponse], error) {
 	return c.listCategories.CallUnary(ctx, req)
+}
+
+// ListCategoriesWithUsage calls arian.v1.CategoryService.ListCategoriesWithUsage.
+func (c *categoryServiceClient) ListCategoriesWithUsage(ctx context.Context, req *connect.Request[v1.ListCategoriesWithUsageRequest]) (*connect.Response[v1.ListCategoriesWithUsageResponse], error) {
+	return c.listCategoriesWithUsage.CallUnary(ctx, req)
+}
+
+// ListCategoriesForUser calls arian.v1.CategoryService.ListCategoriesForUser.
+func (c *categoryServiceClient) ListCategoriesForUser(ctx context.Context, req *connect.Request[v1.ListCategoriesForUserRequest]) (*connect.Response[v1.ListCategoriesForUserResponse], error) {
+	return c.listCategoriesForUser.CallUnary(ctx, req)
 }
 
 // GetCategory calls arian.v1.CategoryService.GetCategory.
@@ -149,9 +269,19 @@ func (c *categoryServiceClient) GetCategoryBySlug(ctx context.Context, req *conn
 	return c.getCategoryBySlug.CallUnary(ctx, req)
 }
 
+// GetCategoryWithStats calls arian.v1.CategoryService.GetCategoryWithStats.
+func (c *categoryServiceClient) GetCategoryWithStats(ctx context.Context, req *connect.Request[v1.GetCategoryWithStatsRequest]) (*connect.Response[v1.GetCategoryWithStatsResponse], error) {
+	return c.getCategoryWithStats.CallUnary(ctx, req)
+}
+
 // CreateCategory calls arian.v1.CategoryService.CreateCategory.
 func (c *categoryServiceClient) CreateCategory(ctx context.Context, req *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error) {
 	return c.createCategory.CallUnary(ctx, req)
+}
+
+// BulkCreateCategories calls arian.v1.CategoryService.BulkCreateCategories.
+func (c *categoryServiceClient) BulkCreateCategories(ctx context.Context, req *connect.Request[v1.BulkCreateCategoriesRequest]) (*connect.Response[v1.BulkCreateCategoriesResponse], error) {
+	return c.bulkCreateCategories.CallUnary(ctx, req)
 }
 
 // UpdateCategory calls arian.v1.CategoryService.UpdateCategory.
@@ -164,20 +294,60 @@ func (c *categoryServiceClient) DeleteCategory(ctx context.Context, req *connect
 	return c.deleteCategory.CallUnary(ctx, req)
 }
 
+// DeleteUnusedCategories calls arian.v1.CategoryService.DeleteUnusedCategories.
+func (c *categoryServiceClient) DeleteUnusedCategories(ctx context.Context, req *connect.Request[v1.DeleteUnusedCategoriesRequest]) (*connect.Response[v1.DeleteUnusedCategoriesResponse], error) {
+	return c.deleteUnusedCategories.CallUnary(ctx, req)
+}
+
+// GetCategoryUsageStats calls arian.v1.CategoryService.GetCategoryUsageStats.
+func (c *categoryServiceClient) GetCategoryUsageStats(ctx context.Context, req *connect.Request[v1.GetCategoryUsageStatsRequest]) (*connect.Response[v1.GetCategoryUsageStatsResponse], error) {
+	return c.getCategoryUsageStats.CallUnary(ctx, req)
+}
+
+// GetCategoriesWithStats calls arian.v1.CategoryService.GetCategoriesWithStats.
+func (c *categoryServiceClient) GetCategoriesWithStats(ctx context.Context, req *connect.Request[v1.GetCategoriesWithStatsRequest]) (*connect.Response[v1.GetCategoriesWithStatsResponse], error) {
+	return c.getCategoriesWithStats.CallUnary(ctx, req)
+}
+
+// SearchCategories calls arian.v1.CategoryService.SearchCategories.
+func (c *categoryServiceClient) SearchCategories(ctx context.Context, req *connect.Request[v1.SearchCategoriesRequest]) (*connect.Response[v1.SearchCategoriesResponse], error) {
+	return c.searchCategories.CallUnary(ctx, req)
+}
+
 // ListCategorySlugs calls arian.v1.CategoryService.ListCategorySlugs.
 func (c *categoryServiceClient) ListCategorySlugs(ctx context.Context, req *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error) {
 	return c.listCategorySlugs.CallUnary(ctx, req)
 }
 
+// GetMostUsedCategoriesForUser calls arian.v1.CategoryService.GetMostUsedCategoriesForUser.
+func (c *categoryServiceClient) GetMostUsedCategoriesForUser(ctx context.Context, req *connect.Request[v1.GetMostUsedCategoriesForUserRequest]) (*connect.Response[v1.GetMostUsedCategoriesForUserResponse], error) {
+	return c.getMostUsedCategoriesForUser.CallUnary(ctx, req)
+}
+
+// GetUnusedCategories calls arian.v1.CategoryService.GetUnusedCategories.
+func (c *categoryServiceClient) GetUnusedCategories(ctx context.Context, req *connect.Request[v1.GetUnusedCategoriesRequest]) (*connect.Response[v1.GetUnusedCategoriesResponse], error) {
+	return c.getUnusedCategories.CallUnary(ctx, req)
+}
+
 // CategoryServiceHandler is an implementation of the arian.v1.CategoryService service.
 type CategoryServiceHandler interface {
 	ListCategories(context.Context, *connect.Request[v1.ListCategoriesRequest]) (*connect.Response[v1.ListCategoriesResponse], error)
+	ListCategoriesWithUsage(context.Context, *connect.Request[v1.ListCategoriesWithUsageRequest]) (*connect.Response[v1.ListCategoriesWithUsageResponse], error)
+	ListCategoriesForUser(context.Context, *connect.Request[v1.ListCategoriesForUserRequest]) (*connect.Response[v1.ListCategoriesForUserResponse], error)
 	GetCategory(context.Context, *connect.Request[v1.GetCategoryRequest]) (*connect.Response[v1.GetCategoryResponse], error)
 	GetCategoryBySlug(context.Context, *connect.Request[v1.GetCategoryBySlugRequest]) (*connect.Response[v1.GetCategoryBySlugResponse], error)
+	GetCategoryWithStats(context.Context, *connect.Request[v1.GetCategoryWithStatsRequest]) (*connect.Response[v1.GetCategoryWithStatsResponse], error)
 	CreateCategory(context.Context, *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error)
+	BulkCreateCategories(context.Context, *connect.Request[v1.BulkCreateCategoriesRequest]) (*connect.Response[v1.BulkCreateCategoriesResponse], error)
 	UpdateCategory(context.Context, *connect.Request[v1.UpdateCategoryRequest]) (*connect.Response[v1.UpdateCategoryResponse], error)
 	DeleteCategory(context.Context, *connect.Request[v1.DeleteCategoryRequest]) (*connect.Response[v1.DeleteCategoryResponse], error)
+	DeleteUnusedCategories(context.Context, *connect.Request[v1.DeleteUnusedCategoriesRequest]) (*connect.Response[v1.DeleteUnusedCategoriesResponse], error)
+	GetCategoryUsageStats(context.Context, *connect.Request[v1.GetCategoryUsageStatsRequest]) (*connect.Response[v1.GetCategoryUsageStatsResponse], error)
+	GetCategoriesWithStats(context.Context, *connect.Request[v1.GetCategoriesWithStatsRequest]) (*connect.Response[v1.GetCategoriesWithStatsResponse], error)
+	SearchCategories(context.Context, *connect.Request[v1.SearchCategoriesRequest]) (*connect.Response[v1.SearchCategoriesResponse], error)
 	ListCategorySlugs(context.Context, *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error)
+	GetMostUsedCategoriesForUser(context.Context, *connect.Request[v1.GetMostUsedCategoriesForUserRequest]) (*connect.Response[v1.GetMostUsedCategoriesForUserResponse], error)
+	GetUnusedCategories(context.Context, *connect.Request[v1.GetUnusedCategoriesRequest]) (*connect.Response[v1.GetUnusedCategoriesResponse], error)
 }
 
 // NewCategoryServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -193,6 +363,18 @@ func NewCategoryServiceHandler(svc CategoryServiceHandler, opts ...connect.Handl
 		connect.WithSchema(categoryServiceMethods.ByName("ListCategories")),
 		connect.WithHandlerOptions(opts...),
 	)
+	categoryServiceListCategoriesWithUsageHandler := connect.NewUnaryHandler(
+		CategoryServiceListCategoriesWithUsageProcedure,
+		svc.ListCategoriesWithUsage,
+		connect.WithSchema(categoryServiceMethods.ByName("ListCategoriesWithUsage")),
+		connect.WithHandlerOptions(opts...),
+	)
+	categoryServiceListCategoriesForUserHandler := connect.NewUnaryHandler(
+		CategoryServiceListCategoriesForUserProcedure,
+		svc.ListCategoriesForUser,
+		connect.WithSchema(categoryServiceMethods.ByName("ListCategoriesForUser")),
+		connect.WithHandlerOptions(opts...),
+	)
 	categoryServiceGetCategoryHandler := connect.NewUnaryHandler(
 		CategoryServiceGetCategoryProcedure,
 		svc.GetCategory,
@@ -205,10 +387,22 @@ func NewCategoryServiceHandler(svc CategoryServiceHandler, opts ...connect.Handl
 		connect.WithSchema(categoryServiceMethods.ByName("GetCategoryBySlug")),
 		connect.WithHandlerOptions(opts...),
 	)
+	categoryServiceGetCategoryWithStatsHandler := connect.NewUnaryHandler(
+		CategoryServiceGetCategoryWithStatsProcedure,
+		svc.GetCategoryWithStats,
+		connect.WithSchema(categoryServiceMethods.ByName("GetCategoryWithStats")),
+		connect.WithHandlerOptions(opts...),
+	)
 	categoryServiceCreateCategoryHandler := connect.NewUnaryHandler(
 		CategoryServiceCreateCategoryProcedure,
 		svc.CreateCategory,
 		connect.WithSchema(categoryServiceMethods.ByName("CreateCategory")),
+		connect.WithHandlerOptions(opts...),
+	)
+	categoryServiceBulkCreateCategoriesHandler := connect.NewUnaryHandler(
+		CategoryServiceBulkCreateCategoriesProcedure,
+		svc.BulkCreateCategories,
+		connect.WithSchema(categoryServiceMethods.ByName("BulkCreateCategories")),
 		connect.WithHandlerOptions(opts...),
 	)
 	categoryServiceUpdateCategoryHandler := connect.NewUnaryHandler(
@@ -223,28 +417,84 @@ func NewCategoryServiceHandler(svc CategoryServiceHandler, opts ...connect.Handl
 		connect.WithSchema(categoryServiceMethods.ByName("DeleteCategory")),
 		connect.WithHandlerOptions(opts...),
 	)
+	categoryServiceDeleteUnusedCategoriesHandler := connect.NewUnaryHandler(
+		CategoryServiceDeleteUnusedCategoriesProcedure,
+		svc.DeleteUnusedCategories,
+		connect.WithSchema(categoryServiceMethods.ByName("DeleteUnusedCategories")),
+		connect.WithHandlerOptions(opts...),
+	)
+	categoryServiceGetCategoryUsageStatsHandler := connect.NewUnaryHandler(
+		CategoryServiceGetCategoryUsageStatsProcedure,
+		svc.GetCategoryUsageStats,
+		connect.WithSchema(categoryServiceMethods.ByName("GetCategoryUsageStats")),
+		connect.WithHandlerOptions(opts...),
+	)
+	categoryServiceGetCategoriesWithStatsHandler := connect.NewUnaryHandler(
+		CategoryServiceGetCategoriesWithStatsProcedure,
+		svc.GetCategoriesWithStats,
+		connect.WithSchema(categoryServiceMethods.ByName("GetCategoriesWithStats")),
+		connect.WithHandlerOptions(opts...),
+	)
+	categoryServiceSearchCategoriesHandler := connect.NewUnaryHandler(
+		CategoryServiceSearchCategoriesProcedure,
+		svc.SearchCategories,
+		connect.WithSchema(categoryServiceMethods.ByName("SearchCategories")),
+		connect.WithHandlerOptions(opts...),
+	)
 	categoryServiceListCategorySlugsHandler := connect.NewUnaryHandler(
 		CategoryServiceListCategorySlugsProcedure,
 		svc.ListCategorySlugs,
 		connect.WithSchema(categoryServiceMethods.ByName("ListCategorySlugs")),
 		connect.WithHandlerOptions(opts...),
 	)
+	categoryServiceGetMostUsedCategoriesForUserHandler := connect.NewUnaryHandler(
+		CategoryServiceGetMostUsedCategoriesForUserProcedure,
+		svc.GetMostUsedCategoriesForUser,
+		connect.WithSchema(categoryServiceMethods.ByName("GetMostUsedCategoriesForUser")),
+		connect.WithHandlerOptions(opts...),
+	)
+	categoryServiceGetUnusedCategoriesHandler := connect.NewUnaryHandler(
+		CategoryServiceGetUnusedCategoriesProcedure,
+		svc.GetUnusedCategories,
+		connect.WithSchema(categoryServiceMethods.ByName("GetUnusedCategories")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/arian.v1.CategoryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CategoryServiceListCategoriesProcedure:
 			categoryServiceListCategoriesHandler.ServeHTTP(w, r)
+		case CategoryServiceListCategoriesWithUsageProcedure:
+			categoryServiceListCategoriesWithUsageHandler.ServeHTTP(w, r)
+		case CategoryServiceListCategoriesForUserProcedure:
+			categoryServiceListCategoriesForUserHandler.ServeHTTP(w, r)
 		case CategoryServiceGetCategoryProcedure:
 			categoryServiceGetCategoryHandler.ServeHTTP(w, r)
 		case CategoryServiceGetCategoryBySlugProcedure:
 			categoryServiceGetCategoryBySlugHandler.ServeHTTP(w, r)
+		case CategoryServiceGetCategoryWithStatsProcedure:
+			categoryServiceGetCategoryWithStatsHandler.ServeHTTP(w, r)
 		case CategoryServiceCreateCategoryProcedure:
 			categoryServiceCreateCategoryHandler.ServeHTTP(w, r)
+		case CategoryServiceBulkCreateCategoriesProcedure:
+			categoryServiceBulkCreateCategoriesHandler.ServeHTTP(w, r)
 		case CategoryServiceUpdateCategoryProcedure:
 			categoryServiceUpdateCategoryHandler.ServeHTTP(w, r)
 		case CategoryServiceDeleteCategoryProcedure:
 			categoryServiceDeleteCategoryHandler.ServeHTTP(w, r)
+		case CategoryServiceDeleteUnusedCategoriesProcedure:
+			categoryServiceDeleteUnusedCategoriesHandler.ServeHTTP(w, r)
+		case CategoryServiceGetCategoryUsageStatsProcedure:
+			categoryServiceGetCategoryUsageStatsHandler.ServeHTTP(w, r)
+		case CategoryServiceGetCategoriesWithStatsProcedure:
+			categoryServiceGetCategoriesWithStatsHandler.ServeHTTP(w, r)
+		case CategoryServiceSearchCategoriesProcedure:
+			categoryServiceSearchCategoriesHandler.ServeHTTP(w, r)
 		case CategoryServiceListCategorySlugsProcedure:
 			categoryServiceListCategorySlugsHandler.ServeHTTP(w, r)
+		case CategoryServiceGetMostUsedCategoriesForUserProcedure:
+			categoryServiceGetMostUsedCategoriesForUserHandler.ServeHTTP(w, r)
+		case CategoryServiceGetUnusedCategoriesProcedure:
+			categoryServiceGetUnusedCategoriesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -258,6 +508,14 @@ func (UnimplementedCategoryServiceHandler) ListCategories(context.Context, *conn
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.ListCategories is not implemented"))
 }
 
+func (UnimplementedCategoryServiceHandler) ListCategoriesWithUsage(context.Context, *connect.Request[v1.ListCategoriesWithUsageRequest]) (*connect.Response[v1.ListCategoriesWithUsageResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.ListCategoriesWithUsage is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) ListCategoriesForUser(context.Context, *connect.Request[v1.ListCategoriesForUserRequest]) (*connect.Response[v1.ListCategoriesForUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.ListCategoriesForUser is not implemented"))
+}
+
 func (UnimplementedCategoryServiceHandler) GetCategory(context.Context, *connect.Request[v1.GetCategoryRequest]) (*connect.Response[v1.GetCategoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategory is not implemented"))
 }
@@ -266,8 +524,16 @@ func (UnimplementedCategoryServiceHandler) GetCategoryBySlug(context.Context, *c
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategoryBySlug is not implemented"))
 }
 
+func (UnimplementedCategoryServiceHandler) GetCategoryWithStats(context.Context, *connect.Request[v1.GetCategoryWithStatsRequest]) (*connect.Response[v1.GetCategoryWithStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategoryWithStats is not implemented"))
+}
+
 func (UnimplementedCategoryServiceHandler) CreateCategory(context.Context, *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.CreateCategory is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) BulkCreateCategories(context.Context, *connect.Request[v1.BulkCreateCategoriesRequest]) (*connect.Response[v1.BulkCreateCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.BulkCreateCategories is not implemented"))
 }
 
 func (UnimplementedCategoryServiceHandler) UpdateCategory(context.Context, *connect.Request[v1.UpdateCategoryRequest]) (*connect.Response[v1.UpdateCategoryResponse], error) {
@@ -278,6 +544,30 @@ func (UnimplementedCategoryServiceHandler) DeleteCategory(context.Context, *conn
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.DeleteCategory is not implemented"))
 }
 
+func (UnimplementedCategoryServiceHandler) DeleteUnusedCategories(context.Context, *connect.Request[v1.DeleteUnusedCategoriesRequest]) (*connect.Response[v1.DeleteUnusedCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.DeleteUnusedCategories is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) GetCategoryUsageStats(context.Context, *connect.Request[v1.GetCategoryUsageStatsRequest]) (*connect.Response[v1.GetCategoryUsageStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategoryUsageStats is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) GetCategoriesWithStats(context.Context, *connect.Request[v1.GetCategoriesWithStatsRequest]) (*connect.Response[v1.GetCategoriesWithStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategoriesWithStats is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) SearchCategories(context.Context, *connect.Request[v1.SearchCategoriesRequest]) (*connect.Response[v1.SearchCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.SearchCategories is not implemented"))
+}
+
 func (UnimplementedCategoryServiceHandler) ListCategorySlugs(context.Context, *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.ListCategorySlugs is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) GetMostUsedCategoriesForUser(context.Context, *connect.Request[v1.GetMostUsedCategoriesForUserRequest]) (*connect.Response[v1.GetMostUsedCategoriesForUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetMostUsedCategoriesForUser is not implemented"))
+}
+
+func (UnimplementedCategoryServiceHandler) GetUnusedCategories(context.Context, *connect.Request[v1.GetUnusedCategoriesRequest]) (*connect.Response[v1.GetUnusedCategoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetUnusedCategories is not implemented"))
 }

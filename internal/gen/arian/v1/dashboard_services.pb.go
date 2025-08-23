@@ -7,7 +7,6 @@
 package arianv1
 
 import (
-	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	date "google.golang.org/genproto/googleapis/type/date"
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1164,63 +1163,63 @@ var File_arian_v1_dashboard_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"\n" +
-	"!arian/v1/dashboard_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x18arian/v1/dashboard.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\x1a\x1bbuf/validate/validate.proto\"\xc5\x01\n" +
-	"\x1aGetDashboardSummaryRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x125\n" +
+	"!arian/v1/dashboard_services.proto\x12\barian.v1\x1a\x16arian/v1/account.proto\x1a\x18arian/v1/dashboard.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\"\xbb\x01\n" +
+	"\x1aGetDashboardSummaryRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x125\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x11.google.type.DateH\x00R\tstartDate\x88\x01\x01\x121\n" +
 	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateH\x01R\aendDate\x88\x01\x01B\r\n" +
 	"\v_start_dateB\v\n" +
 	"\t_end_date\"S\n" +
 	"\x1bGetDashboardSummaryResponse\x124\n" +
-	"\asummary\x18\x01 \x01(\v2\x1a.arian.v1.DashboardSummaryR\asummary\"\xd4\x01\n" +
-	"\x13GetTrendDataRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x120\n" +
+	"\asummary\x18\x01 \x01(\v2\x1a.arian.v1.DashboardSummaryR\asummary\"\xc1\x01\n" +
+	"\x13GetTrendDataRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x120\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x11.google.type.DateR\tstartDate\x12,\n" +
-	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateR\aendDate\x12+\n" +
+	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateR\aendDate\x12\"\n" +
 	"\n" +
-	"account_id\x18\x04 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\taccountId\x88\x01\x01B\r\n" +
+	"account_id\x18\x04 \x01(\x03H\x00R\taccountId\x88\x01\x01B\r\n" +
 	"\v_account_id\"D\n" +
 	"\x14GetTrendDataResponse\x12,\n" +
-	"\x06trends\x18\x01 \x03(\v2\x14.arian.v1.TrendPointR\x06trends\"\xa8\x01\n" +
-	"\x1bGetMonthlyComparisonRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12*\n" +
-	"\vmonths_back\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\x18(\x01R\n" +
-	"monthsBack\x12+\n" +
+	"\x06trends\x18\x01 \x03(\v2\x14.arian.v1.TrendPointR\x06trends\"\x8a\x01\n" +
+	"\x1bGetMonthlyComparisonRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1f\n" +
+	"\vmonths_back\x18\x02 \x01(\x05R\n" +
+	"monthsBack\x12\"\n" +
 	"\n" +
-	"account_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\taccountId\x88\x01\x01B\r\n" +
+	"account_id\x18\x03 \x01(\x03H\x00R\taccountId\x88\x01\x01B\r\n" +
 	"\v_account_id\"]\n" +
 	"\x1cGetMonthlyComparisonResponse\x12=\n" +
-	"\vcomparisons\x18\x01 \x03(\v2\x1b.arian.v1.MonthlyComparisonR\vcomparisons\"\xf2\x01\n" +
-	"\x17GetTopCategoriesRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x125\n" +
+	"\vcomparisons\x18\x01 \x03(\v2\x1b.arian.v1.MonthlyComparisonR\vcomparisons\"\xdd\x01\n" +
+	"\x17GetTopCategoriesRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x125\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x11.google.type.DateH\x00R\tstartDate\x88\x01\x01\x121\n" +
-	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateH\x01R\aendDate\x88\x01\x01\x12$\n" +
-	"\x05limit\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x02R\x05limit\x88\x01\x01B\r\n" +
+	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateH\x01R\aendDate\x88\x01\x01\x12\x19\n" +
+	"\x05limit\x18\x04 \x01(\x05H\x02R\x05limit\x88\x01\x01B\r\n" +
 	"\v_start_dateB\v\n" +
 	"\t_end_dateB\b\n" +
 	"\x06_limit\"Q\n" +
 	"\x18GetTopCategoriesResponse\x125\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x15.arian.v1.TopCategoryR\n" +
-	"categories\"\xf1\x01\n" +
-	"\x16GetTopMerchantsRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x125\n" +
+	"categories\"\xdc\x01\n" +
+	"\x16GetTopMerchantsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x125\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x11.google.type.DateH\x00R\tstartDate\x88\x01\x01\x121\n" +
-	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateH\x01R\aendDate\x88\x01\x01\x12$\n" +
-	"\x05limit\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x02R\x05limit\x88\x01\x01B\r\n" +
+	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateH\x01R\aendDate\x88\x01\x01\x12\x19\n" +
+	"\x05limit\x18\x04 \x01(\x05H\x02R\x05limit\x88\x01\x01B\r\n" +
 	"\v_start_dateB\v\n" +
 	"\t_end_dateB\b\n" +
 	"\x06_limit\"N\n" +
 	"\x17GetTopMerchantsResponse\x123\n" +
-	"\tmerchants\x18\x01 \x03(\v2\x15.arian.v1.TopMerchantR\tmerchants\"\xeb\x01\n" +
-	"\x18GetAccountSummaryRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
+	"\tmerchants\x18\x01 \x03(\v2\x15.arian.v1.TopMerchantR\tmerchants\"\xd8\x01\n" +
+	"\x18GetAccountSummaryRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\x125\n" +
+	"account_id\x18\x02 \x01(\x03R\taccountId\x125\n" +
 	"\n" +
 	"start_date\x18\x03 \x01(\v2\x11.google.type.DateH\x00R\tstartDate\x88\x01\x01\x121\n" +
 	"\bend_date\x18\x04 \x01(\v2\x11.google.type.DateH\x01R\aendDate\x88\x01\x01B\r\n" +
@@ -1228,35 +1227,35 @@ const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"\t_end_date\"\x7f\n" +
 	"\x19GetAccountSummaryResponse\x124\n" +
 	"\asummary\x18\x01 \x01(\v2\x1a.arian.v1.DashboardSummaryR\asummary\x12,\n" +
-	"\x06trends\x18\x02 \x03(\v2\x14.arian.v1.TrendPointR\x06trends\"\x98\x02\n" +
-	"\x18GetSpendingTrendsRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x120\n" +
+	"\x06trends\x18\x02 \x03(\v2\x14.arian.v1.TrendPointR\x06trends\"\xfc\x01\n" +
+	"\x18GetSpendingTrendsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x120\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x11.google.type.DateR\tstartDate\x12,\n" +
-	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateR\aendDate\x12-\n" +
-	"\vcategory_id\x18\x04 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x00R\n" +
-	"categoryId\x88\x01\x01\x12+\n" +
+	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateR\aendDate\x12$\n" +
+	"\vcategory_id\x18\x04 \x01(\x03H\x00R\n" +
+	"categoryId\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"account_id\x18\x05 \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x01R\taccountId\x88\x01\x01B\x0e\n" +
+	"account_id\x18\x05 \x01(\x03H\x01R\taccountId\x88\x01\x01B\x0e\n" +
 	"\f_category_idB\r\n" +
 	"\v_account_id\"I\n" +
 	"\x19GetSpendingTrendsResponse\x12,\n" +
-	"\x06trends\x18\x01 \x03(\v2\x14.arian.v1.TrendPointR\x06trends\">\n" +
-	"\x19GetAccountBalancesRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"R\n" +
+	"\x06trends\x18\x01 \x03(\v2\x14.arian.v1.TrendPointR\x06trends\"4\n" +
+	"\x19GetAccountBalancesRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"R\n" +
 	"\x1aGetAccountBalancesResponse\x124\n" +
-	"\bbalances\x18\x01 \x03(\v2\x18.arian.v1.AccountBalanceR\bbalances\";\n" +
-	"\x16GetTotalBalanceRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"R\n" +
+	"\bbalances\x18\x01 \x03(\v2\x18.arian.v1.AccountBalanceR\bbalances\"1\n" +
+	"\x16GetTotalBalanceRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"R\n" +
 	"\x17GetTotalBalanceResponse\x127\n" +
-	"\rtotal_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\ftotalBalance\"8\n" +
-	"\x13GetTotalDebtRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"I\n" +
+	"\rtotal_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\ftotalBalance\".\n" +
+	"\x13GetTotalDebtRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"I\n" +
 	"\x14GetTotalDebtResponse\x121\n" +
 	"\n" +
-	"total_debt\x18\x01 \x01(\v2\x12.google.type.MoneyR\ttotalDebt\"9\n" +
-	"\x14GetNetBalanceRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"L\n" +
+	"total_debt\x18\x01 \x01(\v2\x12.google.type.MoneyR\ttotalDebt\"/\n" +
+	"\x14GetNetBalanceRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"L\n" +
 	"\x15GetNetBalanceResponse\x123\n" +
 	"\vnet_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\n" +
 	"netBalance2\xf5\a\n" +

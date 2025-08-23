@@ -23,7 +23,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Financial transaction
 type Transaction struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -51,7 +50,7 @@ type Transaction struct {
 	ExchangeRate  *float64               `protobuf:"fixed64,17,opt,name=exchange_rate,json=exchangeRate,proto3,oneof" json:"exchange_rate,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,19,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// Additional fields for API responses
+	// additional fields for API responses
 	Category      *Category `protobuf:"bytes,20,opt,name=category,proto3,oneof" json:"category,omitempty"`
 	AccountName   *string   `protobuf:"bytes,21,opt,name=account_name,json=accountName,proto3,oneof" json:"account_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -228,7 +227,6 @@ func (x *Transaction) GetAccountName() string {
 	return ""
 }
 
-// Transaction with similarity score
 type TransactionWithScore struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Transaction   *Transaction           `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`
@@ -281,7 +279,6 @@ func (x *TransactionWithScore) GetMerchantScore() float64 {
 	return 0
 }
 
-// Transaction count by account
 type TransactionCountByAccount struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	AccountId        int64                  `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
