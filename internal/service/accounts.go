@@ -158,7 +158,17 @@ func (s *acctSvc) GetBalance(ctx context.Context, accountID int64) (*money.Money
 			Nanos:        0,
 		}, nil
 	}
-	return bal, nil
+	
+	// Convert decimal to money
+	balFloat, _ := bal.Float64()
+	units := int64(balFloat)
+	nanos := int32((balFloat - float64(units)) * 1e9)
+	
+	return &money.Money{
+		CurrencyCode: "USD", // TODO: Get currency from account
+		Units:        units,
+		Nanos:        nanos,
+	}, nil
 }
 
 func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error {

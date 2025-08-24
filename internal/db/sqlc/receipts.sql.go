@@ -11,8 +11,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 type BulkCreateReceiptItemsParams struct {
@@ -20,8 +18,8 @@ type BulkCreateReceiptItemsParams struct {
 	LineNo       *int32           `json:"line_no"`
 	Name         string           `json:"name"`
 	Qty          *decimal.Decimal `json:"qty"`
-	UnitPrice    *money.Money     `json:"unit_price"`
-	LineTotal    *money.Money     `json:"line_total"`
+	UnitPrice    *decimal.Decimal `json:"unit_price"`
+	LineTotal    *decimal.Decimal `json:"line_total"`
 	Sku          *string          `json:"sku"`
 	CategoryHint *string          `json:"category_hint"`
 }
@@ -65,7 +63,7 @@ type CreateReceiptParams struct {
 	LinkStatus     *int16           `json:"link_status"`
 	MatchIds       []int64          `json:"match_ids"`
 	Merchant       *string          `json:"merchant"`
-	PurchaseDate   *date.Date       `json:"purchase_date"`
+	PurchaseDate   *time.Time       `json:"purchase_date"`
 	TotalAmount    *decimal.Decimal `json:"total_amount"`
 	Currency       *string          `json:"currency"`
 	TaxAmount      *decimal.Decimal `json:"tax_amount"`
@@ -249,13 +247,13 @@ type FindCandidateTransactionsParams struct {
 }
 
 type FindCandidateTransactionsRow struct {
-	ID         int64        `json:"id"`
-	AccountID  int64        `json:"account_id"`
-	TxDate     time.Time    `json:"tx_date"`
-	TxAmount   *money.Money `json:"tx_amount"`
-	TxCurrency string       `json:"tx_currency"`
-	TxDesc     *string      `json:"tx_desc"`
-	Merchant   *string      `json:"merchant"`
+	ID         int64            `json:"id"`
+	AccountID  int64            `json:"account_id"`
+	TxDate     time.Time        `json:"tx_date"`
+	TxAmount   *decimal.Decimal `json:"tx_amount"`
+	TxCurrency string           `json:"tx_currency"`
+	TxDesc     *string          `json:"tx_desc"`
+	Merchant   *string          `json:"merchant"`
 }
 
 func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandidateTransactionsParams) ([]FindCandidateTransactionsRow, error) {
@@ -418,12 +416,12 @@ ORDER BY r.created_at DESC
 `
 
 type GetReceiptMatchCandidatesRow struct {
-	ID               int64        `json:"id"`
-	Merchant         *string      `json:"merchant"`
-	PurchaseDate     *date.Date   `json:"purchase_date"`
-	TotalAmount      *money.Money `json:"total_amount"`
-	Currency         *string      `json:"currency"`
-	PotentialMatches int64        `json:"potential_matches"`
+	ID               int64            `json:"id"`
+	Merchant         *string          `json:"merchant"`
+	PurchaseDate     *time.Time       `json:"purchase_date"`
+	TotalAmount      *decimal.Decimal `json:"total_amount"`
+	Currency         *string          `json:"currency"`
+	PotentialMatches int64            `json:"potential_matches"`
 }
 
 func (q *Queries) GetReceiptMatchCandidates(ctx context.Context) ([]GetReceiptMatchCandidatesRow, error) {
@@ -462,12 +460,12 @@ LIMIT COALESCE($1::int, 50)
 `
 
 type GetUnlinkedReceiptsRow struct {
-	ID           int64        `json:"id"`
-	Merchant     *string      `json:"merchant"`
-	PurchaseDate *date.Date   `json:"purchase_date"`
-	TotalAmount  *money.Money `json:"total_amount"`
-	Currency     *string      `json:"currency"`
-	CreatedAt    time.Time    `json:"created_at"`
+	ID           int64            `json:"id"`
+	Merchant     *string          `json:"merchant"`
+	PurchaseDate *time.Time       `json:"purchase_date"`
+	TotalAmount  *decimal.Decimal `json:"total_amount"`
+	Currency     *string          `json:"currency"`
+	CreatedAt    time.Time        `json:"created_at"`
 }
 
 // Utility queries
@@ -641,7 +639,7 @@ type UpdateReceiptParams struct {
 	LinkStatus     *int16           `json:"link_status"`
 	MatchIds       []int64          `json:"match_ids"`
 	Merchant       *string          `json:"merchant"`
-	PurchaseDate   *date.Date       `json:"purchase_date"`
+	PurchaseDate   *time.Time       `json:"purchase_date"`
 	TotalAmount    *decimal.Decimal `json:"total_amount"`
 	Currency       *string          `json:"currency"`
 	TaxAmount      *decimal.Decimal `json:"tax_amount"`

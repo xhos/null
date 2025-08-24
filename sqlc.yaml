@@ -34,47 +34,47 @@ sql:
               import: 'github.com/shopspring/decimal'
               type: 'Decimal'
               pointer: true
-
-          # money fields - use google.type.Money
+          # TODO: why tho
+          # money fields - use decimal.Decimal with currency stored separately
+          # We'll convert to google.type.Money in the service layer
           - column: 'accounts.anchor_balance'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
-              pointer: true
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
           - column: 'transactions.tx_amount'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
           - column: 'transactions.balance_after'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
           - column: 'transactions.foreign_amount'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
           - column: 'receipts.total_amount'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
           - column: 'receipts.tax_amount'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
           - column: 'receipt_items.unit_price'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
           - column: 'receipt_items.line_total'
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/money'
-              type: 'Money'
+              import: 'github.com/shopspring/decimal'
+              type: 'Decimal'
               pointer: true
 
           # pg json to go json
@@ -103,18 +103,15 @@ sql:
               type: 'UUID'
               pointer: true
 
-          # date to proto date
+          # date to time.Time
           - db_type: 'date'
             nullable: false
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/date'
-              type: 'Date'
-              pointer: true
+              type: 'time.Time'
           - db_type: 'date'
             nullable: true
             go_type:
-              import: 'google.golang.org/genproto/googleapis/type/date'
-              type: 'Date'
+              type: 'time.Time'
               pointer: true
 
           # map columns directly to proto enums

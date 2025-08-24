@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 const (
@@ -282,27 +281,29 @@ func (s *txnSvc) IdentifyMerchantForTransaction(ctx context.Context, userID uuid
 
 // determineCategory analyzes a transaction to suggest a category
 func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction) (*categorizationResult, error) {
-	// 1. try similarity search (rule-based)
+	// 1. rule-based similarity (fast path)
 	if tx.TxDesc != nil {
 		params := sqlc.ListTransactionsForUserParams{
 			UserID: userID,
 			DescQ:  tx.TxDesc,
 			Limit:  int32Ptr(10),
 		}
-		rows, err := s.queries.ListTransactionsForUser(ctx, params)
-		if err == nil {
-			for _, potentialMatch := range rows {
-				if potentialMatch.ID == tx.ID || potentialMatch.CategoryID == nil || potentialMatch.TxDesc == nil {
+		if rows, err := s.queries.ListTransactionsForUser(ctx, params); err == nil {
+			desc := strings.ToLower(*tx.TxDesc)
+			for _, m := range rows {
+				// must be a different txn with usable fields
+				if m.ID == tx.ID || m.CategoryID == nil || m.CategorySlug == nil || m.TxDesc == nil {
 					continue
 				}
-
-				descSim := similarity(strings.ToLower(*tx.TxDesc), strings.ToLower(*potentialMatch.TxDesc))
-				if descSim >= 0.7 && amountClose(tx.TxAmount, potentialMatch.TxAmount, 0.2) {
-					s.log.Info("Found similar transaction for auto-categorization", "txID", tx.ID, "similarTxID", potentialMatch.ID)
-					return &categorizationResult{
-						CategorySlug: *potentialMatch.CategorySlug,
-						Status:       "auto",
-					}, nil
+				// require amounts to exist before comparing
+				if tx.TxAmount == nil || m.TxAmount == nil {
+					continue
+				}
+				if similarity(desc, strings.ToLower(*m.TxDesc)) >= 0.7 &&
+					amountClose(*tx.TxAmount, *m.TxAmount, 0.20) {
+					s.log.Info("found similar transaction for auto-categorization",
+						"txID", tx.ID, "similarTxID", m.ID)
+					return &categorizationResult{CategorySlug: *m.CategorySlug, Status: "auto"}, nil
 				}
 			}
 		}
@@ -310,19 +311,17 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 
 	// 2. fallback to AI if available
 	if s.aiMgr != nil {
-		provider, err := s.aiMgr.GetProvider(defaultAIProvider, defaultAIModel)
-		if err == nil {
-			s.log.Info("Falling back to AI for categorization", "txID", tx.ID)
+		if provider, err := s.aiMgr.GetProvider(defaultAIProvider, defaultAIModel); err == nil {
+			s.log.Info("falling back to AI for categorization", "txID", tx.ID)
+
 			slugs, err := s.catSvc.ListSlugs(ctx)
 			if err != nil {
 				return nil, wrapErr("determineCategory.ListSlugs", err)
 			}
-
 			categorySlug, _, suggestions, err := provider.CategorizeTransaction(ctx, *tx, slugs)
 			if err != nil {
 				return nil, wrapErr("determineCategory.CategorizeTransaction", err)
 			}
-
 			return &categorizationResult{
 				CategorySlug: categorySlug,
 				Suggestions:  suggestions,
@@ -331,12 +330,8 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 		}
 	}
 
-	// 3. return empty result if no AI available
-	return &categorizationResult{
-		CategorySlug: "",
-		Status:       "failed",
-		Suggestions:  []string{},
-	}, nil
+	// 3. not found
+	return &categorizationResult{CategorySlug: "", Status: "failed", Suggestions: []string{}}, nil
 }
 
 // validateCreateParams validates transaction creation parameters
@@ -430,27 +425,18 @@ func boolPtr(b bool) *bool {
 	return &b
 }
 
-func amountClose(a, b *money.Money, pct float64) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-
-	// Convert to the same currency if needed (for now, assume same currency)
-	if a.CurrencyCode != b.CurrencyCode {
+// amountClose reports whether a and b are within tolerance
+// (e.g. 0.2 == 20%) of each other.
+func amountClose(a, b decimal.Decimal, tolerance float64) bool {
+	if tolerance < 0 {
 		return false
 	}
-
-	// Convert to decimal for comparison
-	aDecimal := decimal.NewFromInt(a.Units).Add(decimal.NewFromInt(int64(a.Nanos)).Div(decimal.NewFromInt(1e9)))
-	bDecimal := decimal.NewFromInt(b.Units).Add(decimal.NewFromInt(int64(b.Nanos)).Div(decimal.NewFromInt(1e9)))
-
-	if aDecimal.Equal(bDecimal) {
+	if a.Equal(b) {
 		return true
 	}
 
-	diff := aDecimal.Sub(bDecimal).Abs()
-	max := decimal.Max(aDecimal.Abs(), bDecimal.Abs())
-	threshold := max.Mul(decimal.NewFromFloat(pct))
+	maxMag := decimal.Max(a.Abs(), b.Abs())
+	limit := maxMag.Mul(decimal.NewFromFloat(tolerance))
 
-	return diff.LessThanOrEqual(threshold)
+	return a.Sub(b).Abs().LessThanOrEqual(limit)
 }

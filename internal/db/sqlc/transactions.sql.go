@@ -13,8 +13,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
-	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 const bulkCategorizeTransactionsForUser = `-- name: BulkCategorizeTransactionsForUser :execrows
@@ -233,7 +231,7 @@ LIMIT 10
 type FindCandidateTransactionsForUserParams struct {
 	Merchant string          `json:"merchant"`
 	UserID   uuid.UUID       `json:"user_id"`
-	Date     *date.Date      `json:"date"`
+	Date     time.Time       `json:"date"`
 	Total    decimal.Decimal `json:"total"`
 }
 
@@ -242,11 +240,11 @@ type FindCandidateTransactionsForUserRow struct {
 	EmailID         *string                    `json:"email_id"`
 	AccountID       int64                      `json:"account_id"`
 	TxDate          time.Time                  `json:"tx_date"`
-	TxAmount        *money.Money               `json:"tx_amount"`
+	TxAmount        *decimal.Decimal           `json:"tx_amount"`
 	TxCurrency      string                     `json:"tx_currency"`
 	TxDirection     arian.TransactionDirection `json:"tx_direction"`
 	TxDesc          *string                    `json:"tx_desc"`
-	BalanceAfter    *money.Money               `json:"balance_after"`
+	BalanceAfter    *decimal.Decimal           `json:"balance_after"`
 	CategoryID      *int64                     `json:"category_id"`
 	CatStatus       arian.CategorizationStatus `json:"cat_status"`
 	Merchant        *string                    `json:"merchant"`
@@ -254,7 +252,7 @@ type FindCandidateTransactionsForUserRow struct {
 	Suggestions     []string                   `json:"suggestions"`
 	ReceiptID       *int64                     `json:"receipt_id"`
 	ForeignCurrency *string                    `json:"foreign_currency"`
-	ForeignAmount   *money.Money               `json:"foreign_amount"`
+	ForeignAmount   *decimal.Decimal           `json:"foreign_amount"`
 	ExchangeRate    *decimal.Decimal           `json:"exchange_rate"`
 	CreatedAt       time.Time                  `json:"created_at"`
 	UpdatedAt       time.Time                  `json:"updated_at"`
@@ -379,11 +377,11 @@ type GetTransactionForUserRow struct {
 	EmailID         *string                    `json:"email_id"`
 	AccountID       int64                      `json:"account_id"`
 	TxDate          time.Time                  `json:"tx_date"`
-	TxAmount        *money.Money               `json:"tx_amount"`
+	TxAmount        *decimal.Decimal           `json:"tx_amount"`
 	TxCurrency      string                     `json:"tx_currency"`
 	TxDirection     arian.TransactionDirection `json:"tx_direction"`
 	TxDesc          *string                    `json:"tx_desc"`
-	BalanceAfter    *money.Money               `json:"balance_after"`
+	BalanceAfter    *decimal.Decimal           `json:"balance_after"`
 	CategoryID      *int64                     `json:"category_id"`
 	CatStatus       arian.CategorizationStatus `json:"cat_status"`
 	Merchant        *string                    `json:"merchant"`
@@ -391,7 +389,7 @@ type GetTransactionForUserRow struct {
 	Suggestions     []string                   `json:"suggestions"`
 	ReceiptID       *int64                     `json:"receipt_id"`
 	ForeignCurrency *string                    `json:"foreign_currency"`
-	ForeignAmount   *money.Money               `json:"foreign_amount"`
+	ForeignAmount   *decimal.Decimal           `json:"foreign_amount"`
 	ExchangeRate    *decimal.Decimal           `json:"exchange_rate"`
 	CreatedAt       time.Time                  `json:"created_at"`
 	UpdatedAt       time.Time                  `json:"updated_at"`
@@ -496,11 +494,11 @@ type ListTransactionsForUserRow struct {
 	EmailID         *string                    `json:"email_id"`
 	AccountID       int64                      `json:"account_id"`
 	TxDate          time.Time                  `json:"tx_date"`
-	TxAmount        *money.Money               `json:"tx_amount"`
+	TxAmount        *decimal.Decimal           `json:"tx_amount"`
 	TxCurrency      string                     `json:"tx_currency"`
 	TxDirection     arian.TransactionDirection `json:"tx_direction"`
 	TxDesc          *string                    `json:"tx_desc"`
-	BalanceAfter    *money.Money               `json:"balance_after"`
+	BalanceAfter    *decimal.Decimal           `json:"balance_after"`
 	CategoryID      *int64                     `json:"category_id"`
 	CatStatus       arian.CategorizationStatus `json:"cat_status"`
 	Merchant        *string                    `json:"merchant"`
@@ -508,7 +506,7 @@ type ListTransactionsForUserRow struct {
 	Suggestions     []string                   `json:"suggestions"`
 	ReceiptID       *int64                     `json:"receipt_id"`
 	ForeignCurrency *string                    `json:"foreign_currency"`
-	ForeignAmount   *money.Money               `json:"foreign_amount"`
+	ForeignAmount   *decimal.Decimal           `json:"foreign_amount"`
 	ExchangeRate    *decimal.Decimal           `json:"exchange_rate"`
 	CreatedAt       time.Time                  `json:"created_at"`
 	UpdatedAt       time.Time                  `json:"updated_at"`

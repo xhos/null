@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"google.golang.org/genproto/googleapis/type/money"
 )
 
 type ReceiptService interface {
@@ -254,7 +255,7 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, receiptID int64, provider
 		}
 
 		if parsedReceipt.TotalAmount != nil {
-			totalAmountDecimal := decimal.NewFromFloat(float64(parsedReceipt.TotalAmount.Units) + float64(parsedReceipt.TotalAmount.Nanos)/1e9)
+			totalAmountDecimal := moneyToDecimal(parsedReceipt.TotalAmount)
 			updateParams.TotalAmount = &totalAmountDecimal
 			updateParams.Currency = &parsedReceipt.TotalAmount.CurrencyCode
 		}
@@ -269,13 +270,24 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, receiptID int64, provider
 				qtyDecimal := decimal.NewFromFloat(item.Quantity)
 				lineNo := int32(i + 1)
 
+				// Convert money to decimal
+				var unitPriceDecimal, lineTotalDecimal *decimal.Decimal
+				if item.UnitPrice != nil {
+					unitPrice := moneyToDecimal(item.UnitPrice)
+					unitPriceDecimal = &unitPrice
+				}
+				if item.LineTotal != nil {
+					lineTotal := moneyToDecimal(item.LineTotal)
+					lineTotalDecimal = &lineTotal
+				}
+
 				itemParams = append(itemParams, sqlc.BulkCreateReceiptItemsParams{
 					ReceiptID: receiptID,
 					LineNo:    &lineNo,
 					Name:      item.Name,
 					Qty:       &qtyDecimal,
-					UnitPrice: item.UnitPrice,
-					LineTotal: item.LineTotal,
+					UnitPrice: unitPriceDecimal,
+					LineTotal: lineTotalDecimal,
 				})
 			}
 
@@ -338,4 +350,11 @@ func (s *receiptSvc) ConfirmReceipt(ctx context.Context, receiptID int64) error 
 
 func (s *receiptSvc) GetReceiptsByTransaction(ctx context.Context, transactionID int64) ([]sqlc.Receipt, error) {
 	return nil, wrapErr("ReceiptService.GetReceiptsByTransaction", ErrUnimplemented)
+}
+
+func moneyToDecimal(m *money.Money) decimal.Decimal {
+	if m == nil {
+		return decimal.Zero
+	}
+	return decimal.NewFromFloat(float64(m.Units) + float64(m.Nanos)/1e9)
 }

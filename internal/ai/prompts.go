@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/genproto/googleapis/type/money"
+	"github.com/shopspring/decimal"
 )
 
-// moneyToFloat converts google.type.Money to float64
-func moneyToFloat(m *money.Money) float64 {
-	if m == nil {
+// decimalToFloat converts decimal.Decimal to float64
+func decimalToFloat(d *decimal.Decimal) float64 {
+	if d == nil {
 		return 0.0
 	}
-	return float64(m.Units) + float64(m.Nanos)/1e9
+	f, _ := d.Float64()
+	return f
 }
 
 // BuildCategorizationPrompt constructs a best-practice prompt:
@@ -69,7 +70,7 @@ Now categorize:
 		strings.Join(allowedCategories, ", "),
 		val(tx.Merchant),
 		val(tx.TxDesc),
-		moneyToFloat(tx.TxAmount), tx.TxCurrency,
+		decimalToFloat(tx.TxAmount), tx.TxCurrency,
 		tx.TxDate.Format("2006-01-02T15:04:05Z07:00"),
 	)
 }

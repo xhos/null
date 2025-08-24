@@ -12,8 +12,6 @@ import (
 	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 const checkUserAccountAccess = `-- name: CheckUserAccountAccess :one
@@ -117,8 +115,8 @@ WHERE id = $1::bigint
 `
 
 type GetAccountAnchorBalanceRow struct {
-	AnchorBalance  *money.Money `json:"anchor_balance"`
-	AnchorCurrency string       `json:"anchor_currency"`
+	AnchorBalance  decimal.Decimal `json:"anchor_balance"`
+	AnchorCurrency string          `json:"anchor_currency"`
 }
 
 func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (GetAccountAnchorBalanceRow, error) {
@@ -136,9 +134,9 @@ ORDER BY tx_date DESC, id DESC
 LIMIT 1
 `
 
-func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*money.Money, error) {
+func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*decimal.Decimal, error) {
 	row := q.db.QueryRow(ctx, getAccountBalance, accountID)
-	var balance_after *money.Money
+	var balance_after *decimal.Decimal
 	err := row.Scan(&balance_after)
 	return balance_after, err
 }
@@ -166,8 +164,8 @@ type GetAccountForUserRow struct {
 	Bank           string            `json:"bank"`
 	AccountType    arian.AccountType `json:"account_type"`
 	Alias          *string           `json:"alias"`
-	AnchorDate     *date.Date        `json:"anchor_date"`
-	AnchorBalance  *money.Money      `json:"anchor_balance"`
+	AnchorDate     time.Time         `json:"anchor_date"`
+	AnchorBalance  decimal.Decimal   `json:"anchor_balance"`
 	AnchorCurrency string            `json:"anchor_currency"`
 	CreatedAt      time.Time         `json:"created_at"`
 	UpdatedAt      time.Time         `json:"updated_at"`
@@ -226,8 +224,8 @@ type ListAccountsForUserRow struct {
 	Bank           string            `json:"bank"`
 	AccountType    arian.AccountType `json:"account_type"`
 	Alias          *string           `json:"alias"`
-	AnchorDate     *date.Date        `json:"anchor_date"`
-	AnchorBalance  *money.Money      `json:"anchor_balance"`
+	AnchorDate     time.Time         `json:"anchor_date"`
+	AnchorBalance  decimal.Decimal   `json:"anchor_balance"`
 	AnchorCurrency string            `json:"anchor_currency"`
 	CreatedAt      time.Time         `json:"created_at"`
 	UpdatedAt      time.Time         `json:"updated_at"`
@@ -309,7 +307,7 @@ type UpdateAccountParams struct {
 	Bank           *string          `json:"bank"`
 	AccountType    *int16           `json:"account_type"`
 	Alias          *string          `json:"alias"`
-	AnchorDate     *date.Date       `json:"anchor_date"`
+	AnchorDate     *time.Time       `json:"anchor_date"`
 	AnchorBalance  *decimal.Decimal `json:"anchor_balance"`
 	AnchorCurrency *string          `json:"anchor_currency"`
 	ID             int64            `json:"id"`

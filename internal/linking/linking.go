@@ -10,8 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 type Service interface {
@@ -77,7 +75,7 @@ func (s *service) findCandidateTransactions(ctx context.Context, receipt sqlc.Re
 		return nil, nil
 	}
 
-	receiptAmount := s.moneyToDecimal(receipt.TotalAmount)
+	receiptAmount := *receipt.TotalAmount
 
 	// need user ID from context - this is a breaking change in the SQLC interface
 	merchant := ""
@@ -85,10 +83,10 @@ func (s *service) findCandidateTransactions(ctx context.Context, receipt sqlc.Re
 		merchant = *receipt.Merchant
 	}
 
-	// convert time.Time to *date.Date
-	var targetDateProto *date.Date
+	// Use purchase date directly as time.Time
+	var targetDate time.Time
 	if receipt.PurchaseDate != nil {
-		targetDateProto = receipt.PurchaseDate
+		targetDate = *receipt.PurchaseDate
 	}
 
 	// TODO: get userID from calling context - this function signature changed
@@ -98,7 +96,7 @@ func (s *service) findCandidateTransactions(ctx context.Context, receipt sqlc.Re
 	return s.queries.FindCandidateTransactionsForUser(ctx, sqlc.FindCandidateTransactionsForUserParams{
 		Merchant: merchant,
 		UserID:   userID,
-		Date:     targetDateProto,
+		Date:     targetDate,
 		Total:    receiptAmount,
 	})
 }
@@ -131,13 +129,13 @@ func (s *service) calculateScore(tx sqlc.FindCandidateTransactionsForUserRow, re
 	return amountScore*0.45 + dateScore*0.35 + merchantScore*0.2
 }
 
-func (s *service) scoreAmount(txAmount *money.Money, receiptAmount *money.Money) float64 {
+func (s *service) scoreAmount(txAmount *decimal.Decimal, receiptAmount *decimal.Decimal) float64 {
 	if txAmount == nil || receiptAmount == nil {
 		return 0
 	}
 
-	txDec := s.moneyToDecimal(txAmount)
-	receiptDec := s.moneyToDecimal(receiptAmount)
+	txDec := *txAmount
+	receiptDec := *receiptAmount
 
 	if txDec.Equal(receiptDec) {
 		return 1.0
@@ -158,19 +156,13 @@ func (s *service) scoreAmount(txAmount *money.Money, receiptAmount *money.Money)
 	return 0.9 * (1.0 - ratio)
 }
 
-func (s *service) moneyToDecimal(m *money.Money) decimal.Decimal {
-	if m == nil {
-		return decimal.Zero
-	}
-	return decimal.NewFromFloat(float64(m.Units) + float64(m.Nanos)/1e9)
-}
 
-func (s *service) scoreDateMatch(txDate time.Time, receiptDate *date.Date) float64 {
+func (s *service) scoreDateMatch(txDate time.Time, receiptDate *time.Time) float64 {
 	if receiptDate == nil || txDate.IsZero() {
 		return 0.5 // neutral if no date
 	}
 
-	receiptTime := time.Date(int(receiptDate.Year), time.Month(receiptDate.Month), int(receiptDate.Day), 0, 0, 0, 0, time.UTC)
+	receiptTime := time.Date(receiptDate.Year(), receiptDate.Month(), receiptDate.Day(), 0, 0, 0, 0, time.UTC)
 
 	d1 := time.Date(txDate.Year(), txDate.Month(), txDate.Day(), 0, 0, 0, 0, time.UTC)
 	days := math.Abs(d1.Sub(receiptTime).Hours() / 24)
