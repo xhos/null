@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[pb.GetDashboardSummaryRequest]) (*connect.Response[pb.GetDashboardSummaryResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[p
 }
 
 func (s *Server) GetTrendData(ctx context.Context, req *connect.Request[pb.GetTrendDataRequest]) (*connect.Response[pb.GetTrendDataResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (s *Server) GetTrendData(ctx context.Context, req *connect.Request[pb.GetTr
 }
 
 func (s *Server) GetMonthlyComparison(ctx context.Context, req *connect.Request[pb.GetMonthlyComparisonRequest]) (*connect.Response[pb.GetMonthlyComparisonResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s *Server) GetMonthlyComparison(ctx context.Context, req *connect.Request[
 }
 
 func (s *Server) GetTopCategories(ctx context.Context, req *connect.Request[pb.GetTopCategoriesRequest]) (*connect.Response[pb.GetTopCategoriesResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *Server) GetTopCategories(ctx context.Context, req *connect.Request[pb.G
 }
 
 func (s *Server) GetTopMerchants(ctx context.Context, req *connect.Request[pb.GetTopMerchantsRequest]) (*connect.Response[pb.GetTopMerchantsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (s *Server) GetTopMerchants(ctx context.Context, req *connect.Request[pb.Ge
 }
 
 func (s *Server) GetAccountSummary(ctx context.Context, req *connect.Request[pb.GetAccountSummaryRequest]) (*connect.Response[pb.GetAccountSummaryResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (s *Server) GetAccountSummary(ctx context.Context, req *connect.Request[pb.
 }
 
 func (s *Server) GetSpendingTrends(ctx context.Context, req *connect.Request[pb.GetSpendingTrendsRequest]) (*connect.Response[pb.GetSpendingTrendsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (s *Server) GetSpendingTrends(ctx context.Context, req *connect.Request[pb.
 }
 
 func (s *Server) GetAccountBalances(ctx context.Context, req *connect.Request[pb.GetAccountBalancesRequest]) (*connect.Response[pb.GetAccountBalancesResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (s *Server) GetAccountBalances(ctx context.Context, req *connect.Request[pb
 }
 
 func (s *Server) GetNetBalance(ctx context.Context, req *connect.Request[pb.GetNetBalanceRequest]) (*connect.Response[pb.GetNetBalanceResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (s *Server) GetNetBalance(ctx context.Context, req *connect.Request[pb.GetN
 }
 
 func (s *Server) GetTotalBalance(ctx context.Context, req *connect.Request[pb.GetTotalBalanceRequest]) (*connect.Response[pb.GetTotalBalanceResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (s *Server) GetTotalBalance(ctx context.Context, req *connect.Request[pb.Ge
 }
 
 func (s *Server) GetTotalDebt(ctx context.Context, req *connect.Request[pb.GetTotalDebtRequest]) (*connect.Response[pb.GetTotalDebtResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}

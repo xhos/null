@@ -1,15 +1,11 @@
 package api
 
 import (
-	"ariand/internal/api/middleware"
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/service"
-	"context"
-	"errors"
 	"time"
 
-	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/date"
@@ -18,23 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-// ==================== AUTHENTICATION HELPERS ====================
-
-// getUserFromContext extracts authenticated user from context
-func getUserFromContext(ctx context.Context) (uuid.UUID, error) {
-	user, ok := ctx.Value(middleware.UserContextKey).(*middleware.User)
-	if !ok {
-		return uuid.Nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not authenticated"))
-	}
-
-	userID, err := parseUUID(user.ID)
-	if err != nil {
-		return uuid.Nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid user ID"))
-	}
-
-	return userID, nil
-}
 
 // ==================== ERROR HANDLING ====================
 
@@ -73,20 +52,25 @@ func fromProtoTimestamp(ts *timestamppb.Timestamp) time.Time {
 }
 
 // Date to timestamp conversion
-func dateToProtoTimestamp(d *date.Date) *timestamppb.Timestamp {
-	if d == nil {
-		return nil
-	}
-	t := time.Date(int(d.Year), time.Month(d.Month), int(d.Day), 0, 0, 0, 0, time.UTC)
+func dateToProtoTimestamp(d time.Time) *timestamppb.Timestamp {
+	// Convert date to beginning of day in UTC
+	t := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
 	return timestamppb.New(t)
 }
 
 // Timestamp to date conversion
-func timestampToDate(ts *timestamppb.Timestamp) *date.Date {
+func timestampToDate(ts *timestamppb.Timestamp) time.Time {
 	if ts == nil {
+		return time.Time{}
+	}
+	return ts.AsTime()
+}
+
+// Convert *time.Time to *date.Date for protobuf
+func timeToProtoDate(t *time.Time) *date.Date {
+	if t == nil {
 		return nil
 	}
-	t := ts.AsTime()
 	return &date.Date{
 		Year:  int32(t.Year()),
 		Month: int32(t.Month()),
@@ -94,15 +78,17 @@ func timestampToDate(ts *timestamppb.Timestamp) *date.Date {
 	}
 }
 
-// Money helpers - kept for backward compatibility
-func decimalToMoney(val decimal.Decimal, currency string) *money.Money {
+// ==================== MONEY CONVERSION HELPERS ====================
+
+// Convert decimal.Decimal to money.Money with currency
+func decimalToMoney(amount decimal.Decimal, currency string) *money.Money {
 	if currency == "" {
-		currency = "CAD" // default currency
+		currency = "USD" // fallback default
 	}
 
-	f, _ := val.Float64()
-	units := int64(f)
-	nanos := int32((f - float64(units)) * 1e9)
+	balFloat, _ := amount.Float64()
+	units := int64(balFloat)
+	nanos := int32((balFloat - float64(units)) * 1e9)
 
 	return &money.Money{
 		CurrencyCode: currency,
@@ -111,15 +97,40 @@ func decimalToMoney(val decimal.Decimal, currency string) *money.Money {
 	}
 }
 
-func moneyToDecimal(m *money.Money) *decimal.Decimal {
+// Convert *decimal.Decimal to *money.Money (nullable version)
+func decimalPtrToMoney(amount *decimal.Decimal, currency string) *money.Money {
+	if amount == nil {
+		return nil
+	}
+	return decimalToMoney(*amount, currency)
+}
+
+// Convert money.Money to decimal.Decimal
+func moneyToDecimal(m *money.Money) decimal.Decimal {
+	if m == nil {
+		return decimal.Zero
+	}
+	return decimal.NewFromFloat(float64(m.Units) + float64(m.Nanos)/1e9)
+}
+
+// Convert money.Money to *decimal.Decimal (nullable version)
+func moneyToDecimalPtr(m *money.Money) *decimal.Decimal {
 	if m == nil {
 		return nil
 	}
-
-	val := float64(m.Units) + float64(m.Nanos)/1e9
-	result := decimal.NewFromFloat(val)
-	return &result
+	d := moneyToDecimal(m)
+	return &d
 }
+
+// Helper to get currency or default
+func getCurrencyOrDefault(currency *string) string {
+	if currency != nil {
+		return *currency
+	}
+	return "USD"
+}
+
+// ==================== LEGACY HELPERS ====================
 
 // UUID helpers
 func parseUUID(s string) (uuid.UUID, error) {
@@ -158,16 +169,12 @@ func buildUpdateAccountParams(req *pb.UpdateAccountRequest) sqlc.UpdateAccountPa
 	}
 	if req.AnchorDate != nil {
 		t := req.AnchorDate.AsTime()
-		params.AnchorDate = &date.Date{
-			Year:  int32(t.Year()),
-			Month: int32(t.Month()),
-			Day:   int32(t.Day()),
-		}
+		params.AnchorDate = &t
 	}
 	if req.AnchorBalance != nil {
 		balance := moneyToDecimal(req.AnchorBalance)
 		currency := req.AnchorBalance.CurrencyCode
-		params.AnchorBalance = balance
+		params.AnchorBalance = &balance
 		params.AnchorCurrency = &currency
 	}
 
@@ -188,7 +195,7 @@ func toProtoAccount(a *sqlc.ListAccountsForUserRow) *pb.Account {
 		Type:          a.AccountType,
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: a.AnchorBalance,
+		AnchorBalance: decimalToMoney(a.AnchorBalance, a.AnchorCurrency),
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
@@ -206,7 +213,7 @@ func toProtoAccountFromGetRow(a *sqlc.GetAccountForUserRow) *pb.Account {
 		Type:          a.AccountType,
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: a.AnchorBalance,
+		AnchorBalance: decimalToMoney(a.AnchorBalance, a.AnchorCurrency),
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
@@ -224,7 +231,7 @@ func toProtoAccountFromModel(a *sqlc.Account) *pb.Account {
 		Type:          a.AccountType,
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: a.AnchorBalance,
+		AnchorBalance: decimalToMoney(a.AnchorBalance, a.AnchorCurrency),
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
@@ -240,9 +247,7 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 	var balance decimal.Decimal
 	if req.GetAnchorBalance() != nil {
 		currency = req.GetAnchorBalance().CurrencyCode
-		if dec := moneyToDecimal(req.GetAnchorBalance()); dec != nil {
-			balance = *dec
-		}
+		balance = moneyToDecimal(req.GetAnchorBalance())
 	}
 
 	return sqlc.CreateAccountParams{
@@ -364,10 +369,10 @@ func buildListTransactionsParams(userID uuid.UUID, req *pb.ListTransactionsReque
 		params.End = &endTime
 	}
 	if req.AmountMin != nil {
-		params.AmountMin = moneyToDecimal(req.AmountMin)
+		params.AmountMin = moneyToDecimalPtr(req.AmountMin)
 	}
 	if req.AmountMax != nil {
-		params.AmountMax = moneyToDecimal(req.AmountMax)
+		params.AmountMax = moneyToDecimalPtr(req.AmountMax)
 	}
 	if req.Direction != nil {
 		direction := int16(*req.Direction)
@@ -398,7 +403,7 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 		UserID:      userID,
 		AccountID:   req.GetAccountId(),
 		TxDate:      fromProtoTimestamp(req.TxDate),
-		TxAmount:    *moneyToDecimal(req.TxAmount),
+		TxAmount:    moneyToDecimal(req.TxAmount),
 		TxDirection: int16(req.Direction),
 		TxDesc:      req.Description,
 		Merchant:    req.Merchant,
@@ -410,7 +415,7 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 	}
 
 	if req.ForeignAmount != nil {
-		params.ForeignAmount = moneyToDecimal(req.ForeignAmount)
+		params.ForeignAmount = moneyToDecimalPtr(req.ForeignAmount)
 		if req.ExchangeRate != nil {
 			exchangeRate := decimal.NewFromFloat(*req.ExchangeRate)
 			params.ExchangeRate = &exchangeRate
@@ -434,7 +439,7 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 	}
 	if req.TxAmount != nil {
 		amount := moneyToDecimal(req.TxAmount)
-		params.TxAmount = amount
+		params.TxAmount = &amount
 	}
 	if req.Direction != nil {
 		direction := int16(*req.Direction)
@@ -453,7 +458,7 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 		params.CategoryID = req.CategoryId
 	}
 	if req.ForeignAmount != nil {
-		params.ForeignAmount = moneyToDecimal(req.ForeignAmount)
+		params.ForeignAmount = moneyToDecimalPtr(req.ForeignAmount)
 	}
 	if req.ExchangeRate != nil {
 		exchangeRate := decimal.NewFromFloat(*req.ExchangeRate)
@@ -506,21 +511,21 @@ func extractTransactionFields(row interface{}) *transactionFields {
 	case *sqlc.GetTransactionForUserRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: t.TxAmount, TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: decimalPtrToMoney(t.TxAmount, t.TxCurrency), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CatStatus: t.CatStatus, Merchant: t.Merchant,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		}
 	case *sqlc.ListTransactionsForUserRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: t.TxAmount, TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: decimalPtrToMoney(t.TxAmount, t.TxCurrency), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CatStatus: t.CatStatus, Merchant: t.Merchant,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		}
 	case *sqlc.FindCandidateTransactionsForUserRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: t.TxAmount, TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: decimalPtrToMoney(t.TxAmount, t.TxCurrency), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CatStatus: t.CatStatus, Merchant: t.Merchant,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		}
@@ -624,8 +629,8 @@ func buildBulkCreateReceiptItemsParams(items []*pb.CreateReceiptItemRequest) []s
 			Name:      item.GetName(),
 			LineNo:    item.LineNo,
 			Qty:       floatToDecimal(item.Qty),
-			UnitPrice: floatToMoney(item.UnitPrice), // convert float64 to money
-			LineTotal: floatToMoney(item.LineTotal), // convert float64 to money
+			UnitPrice: floatToDecimal(item.UnitPrice), // convert float64 to decimal
+			LineTotal: floatToDecimal(item.LineTotal), // convert float64 to decimal
 			Sku:       item.Sku,
 		}
 	}
@@ -648,7 +653,7 @@ func buildReceiptSummariesResponse(receipts []sqlc.GetUnlinkedReceiptsRow) []*pb
 		pbReceipts[i] = &pb.ReceiptSummary{
 			Id:          receipt.ID,
 			Merchant:    receipt.Merchant,
-			TotalAmount: receipt.TotalAmount,
+			TotalAmount: decimalPtrToMoney(receipt.TotalAmount, "USD"),
 			CreatedAt:   toProtoTimestamp(&receipt.CreatedAt),
 		}
 	}
@@ -703,9 +708,9 @@ func toProtoReceipt(r *sqlc.Receipt) *pb.Receipt {
 		RawPayload:     rawPayload,
 		CanonicalData:  canonicalData,
 		Merchant:       r.Merchant,
-		TotalAmount:    r.TotalAmount,
-		TaxAmount:      r.TaxAmount,
-		PurchaseDate:   r.PurchaseDate,
+		TotalAmount:    decimalPtrToMoney(r.TotalAmount, getCurrencyOrDefault(r.Currency)),
+		TaxAmount:      decimalPtrToMoney(r.TaxAmount, getCurrencyOrDefault(r.Currency)),
+		PurchaseDate:   timeToProtoDate(r.PurchaseDate),
 		MatchIds:       r.MatchIds,
 		ImageUrl:       r.ImageUrl,
 		ImageSha256:    r.ImageSha256,
@@ -735,8 +740,8 @@ func toProtoReceiptItem(ri *sqlc.ReceiptItem) *pb.ReceiptItem {
 		Name:         ri.Name,
 		LineNo:       ri.LineNo,
 		Quantity:     quantity,
-		UnitPrice:    ri.UnitPrice,
-		LineTotal:    ri.LineTotal,
+		UnitPrice:    decimalPtrToMoney(ri.UnitPrice, "USD"),
+		LineTotal:    decimalPtrToMoney(ri.LineTotal, "USD"),
 		Sku:          ri.Sku,
 		CategoryHint: ri.CategoryHint,
 		CreatedAt:    toProtoTimestamp(&ri.CreatedAt),
@@ -877,12 +882,7 @@ func toProtoAccountBalance(account *sqlc.ListAccountsForUserRow) *pb.AccountBala
 	}
 
 	// use anchor balance and currency as placeholders for current balance
-	var currentBalance *money.Money
-	if account.AnchorBalance != nil {
-		currentBalance = account.AnchorBalance
-	} else {
-		currentBalance = &money.Money{CurrencyCode: account.AnchorCurrency, Units: 0, Nanos: 0}
-	}
+	currentBalance := decimalToMoney(account.AnchorBalance, account.AnchorCurrency)
 
 	return &pb.AccountBalance{
 		Id:             account.ID,

@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) ListTransactions(ctx context.Context, req *connect.Request[pb.ListTransactionsRequest]) (*connect.Response[pb.ListTransactionsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (s *Server) ListTransactions(ctx context.Context, req *connect.Request[pb.L
 }
 
 func (s *Server) GetTransaction(ctx context.Context, req *connect.Request[pb.GetTransactionRequest]) (*connect.Response[pb.GetTransactionResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *Server) GetTransaction(ctx context.Context, req *connect.Request[pb.Get
 }
 
 func (s *Server) CreateTransaction(ctx context.Context, req *connect.Request[pb.CreateTransactionRequest]) (*connect.Response[pb.CreateTransactionResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *Server) CreateTransaction(ctx context.Context, req *connect.Request[pb.
 }
 
 func (s *Server) UpdateTransaction(ctx context.Context, req *connect.Request[pb.UpdateTransactionRequest]) (*connect.Response[pb.UpdateTransactionResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (s *Server) UpdateTransaction(ctx context.Context, req *connect.Request[pb.
 }
 
 func (s *Server) DeleteTransaction(ctx context.Context, req *connect.Request[pb.DeleteTransactionRequest]) (*connect.Response[pb.DeleteTransactionResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (s *Server) DeleteTransaction(ctx context.Context, req *connect.Request[pb.
 }
 
 func (s *Server) BulkDeleteTransactions(ctx context.Context, req *connect.Request[pb.BulkDeleteTransactionsRequest]) (*connect.Response[pb.BulkDeleteTransactionsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (s *Server) BulkDeleteTransactions(ctx context.Context, req *connect.Reques
 }
 
 func (s *Server) CategorizeTransaction(ctx context.Context, req *connect.Request[pb.CategorizeTransactionRequest]) (*connect.Response[pb.CategorizeTransactionResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (s *Server) CategorizeTransaction(ctx context.Context, req *connect.Request
 }
 
 func (s *Server) SearchTransactions(ctx context.Context, req *connect.Request[pb.SearchTransactionsRequest]) (*connect.Response[pb.SearchTransactionsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (s *Server) SearchTransactions(ctx context.Context, req *connect.Request[pb
 }
 
 func (s *Server) GetTransactionsByAccount(ctx context.Context, req *connect.Request[pb.GetTransactionsByAccountRequest]) (*connect.Response[pb.GetTransactionsByAccountResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (s *Server) GetTransactionsByAccount(ctx context.Context, req *connect.Requ
 }
 
 func (s *Server) GetUncategorizedTransactions(ctx context.Context, req *connect.Request[pb.GetUncategorizedTransactionsRequest]) (*connect.Response[pb.GetUncategorizedTransactionsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (s *Server) GetUncategorizedTransactions(ctx context.Context, req *connect.
 }
 
 func (s *Server) BulkCategorizeTransactions(ctx context.Context, req *connect.Request[pb.BulkCategorizeTransactionsRequest]) (*connect.Response[pb.BulkCategorizeTransactionsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +260,7 @@ func (s *Server) BulkCategorizeTransactions(ctx context.Context, req *connect.Re
 }
 
 func (s *Server) GetTransactionCountByAccount(ctx context.Context, req *connect.Request[pb.GetTransactionCountByAccountRequest]) (*connect.Response[pb.GetTransactionCountByAccountResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +281,7 @@ func (s *Server) GetTransactionCountByAccount(ctx context.Context, req *connect.
 }
 
 func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Request[pb.FindCandidateTransactionsRequest]) (*connect.Response[pb.FindCandidateTransactionsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Req
 		UserID:   userID,
 		Merchant: req.Msg.GetMerchant(),
 		Date:     timestampToDate(req.Msg.PurchaseDate),
-		Total:    *moneyToDecimal(req.Msg.TotalAmount),
+		Total:    moneyToDecimal(req.Msg.TotalAmount),
 	}
 
 	candidates, err := s.services.Transactions.FindCandidateTransactionsForUser(ctx, params)
@@ -308,7 +308,7 @@ func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Req
 }
 
 func (s *Server) IdentifyMerchant(ctx context.Context, req *connect.Request[pb.IdentifyMerchantRequest]) (*connect.Response[pb.IdentifyMerchantResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}

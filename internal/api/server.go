@@ -6,6 +6,7 @@ import (
 	"ariand/internal/service"
 	"net/http"
 
+	"connectrpc.com/connect"
 	"connectrpc.com/grpchealth"
 	"github.com/charmbracelet/log"
 )
@@ -55,6 +56,7 @@ func (s *Server) GetHandler(authConfig *middleware.AuthConfig) http.Handler {
 		middleware.CORS(),
 		middleware.Logging(s.log),
 		middleware.Auth(authConfig, s.log),
+		middleware.UserContext(),
 	)
 
 	return stack(mux)
@@ -64,22 +66,25 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	healthPath, healthHandler := grpchealth.NewHandler(s.healthCheck)
 	mux.Handle(healthPath, healthHandler)
 
+	// Create interceptors for automatic user ID extraction
+	interceptors := connect.WithInterceptors(middleware.UserIDExtractor())
+
 	path, handler := arianv1connect.NewUserServiceHandler(s)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewAccountServiceHandler(s)
+	path, handler = arianv1connect.NewAccountServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewTransactionServiceHandler(s)
+	path, handler = arianv1connect.NewTransactionServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewCategoryServiceHandler(s)
+	path, handler = arianv1connect.NewCategoryServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewDashboardServiceHandler(s)
+	path, handler = arianv1connect.NewDashboardServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewReceiptServiceHandler(s)
+	path, handler = arianv1connect.NewReceiptServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
 	s.log.Info("all connect-go services registered",

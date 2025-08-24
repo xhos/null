@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListAccountsRequest]) (*connect.Response[pb.ListAccountsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListA
 }
 
 func (s *Server) GetAccount(ctx context.Context, req *connect.Request[pb.GetAccountRequest]) (*connect.Response[pb.GetAccountResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (s *Server) UpdateAccount(ctx context.Context, req *connect.Request[pb.Upda
 }
 
 func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.DeleteAccountRequest]) (*connect.Response[pb.DeleteAccountResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (s *Server) SetAccountAnchor(ctx context.Context, req *connect.Request[pb.S
 
 	params := sqlc.UpdateAccountParams{
 		ID:             req.Msg.GetId(),
-		AnchorBalance:  balance,
+		AnchorBalance:  &balance,
 		AnchorCurrency: &currency,
 	}
 
@@ -122,7 +122,7 @@ func (s *Server) GetAccountBalance(ctx context.Context, req *connect.Request[pb.
 }
 
 func (s *Server) GetAccountsCount(ctx context.Context, req *connect.Request[pb.GetAccountsCountRequest]) (*connect.Response[pb.GetAccountsCountResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,6 @@ func (s *Server) SyncAccountBalances(ctx context.Context, req *connect.Request[p
 
 	return connect.NewResponse(&pb.SyncAccountBalancesResponse{}), nil
 }
-
 
 func (s *Server) GetAnchorBalance(ctx context.Context, req *connect.Request[pb.GetAnchorBalanceRequest]) (*connect.Response[pb.GetAnchorBalanceResponse], error) {
 	// placeholder implementation - would need to fetch anchor balance from database

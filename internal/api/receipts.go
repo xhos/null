@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) ListReceipts(ctx context.Context, req *connect.Request[pb.ListReceiptsRequest]) (*connect.Response[pb.ListReceiptsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *Server) ListReceipts(ctx context.Context, req *connect.Request[pb.ListR
 }
 
 func (s *Server) GetReceipt(ctx context.Context, req *connect.Request[pb.GetReceiptRequest]) (*connect.Response[pb.GetReceiptResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (s *Server) GetReceipt(ctx context.Context, req *connect.Request[pb.GetRece
 }
 
 func (s *Server) UploadReceipt(ctx context.Context, req *connect.Request[pb.UploadReceiptRequest]) (*connect.Response[pb.UploadReceiptResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *Server) UploadReceipt(ctx context.Context, req *connect.Request[pb.Uplo
 }
 
 func (s *Server) UpdateReceipt(ctx context.Context, req *connect.Request[pb.UpdateReceiptRequest]) (*connect.Response[pb.UpdateReceiptResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (s *Server) UpdateReceipt(ctx context.Context, req *connect.Request[pb.Upda
 }
 
 func (s *Server) DeleteReceipt(ctx context.Context, req *connect.Request[pb.DeleteReceiptRequest]) (*connect.Response[pb.DeleteReceiptResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (s *Server) GetReceiptsByTransaction(ctx context.Context, req *connect.Requ
 }
 
 func (s *Server) SearchReceipts(ctx context.Context, req *connect.Request[pb.SearchReceiptsRequest]) (*connect.Response[pb.SearchReceiptsResponse], error) {
-	userID, err := getUserFromContext(ctx)
+	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
