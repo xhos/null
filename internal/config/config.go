@@ -3,11 +3,12 @@ package config
 import (
 	"flag"
 	"os"
+	"strings"
 	"time"
 )
 
 type Config struct {
-	Port                 string
+	Port                 string // actually "listen addr"
 	InternalAPIKey       string
 	LogLevel             string
 	DatabaseURL          string
@@ -16,8 +17,21 @@ type Config struct {
 	ReceiptParserTimeout time.Duration
 }
 
+func normalizeListen(v string) string {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return ":55555"
+	}
+	// if the user supplied a host:port (contains ':'), trust it as-is
+	if strings.Contains(v, ":") {
+		return v
+	}
+	// bare port → prepend ':'
+	return ":" + v
+}
+
 func Load() Config {
-	port := flag.String("port", "55555", "gRPC port")
+	portFlag := flag.String("port", "55555", "listen address or port (e.g. 55555, :55555, 0.0.0.0:55555)")
 	flag.Parse()
 
 	internalAPIKey := os.Getenv("API_KEY")
@@ -25,7 +39,6 @@ func Load() Config {
 		panic("API_KEY environment variable is required")
 	}
 
-	// TODO ping at startup to ensure BetterAuth is reachable
 	betterAuthURL := os.Getenv("BETTER_AUTH_URL")
 	if betterAuthURL == "" {
 		panic("BETTER_AUTH_URL environment variable is required")
@@ -56,7 +69,7 @@ func Load() Config {
 	}
 
 	return Config{
-		Port:                 ":" + *port,
+		Port:                 normalizeListen(*portFlag),
 		InternalAPIKey:       internalAPIKey,
 		LogLevel:             logLevel,
 		DatabaseURL:          databaseURL,
