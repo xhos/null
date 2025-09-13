@@ -7,6 +7,9 @@
     # sql stuff
     goose
     sqlc
+
+    # dev
+    air
   ];
 
   languages.go.enable = true;

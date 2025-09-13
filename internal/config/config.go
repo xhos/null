@@ -5,37 +5,47 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/charmbracelet/log"
 )
 
 type Config struct {
-	Port                 string // actually "listen addr"
-	InternalAPIKey       string
-	LogLevel             string
-	DatabaseURL          string
-	ReceiptParserURL     string
-	BetterAuthURL        string
-	ReceiptParserTimeout time.Duration
+	Address string // the address on which the server listens
+	APIKey  string // internal API key for authenticating requests
+
+	DatabaseURL   string // database connection URL
+	BetterAuthURL string // better-auth service URL
+
+	ReceiptParserURL     string        // receipt parser service URL
+	ReceiptParserTimeout time.Duration // timeout for receipt parser requests
+
+	LogLevel log.Level // logging level
 }
 
-func normalizeListen(v string) string {
-	v = strings.TrimSpace(v)
-	if v == "" {
-		return ":55555"
+// parseAddress ensures the address is in the correct format for network listeners.
+// If the input is just a port (e.g. "55555"), it returns ":55555".
+// If the input is already an address (e.g. "0.0.0.0:55555" or ":55555"), it returns it unchanged.
+// Examples:
+//
+//	parseAddress("55555")         // ":55555"
+//	parseAddress(":55555")        // ":55555"
+//	parseAddress("0.0.0.0:55555") // "0.0.0.0:55555"
+func parseAddress(port string) string {
+	port = strings.TrimSpace(port)
+	if strings.Contains(port, ":") {
+		return port
 	}
-	// if the user supplied a host:port (contains ':'), trust it as-is
-	if strings.Contains(v, ":") {
-		return v
-	}
-	// bare port → prepend ':'
-	return ":" + v
+	return ":" + port
 }
 
+// Load reads configuration from environment variables and command-line flags
 func Load() Config {
-	portFlag := flag.String("port", "55555", "listen address or port (e.g. 55555, :55555, 0.0.0.0:55555)")
+	address := flag.String("port", "55555", "listen address or port (e.g. 55555, :55555, 0.0.0.0:55555)")
+
 	flag.Parse()
 
-	internalAPIKey := os.Getenv("API_KEY")
-	if internalAPIKey == "" {
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
 		panic("API_KEY environment variable is required")
 	}
 
@@ -63,18 +73,18 @@ func Load() Config {
 		panic("invalid RECEIPT_PARSER_TIMEOUT value: must be a valid duration like '30s', '1m'")
 	}
 
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "info"
+	logLevel, err := log.ParseLevel(os.Getenv("LOG_LEVEL"))
+	if err != nil {
+		logLevel = log.InfoLevel
 	}
 
 	return Config{
-		Port:                 normalizeListen(*portFlag),
-		InternalAPIKey:       internalAPIKey,
-		LogLevel:             logLevel,
+		Address:              parseAddress(*address),
+		APIKey:               apiKey,
 		DatabaseURL:          databaseURL,
-		ReceiptParserURL:     receiptParserURL,
 		BetterAuthURL:        betterAuthURL,
+		ReceiptParserURL:     receiptParserURL,
 		ReceiptParserTimeout: receiptParserTimeout,
+		LogLevel:             logLevel,
 	}
 }

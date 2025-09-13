@@ -20,18 +20,12 @@ import (
 )
 
 func main() {
-	// ----- configuration ----------
 	cfg := config.Load()
 
 	// ----- logger -----------------
-	level, err := log.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		level = log.InfoLevel
-	}
-
 	logger := log.NewWithOptions(os.Stdout, log.Options{
 		Prefix: "ariand",
-		Level:  level,
+		Level:  cfg.LogLevel,
 	})
 
 	logger.Info("starting ariand", "version", version.FullVersion())
@@ -64,22 +58,21 @@ func main() {
 	// ----- api layer --------
 	srv := api.NewServer(services, logger.WithPrefix("api"))
 	authConfig := &middleware.AuthConfig{
-		InternalAPIKey: cfg.InternalAPIKey,
+		InternalAPIKey: cfg.APIKey,
 		BetterAuthURL:  cfg.BetterAuthURL,
 	}
 
-	// Get fully configured handler from api layer
 	handler := srv.GetHandler(authConfig)
 
 	serverErrors := make(chan error, 1)
 
 	go func() {
 		server := &http.Server{
-			Addr:    cfg.Port,
+			Addr:    cfg.Address,
 			Handler: h2c.NewHandler(handler, &http2.Server{}),
 		}
 
-		logger.Info("server is listening", "addr", cfg.Port)
+		logger.Info("server is listening", "addr", cfg.Address)
 		serverErrors <- server.ListenAndServe()
 	}()
 
@@ -92,10 +85,7 @@ func main() {
 
 	case <-quit:
 		logger.Info("shutdown signal received")
-
-		// TODO: implement graceful shutdown for HTTP server
 		logger.Info("server stopping...")
-		logger.Info("server stopped gracefully")
 	}
 
 	logger.Info("server shutdown complete")
