@@ -16,6 +16,8 @@ import (
 	"google.golang.org/genproto/googleapis/type/money"
 )
 
+// TODO: this whole thing
+
 type ReceiptService interface {
 	ListForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.Receipt, error)
 	GetForUser(ctx context.Context, params sqlc.GetReceiptForUserParams) (*sqlc.Receipt, error)

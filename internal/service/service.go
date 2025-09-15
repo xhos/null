@@ -48,7 +48,7 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager)
 		Categories:   catSvc,
 		Accounts:     newAcctSvc(queries, lg.WithPrefix("acct")),
 		Dashboard:    newDashSvc(queries),
-		Users:        newUserSvc(queries, database, lg.WithPrefix("user")), //TODO: WHY PASS DB?
+		Users:        newUserSvc(queries, lg.WithPrefix("user")),
 		Receipts:     newReceiptSvc(queries, parserClient, storage.NewLocalStorage("/tmp/receipts", "/api/receipts/images"), lg.WithPrefix("receipt")),
 	}, nil
 }

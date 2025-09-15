@@ -1,7 +1,6 @@
 package service
 
 import (
-	"ariand/internal/db"
 	"ariand/internal/db/sqlc"
 	"context"
 	"database/sql"
@@ -27,12 +26,11 @@ type UserService interface {
 
 type userSvc struct {
 	queries *sqlc.Queries
-	db      *db.DB
 	log     *log.Logger
 }
 
-func newUserSvc(queries *sqlc.Queries, database *db.DB, lg *log.Logger) UserService {
-	return &userSvc{queries: queries, db: database, log: lg}
+func newUserSvc(queries *sqlc.Queries, lg *log.Logger) UserService {
+	return &userSvc{queries: queries, log: lg}
 }
 
 func (s *userSvc) Get(ctx context.Context, id uuid.UUID) (*sqlc.User, error) {
@@ -101,40 +99,17 @@ func (s *userSvc) UpdateDisplayName(ctx context.Context, params sqlc.UpdateUserD
 	return &user, nil
 }
 
-// TODO: Ensure deleting user that is a collab on some accounts doesnt delete the account
 func (s *userSvc) Delete(ctx context.Context, id uuid.UUID) error {
-
-	// use transaction for cascade delete
-	tx, err := s.db.Pool().Begin(ctx)
+	rowsAffected, err := s.queries.DeleteUserWithCascade(ctx, id)
 	if err != nil {
 		return wrapErr("UserService.Delete", err)
 	}
-	defer tx.Rollback(ctx)
 
-	txQueries := s.queries.WithTx(tx)
-
-	// remove from all accounts
-	_, err = txQueries.RemoveUserFromAllAccounts(ctx, id)
-	if err != nil {
-		return wrapErr("UserService.Delete.RemoveFromAccounts", err)
-	}
-
-	// delete user
-	_, err = txQueries.DeleteUser(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if rowsAffected == 0 {
 		return wrapErr("UserService.Delete", ErrNotFound)
 	}
 
-	if err != nil {
-		return wrapErr("UserService.Delete", err)
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return wrapErr("UserService.Delete.Commit", err)
-	}
-
 	s.log.Info("User deleted with cascade", "user_id", id)
-
 	return nil
 }
 

@@ -60,6 +60,24 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
+const deleteUserWithCascade = `-- name: DeleteUserWithCascade :execrows
+WITH removed_from_accounts AS (
+    DELETE FROM account_users
+    WHERE user_id = $1::uuid
+    RETURNING user_id
+)
+DELETE FROM users
+WHERE id = $1::uuid
+`
+
+func (q *Queries) DeleteUserWithCascade(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUserWithCascade, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, email, display_name, default_account_id, created_at, updated_at
 FROM users

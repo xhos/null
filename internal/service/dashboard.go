@@ -198,7 +198,7 @@ func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, start
 		End:    end,
 	}
 
-	// note: currently the database query doesn't support filtering by category or account
+	// TODO: currently the database query doesn't support filtering by category or account
 	// these parameters are included for future extensibility but ignored for now in this MVP
 	_ = categoryID
 	_ = accountID

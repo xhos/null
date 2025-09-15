@@ -41,6 +41,15 @@ RETURNING id, email, display_name, default_account_id, created_at, updated_at;
 -- name: DeleteUser :execrows
 DELETE FROM users WHERE id = @id::uuid;
 
+-- name: DeleteUserWithCascade :execrows
+WITH removed_from_accounts AS (
+    DELETE FROM account_users
+    WHERE user_id = @id::uuid
+    RETURNING user_id
+)
+DELETE FROM users
+WHERE id = @id::uuid;
+
 -- name: CheckUserExists :one
 SELECT EXISTS(SELECT 1 FROM users WHERE id = @id::uuid) AS exists;
 

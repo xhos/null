@@ -21,15 +21,15 @@ const (
 )
 
 type TransactionService interface {
-	ListForUser(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error)
-	GetForUser(ctx context.Context, params sqlc.GetTransactionForUserParams) (*sqlc.GetTransactionForUserRow, error)
-	CreateForUser(ctx context.Context, params sqlc.CreateTransactionForUserParams) (int64, error)
+	List(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error)
+	Get(ctx context.Context, params sqlc.GetTransactionForUserParams) (*sqlc.GetTransactionForUserRow, error)
+	Create(ctx context.Context, params sqlc.CreateTransactionForUserParams) (int64, error)
 	Update(ctx context.Context, params sqlc.UpdateTransactionParams) error
-	DeleteForUser(ctx context.Context, params sqlc.DeleteTransactionForUserParams) (int64, error)
-	BulkDeleteForUser(ctx context.Context, params sqlc.BulkDeleteTransactionsForUserParams) error
-	BulkCategorizeForUser(ctx context.Context, params sqlc.BulkCategorizeTransactionsForUserParams) error
-	GetTransactionCountByAccountForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountForUserRow, error)
-	FindCandidateTransactionsForUser(ctx context.Context, params sqlc.FindCandidateTransactionsForUserParams) ([]sqlc.FindCandidateTransactionsForUserRow, error)
+	Delete(ctx context.Context, params sqlc.DeleteTransactionForUserParams) (int64, error)
+	BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsForUserParams) error
+	BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsForUserParams) error
+	GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountForUserRow, error)
+	FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsForUserParams) ([]sqlc.FindCandidateTransactionsForUserRow, error)
 	SetTransactionReceipt(ctx context.Context, params sqlc.SetTransactionReceiptParams) error
 	CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
 	IdentifyMerchantForTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
@@ -55,7 +55,7 @@ type categorizationResult struct {
 	Suggestions  []string
 }
 
-func (s *txnSvc) ListForUser(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error) {
+func (s *txnSvc) List(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error) {
 	// truncate overly long description queries for performance
 	if params.DescQ != nil && len(*params.DescQ) > maxDescQLength {
 		truncated := (*params.DescQ)[:maxDescQLength]
@@ -70,7 +70,7 @@ func (s *txnSvc) ListForUser(ctx context.Context, params sqlc.ListTransactionsFo
 	return rows, nil
 }
 
-func (s *txnSvc) GetForUser(ctx context.Context, params sqlc.GetTransactionForUserParams) (*sqlc.GetTransactionForUserRow, error) {
+func (s *txnSvc) Get(ctx context.Context, params sqlc.GetTransactionForUserParams) (*sqlc.GetTransactionForUserRow, error) {
 	row, err := s.queries.GetTransactionForUser(ctx, params)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("TransactionService.GetForUser", ErrNotFound)
@@ -83,14 +83,14 @@ func (s *txnSvc) GetForUser(ctx context.Context, params sqlc.GetTransactionForUs
 	return &row, nil
 }
 
-func (s *txnSvc) CreateForUser(ctx context.Context, params sqlc.CreateTransactionForUserParams) (int64, error) {
+func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionForUserParams) (int64, error) {
 	if err := s.validateCreateParams(params); err != nil {
-		return 0, fmt.Errorf("TransactionService.CreateForUser: %w", err)
+		return 0, fmt.Errorf("TransactionService.Create: %w", err)
 	}
 
 	id, err := s.queries.CreateTransactionForUser(ctx, params)
 	if err != nil {
-		return 0, wrapErr("TransactionService.CreateForUser", err)
+		return 0, wrapErr("TransactionService.Create", err)
 	}
 
 	return id, nil
@@ -109,7 +109,7 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	return nil
 }
 
-func (s *txnSvc) DeleteForUser(ctx context.Context, params sqlc.DeleteTransactionForUserParams) (int64, error) {
+func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionForUserParams) (int64, error) {
 	id, err := s.queries.DeleteTransactionForUser(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.DeleteForUser", err)
@@ -117,7 +117,7 @@ func (s *txnSvc) DeleteForUser(ctx context.Context, params sqlc.DeleteTransactio
 	return id, nil
 }
 
-func (s *txnSvc) BulkDeleteForUser(ctx context.Context, params sqlc.BulkDeleteTransactionsForUserParams) error {
+func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsForUserParams) error {
 	_, err := s.queries.BulkDeleteTransactionsForUser(ctx, params)
 	if err != nil {
 		return wrapErr("TransactionService.BulkDeleteForUser", err)
@@ -125,7 +125,7 @@ func (s *txnSvc) BulkDeleteForUser(ctx context.Context, params sqlc.BulkDeleteTr
 	return nil
 }
 
-func (s *txnSvc) BulkCategorizeForUser(ctx context.Context, params sqlc.BulkCategorizeTransactionsForUserParams) error {
+func (s *txnSvc) BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsForUserParams) error {
 	_, err := s.queries.BulkCategorizeTransactionsForUser(ctx, params)
 	if err != nil {
 		return wrapErr("TransactionService.BulkCategorizeForUser", err)
@@ -133,7 +133,7 @@ func (s *txnSvc) BulkCategorizeForUser(ctx context.Context, params sqlc.BulkCate
 	return nil
 }
 
-func (s *txnSvc) GetTransactionCountByAccountForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountForUserRow, error) {
+func (s *txnSvc) GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountForUserRow, error) {
 	counts, err := s.queries.GetTransactionCountByAccountForUser(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("TransactionService.GetTransactionCountByAccountForUser", err)
@@ -141,7 +141,7 @@ func (s *txnSvc) GetTransactionCountByAccountForUser(ctx context.Context, userID
 	return counts, nil
 }
 
-func (s *txnSvc) FindCandidateTransactionsForUser(ctx context.Context, params sqlc.FindCandidateTransactionsForUserParams) ([]sqlc.FindCandidateTransactionsForUserRow, error) {
+func (s *txnSvc) FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsForUserParams) ([]sqlc.FindCandidateTransactionsForUserRow, error) {
 	candidates, err := s.queries.FindCandidateTransactionsForUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("TransactionService.FindCandidateTransactionsForUser", err)
@@ -391,7 +391,7 @@ func (s *txnSvc) SearchTransactions(ctx context.Context, userID uuid.UUID, query
 
 	_ = offset // offset also not implemented in current query
 
-	return s.ListForUser(ctx, params)
+	return s.List(ctx, params)
 }
 
 func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error) {
@@ -403,7 +403,7 @@ func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID,
 	// TODO: offset not implemented in current query for MVP
 	_ = offset
 
-	return s.ListForUser(ctx, params)
+	return s.List(ctx, params)
 }
 
 func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error) {
@@ -418,7 +418,7 @@ func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.U
 	// TODO: offset not implemented in current query for MVP
 	_ = offset
 
-	return s.ListForUser(ctx, params)
+	return s.List(ctx, params)
 }
 
 func boolPtr(b bool) *bool {
