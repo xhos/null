@@ -121,17 +121,17 @@ type GetAccountParams struct {
 }
 
 type GetAccountRow struct {
-	ID            int64               `json:"id"`
-	OwnerID       uuid.UUID           `json:"owner_id"`
-	Name          string              `json:"name"`
-	Bank          string              `json:"bank"`
-	AccountType   arian.AccountType   `json:"account_type"`
-	Alias         *string             `json:"alias"`
-	AnchorDate    time.Time           `json:"anchor_date"`
-	AnchorBalance *types.MoneyWrapper `json:"anchor_balance"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
-	IsOwner       bool                `json:"is_owner"`
+	ID            int64             `json:"id"`
+	OwnerID       uuid.UUID         `json:"owner_id"`
+	Name          string            `json:"name"`
+	Bank          string            `json:"bank"`
+	AccountType   arian.AccountType `json:"account_type"`
+	Alias         *string           `json:"alias"`
+	AnchorDate    time.Time         `json:"anchor_date"`
+	AnchorBalance *types.Money      `json:"anchor_balance"`
+	CreatedAt     time.Time         `json:"created_at"`
+	UpdatedAt     time.Time         `json:"updated_at"`
+	IsOwner       bool              `json:"is_owner"`
 }
 
 func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAccountRow, error) {
@@ -159,9 +159,9 @@ FROM accounts
 WHERE id = $1::bigint
 `
 
-func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (*types.MoneyWrapper, error) {
+func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (*types.Money, error) {
 	row := q.db.QueryRow(ctx, getAccountAnchorBalance, id)
-	var anchor_balance *types.MoneyWrapper
+	var anchor_balance *types.Money
 	err := row.Scan(&anchor_balance)
 	return anchor_balance, err
 }
@@ -174,9 +174,9 @@ ORDER BY tx_date DESC, id DESC
 LIMIT 1
 `
 
-func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*types.MoneyWrapper, error) {
+func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*types.Money, error) {
 	row := q.db.QueryRow(ctx, getAccountBalance, accountID)
-	var balance_after *types.MoneyWrapper
+	var balance_after *types.Money
 	err := row.Scan(&balance_after)
 	return balance_after, err
 }
@@ -207,17 +207,17 @@ ORDER BY is_owner DESC, a.created_at
 `
 
 type ListAccountsRow struct {
-	ID            int64               `json:"id"`
-	OwnerID       uuid.UUID           `json:"owner_id"`
-	Name          string              `json:"name"`
-	Bank          string              `json:"bank"`
-	AccountType   arian.AccountType   `json:"account_type"`
-	Alias         *string             `json:"alias"`
-	AnchorDate    time.Time           `json:"anchor_date"`
-	AnchorBalance *types.MoneyWrapper `json:"anchor_balance"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
-	IsOwner       bool                `json:"is_owner"`
+	ID            int64             `json:"id"`
+	OwnerID       uuid.UUID         `json:"owner_id"`
+	Name          string            `json:"name"`
+	Bank          string            `json:"bank"`
+	AccountType   arian.AccountType `json:"account_type"`
+	Alias         *string           `json:"alias"`
+	AnchorDate    time.Time         `json:"anchor_date"`
+	AnchorBalance *types.Money      `json:"anchor_balance"`
+	CreatedAt     time.Time         `json:"created_at"`
+	UpdatedAt     time.Time         `json:"updated_at"`
+	IsOwner       bool              `json:"is_owner"`
 }
 
 func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAccountsRow, error) {

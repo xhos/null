@@ -62,7 +62,7 @@ func Logging(logger *log.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			
+
 			// Capture request body for debug logging
 			var requestBody []byte
 			if r.Body != nil {
@@ -99,7 +99,7 @@ func Logging(logger *log.Logger) Middleware {
 			)
 
 			responseBody := rw.body.String()
-			
+
 			// Always log errors (4xx/5xx status codes)
 			if rw.statusCode >= 400 {
 				logger.Error("API error response", append(responseFields, "response_body", responseBody)...)

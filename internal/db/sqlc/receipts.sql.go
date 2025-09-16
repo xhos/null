@@ -15,14 +15,14 @@ import (
 )
 
 type BulkCreateReceiptItemsParams struct {
-	ReceiptID    int64               `json:"receipt_id"`
-	LineNo       *int32              `json:"line_no"`
-	Name         string              `json:"name"`
-	Qty          *decimal.Decimal    `json:"qty"`
-	UnitPrice    *types.MoneyWrapper `json:"unit_price"`
-	LineTotal    *types.MoneyWrapper `json:"line_total"`
-	Sku          *string             `json:"sku"`
-	CategoryHint *string             `json:"category_hint"`
+	ReceiptID    int64            `json:"receipt_id"`
+	LineNo       *int32           `json:"line_no"`
+	Name         string           `json:"name"`
+	Qty          *decimal.Decimal `json:"qty"`
+	UnitPrice    *types.Money     `json:"unit_price"`
+	LineTotal    *types.Money     `json:"line_total"`
+	Sku          *string          `json:"sku"`
+	CategoryHint *string          `json:"category_hint"`
 }
 
 const createReceipt = `-- name: CreateReceipt :one
@@ -310,11 +310,11 @@ ORDER BY r.created_at DESC
 `
 
 type GetReceiptMatchCandidatesRow struct {
-	ID               int64               `json:"id"`
-	Merchant         *string             `json:"merchant"`
-	PurchaseDate     *time.Time          `json:"purchase_date"`
-	TotalAmount      *types.MoneyWrapper `json:"total_amount"`
-	PotentialMatches int64               `json:"potential_matches"`
+	ID               int64        `json:"id"`
+	Merchant         *string      `json:"merchant"`
+	PurchaseDate     *time.Time   `json:"purchase_date"`
+	TotalAmount      *types.Money `json:"total_amount"`
+	PotentialMatches int64        `json:"potential_matches"`
 }
 
 func (q *Queries) GetReceiptMatchCandidates(ctx context.Context) ([]GetReceiptMatchCandidatesRow, error) {
@@ -352,11 +352,11 @@ LIMIT COALESCE($1::int, 50)
 `
 
 type GetUnlinkedReceiptsRow struct {
-	ID           int64               `json:"id"`
-	Merchant     *string             `json:"merchant"`
-	PurchaseDate *time.Time          `json:"purchase_date"`
-	TotalAmount  *types.MoneyWrapper `json:"total_amount"`
-	CreatedAt    time.Time           `json:"created_at"`
+	ID           int64        `json:"id"`
+	Merchant     *string      `json:"merchant"`
+	PurchaseDate *time.Time   `json:"purchase_date"`
+	TotalAmount  *types.Money `json:"total_amount"`
+	CreatedAt    time.Time    `json:"created_at"`
 }
 
 // Utility queries

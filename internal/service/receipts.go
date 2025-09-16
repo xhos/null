@@ -13,9 +13,8 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"google.golang.org/genproto/googleapis/type/money"
 )
-
-// TODO: this whole thing
 
 type ReceiptService interface {
 	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Receipt, error)
@@ -182,20 +181,18 @@ func (s *receiptSvc) GetMatchCandidates(ctx context.Context) ([]sqlc.GetReceiptM
 }
 
 func (s *receiptSvc) UploadReceipt(ctx context.Context, userID uuid.UUID, imageData []byte, provider string) (*sqlc.Receipt, error) {
-	// store image first
 	imageURL, imageHash, err := s.storage.Store(imageData, "receipt.jpg")
 	if err != nil {
 		return nil, wrapErr("ReceiptService.UploadReceipt", err)
 	}
 
-	// create receipt record with pending status
-	parseStatus := int16(1) // pending
-	linkStatus := int16(1)  // unlinked
+	pendingStatus := int16(1)
+	unlinkedStatus := int16(1)
 
 	params := sqlc.CreateReceiptParams{
 		Engine:      1,
-		ParseStatus: &parseStatus,
-		LinkStatus:  &linkStatus,
+		ParseStatus: &pendingStatus,
+		LinkStatus:  &unlinkedStatus,
 		ImageUrl:    &imageURL,
 		ImageSha256: imageHash,
 	}
@@ -223,7 +220,8 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, userID uuid.UUID, receipt
 		return nil, wrapErr("ReceiptService.ParseReceipt", err)
 	}
 
-	if receipt.ImageUrl == nil {
+	hasNoImage := receipt.ImageUrl == nil
+	if hasNoImage {
 		return nil, wrapErr("ReceiptService.ParseReceipt", errors.New("no image stored for receipt"))
 	}
 
@@ -241,17 +239,16 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, userID uuid.UUID, receipt
 		nil,
 	)
 
-	// update receipt with parse results
-	parseStatus := int16(3) // failed
+	failedStatus := int16(3)
 	updateParams := sqlc.UpdateReceiptParams{
 		ID:          receiptID,
-		ParseStatus: &parseStatus,
+		ParseStatus: &failedStatus,
 	}
 
 	if err != nil {
 		s.log.Warn("failed to parse receipt", "receiptID", receiptID, "error", err)
 	} else {
-		successStatus := int16(2) // success
+		successStatus := int16(2)
 		updateParams.ParseStatus = &successStatus
 
 		if parsedReceipt.Merchant != nil && *parsedReceipt.Merchant != "" {
@@ -259,43 +256,58 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, userID uuid.UUID, receipt
 		}
 
 		if parsedReceipt.TotalAmount != nil {
-			totalAmountWrapper := types.WrapMoney(parsedReceipt.TotalAmount)
-			jsonBytes, err := totalAmountWrapper.Value()
+			totalAmount := &types.Money{
+				Money: money.Money{
+					CurrencyCode: parsedReceipt.TotalAmount.CurrencyCode,
+					Units:        parsedReceipt.TotalAmount.Units,
+					Nanos:        parsedReceipt.TotalAmount.Nanos,
+				},
+			}
+			jsonBytes, err := totalAmount.Value()
 			if err == nil {
-				if bytes, ok := jsonBytes.([]byte); ok {
-					updateParams.TotalAmount = bytes
-				}
+				updateParams.TotalAmount = jsonBytes.([]byte)
 			}
 		}
 
 		// create receipt items
 		if len(parsedReceipt.Items) > 0 {
-			// delete existing items first
-			s.DeleteItemsByReceipt(ctx, receiptID)
+			if err := s.DeleteItemsByReceipt(ctx, receiptID); err != nil {
+				s.log.Warn("failed to delete existing receipt items", "receiptID", receiptID, "error", err)
+			}
 
 			var itemParams []sqlc.BulkCreateReceiptItemsParams
 			for i, item := range parsedReceipt.Items {
 				lineNo := int32(i + 1)
 
-				// Convert money to MoneyWrapper
-				var unitPriceWrapper, lineTotalWrapper *types.MoneyWrapper
+				var unitPrice, lineTotal *types.Money
 				if item.UnitPrice != nil {
-					unitPriceWrapper = types.WrapMoney(item.UnitPrice)
+					unitPrice = &types.Money{
+						Money: money.Money{
+							CurrencyCode: item.UnitPrice.CurrencyCode,
+							Units:        item.UnitPrice.Units,
+							Nanos:        item.UnitPrice.Nanos,
+						},
+					}
 				}
 				if item.LineTotal != nil {
-					lineTotalWrapper = types.WrapMoney(item.LineTotal)
+					lineTotal = &types.Money{
+						Money: money.Money{
+							CurrencyCode: item.LineTotal.CurrencyCode,
+							Units:        item.LineTotal.Units,
+							Nanos:        item.LineTotal.Nanos,
+						},
+					}
 				}
 
-				// Convert quantity to decimal
-				qtyDecimal := decimal.NewFromFloat(item.Quantity)
+				qty := decimal.NewFromFloat(item.Quantity)
 
 				itemParams = append(itemParams, sqlc.BulkCreateReceiptItemsParams{
 					ReceiptID: receiptID,
 					LineNo:    &lineNo,
 					Name:      item.Name,
-					Qty:       &qtyDecimal,
-					UnitPrice: unitPriceWrapper,
-					LineTotal: lineTotalWrapper,
+					Qty:       &qty,
+					UnitPrice: unitPrice,
+					LineTotal: lineTotal,
 				})
 			}
 
@@ -311,7 +323,7 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, userID uuid.UUID, receipt
 
 	// attempt to link to transaction if parsing succeeded
 	if err == nil {
-		// Linking temporarily disabled during MoneyWrapper migration
+		// TODO: Re-enable linking when linking service is ready
 		// if linkErr := s.linking.LinkReceiptToTransaction(ctx, receiptID); linkErr != nil {
 		//	s.log.Warn("failed to link receipt to transaction", "receiptID", receiptID, "error", linkErr)
 		// }
@@ -366,5 +378,3 @@ func (s *receiptSvc) ConfirmReceipt(ctx context.Context, userID uuid.UUID, recei
 func (s *receiptSvc) GetReceiptsByTransaction(ctx context.Context, transactionID int64) ([]sqlc.Receipt, error) {
 	return nil, wrapErr("ReceiptService.GetReceiptsByTransaction", ErrUnimplemented)
 }
-
-// moneyToDecimal function removed - now using MoneyWrapper directly

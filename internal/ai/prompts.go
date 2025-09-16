@@ -36,9 +36,9 @@ func BuildCategorizationPrompt(tx *sqlc.Transaction, allowedCategories []string)
 		}
 		return *s
 	}
-	
+
 	amount, currency := moneyToFloat(tx.TxAmount)
-	
+
 	return fmt.Sprintf(
 		`You are a financial assistant. Categorize this transaction.
 

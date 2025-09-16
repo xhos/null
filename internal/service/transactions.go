@@ -340,9 +340,9 @@ func (s *txnSvc) validateCreateParams(params sqlc.CreateTransactionParams) error
 	}
 
 	// Try to parse the JSONB amount to validate it's not zero
-	var wrapper types.MoneyWrapper
-	if err := wrapper.Scan(params.TxAmount); err == nil {
-		if wrapper.Money != nil && wrapper.Money.Units == 0 && wrapper.Money.Nanos == 0 {
+	var m types.Money
+	if err := m.Scan(params.TxAmount); err == nil {
+		if m.Units == 0 && m.Nanos == 0 {
 			return fmt.Errorf("tx_amount cannot be zero: %w", ErrValidation)
 		}
 	}
@@ -434,14 +434,14 @@ func boolPtr(b bool) *bool {
 
 // amountClose reports whether a and b are within tolerance
 // (e.g. 0.2 == 20%) of each other.
-func amountClose(a, b *types.MoneyWrapper, tolerance float64) bool {
+func amountClose(a, b *types.Money, tolerance float64) bool {
 	if tolerance < 0 || a == nil || b == nil {
 		return false
 	}
 
 	// Convert to float64 for comparison
-	aFloat := float64(a.Money.Units) + float64(a.Money.Nanos)/1e9
-	bFloat := float64(b.Money.Units) + float64(b.Money.Nanos)/1e9
+	aFloat := float64(a.Units) + float64(a.Nanos)/1e9
+	bFloat := float64(b.Units) + float64(b.Nanos)/1e9
 
 	if aFloat == bFloat {
 		return true

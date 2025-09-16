@@ -43,9 +43,7 @@ func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, 
 		return nil, wrapErr("DashboardService.Balance", err)
 	}
 
-	totalUnits := int64(0)
-	totalNanos := int32(0)
-	currency := "CAD"
+	total := money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0}
 
 	for _, balance := range balances {
 		hasBalance := len(balance.CurrentBalance) > 0
@@ -53,34 +51,20 @@ func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, 
 			continue
 		}
 
-		var wrapper types.MoneyWrapper
-		if err := wrapper.Scan(balance.CurrentBalance); err != nil {
+		var m types.Money
+		if err := m.Scan(balance.CurrentBalance); err != nil {
 			continue
 		}
 
-		if wrapper.Money == nil {
-			continue
-		}
-
-		isPositiveBalance := wrapper.Money.Units > 0 || (wrapper.Money.Units == 0 && wrapper.Money.Nanos > 0)
-		if isPositiveBalance {
-			totalUnits += wrapper.Money.Units
-			totalNanos += wrapper.Money.Nanos
-			currency = wrapper.Money.CurrencyCode
+		if types.IsPositive(&m.Money) {
+			total, err = types.AddMoney(&total, &m.Money)
+			if err != nil {
+				return nil, wrapErr("DashboardService.Balance.AddMoney", err)
+			}
 		}
 	}
 
-	hasNanosOverflow := totalNanos >= 1e9
-	if hasNanosOverflow {
-		totalUnits += int64(totalNanos / 1e9)
-		totalNanos = totalNanos % 1e9
-	}
-
-	return &money.Money{
-		CurrencyCode: currency,
-		Units:        totalUnits,
-		Nanos:        totalNanos,
-	}, nil
+	return &total, nil
 }
 
 func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
@@ -89,9 +73,7 @@ func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, err
 		return nil, wrapErr("DashboardService.Debt", err)
 	}
 
-	totalUnits := int64(0)
-	totalNanos := int32(0)
-	currency := "CAD"
+	total := money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0}
 
 	for _, balance := range balances {
 		hasBalance := len(balance.CurrentBalance) > 0
@@ -99,34 +81,21 @@ func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, err
 			continue
 		}
 
-		var wrapper types.MoneyWrapper
-		if err := wrapper.Scan(balance.CurrentBalance); err != nil {
+		var m types.Money
+		if err := m.Scan(balance.CurrentBalance); err != nil {
 			continue
 		}
 
-		if wrapper.Money == nil {
-			continue
-		}
-
-		isNegativeBalance := wrapper.Money.Units < 0 || (wrapper.Money.Units == 0 && wrapper.Money.Nanos < 0)
-		if isNegativeBalance {
-			totalUnits += -wrapper.Money.Units
-			totalNanos += -wrapper.Money.Nanos
-			currency = wrapper.Money.CurrencyCode
+		if types.IsNegative(&m.Money) {
+			absoluteAmount := types.Negate(&m.Money)
+			total, err = types.AddMoney(&total, &absoluteAmount)
+			if err != nil {
+				return nil, wrapErr("DashboardService.Debt.AddMoney", err)
+			}
 		}
 	}
 
-	hasNanosOverflow := totalNanos >= 1e9
-	if hasNanosOverflow {
-		totalUnits += int64(totalNanos / 1e9)
-		totalNanos = totalNanos % 1e9
-	}
-
-	return &money.Money{
-		CurrencyCode: currency,
-		Units:        totalUnits,
-		Nanos:        totalNanos,
-	}, nil
+	return &total, nil
 }
 
 func (s *dashSvc) Trends(ctx context.Context, params sqlc.GetDashboardTrendsParams) ([]sqlc.GetDashboardTrendsRow, error) {
@@ -175,9 +144,7 @@ func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Mone
 		return nil, wrapErr("DashboardService.NetBalance", err)
 	}
 
-	totalUnits := int64(0)
-	totalNanos := int32(0)
-	currency := "CAD"
+	total := money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0}
 
 	for _, balance := range balances {
 		hasBalance := len(balance.CurrentBalance) > 0
@@ -185,30 +152,18 @@ func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Mone
 			continue
 		}
 
-		var wrapper types.MoneyWrapper
-		if err := wrapper.Scan(balance.CurrentBalance); err != nil {
+		var m types.Money
+		if err := m.Scan(balance.CurrentBalance); err != nil {
 			continue
 		}
 
-		if wrapper.Money != nil {
-			totalUnits += wrapper.Money.Units
-			totalNanos += wrapper.Money.Nanos
-			currency = wrapper.Money.CurrencyCode
+		total, err = types.AddMoney(&total, &m.Money)
+		if err != nil {
+			return nil, wrapErr("DashboardService.NetBalance.AddMoney", err)
 		}
 	}
 
-	hasNanosOverflow := totalNanos >= 1e9
-	hasNanosUnderflow := totalNanos <= -1e9
-	if hasNanosOverflow || hasNanosUnderflow {
-		totalUnits += int64(totalNanos / 1e9)
-		totalNanos = totalNanos % 1e9
-	}
-
-	return &money.Money{
-		CurrencyCode: currency,
-		Units:        totalUnits,
-		Nanos:        totalNanos,
-	}, nil
+	return &total, nil
 }
 
 func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error) {

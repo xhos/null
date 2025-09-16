@@ -14,16 +14,16 @@ import (
 )
 
 type Account struct {
-	ID            int64               `json:"id"`
-	OwnerID       uuid.UUID           `json:"owner_id"`
-	Name          string              `json:"name"`
-	Bank          string              `json:"bank"`
-	AccountType   arian.AccountType   `json:"account_type"`
-	Alias         *string             `json:"alias"`
-	AnchorDate    time.Time           `json:"anchor_date"`
-	AnchorBalance *types.MoneyWrapper `json:"anchor_balance"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
+	ID            int64             `json:"id"`
+	OwnerID       uuid.UUID         `json:"owner_id"`
+	Name          string            `json:"name"`
+	Bank          string            `json:"bank"`
+	AccountType   arian.AccountType `json:"account_type"`
+	Alias         *string           `json:"alias"`
+	AnchorDate    time.Time         `json:"anchor_date"`
+	AnchorBalance *types.Money      `json:"anchor_balance"`
+	CreatedAt     time.Time         `json:"created_at"`
+	UpdatedAt     time.Time         `json:"updated_at"`
 }
 
 type AccountUser struct {
@@ -50,8 +50,8 @@ type Receipt struct {
 	MatchIds       []int64                  `json:"match_ids"`
 	Merchant       *string                  `json:"merchant"`
 	PurchaseDate   *time.Time               `json:"purchase_date"`
-	TotalAmount    *types.MoneyWrapper      `json:"total_amount"`
-	TaxAmount      *types.MoneyWrapper      `json:"tax_amount"`
+	TotalAmount    *types.Money             `json:"total_amount"`
+	TaxAmount      *types.Money             `json:"tax_amount"`
 	RawPayload     []byte                   `json:"raw_payload"`
 	CanonicalData  []byte                   `json:"canonical_data"`
 	ImageUrl       *string                  `json:"image_url"`
@@ -65,17 +65,17 @@ type Receipt struct {
 }
 
 type ReceiptItem struct {
-	ID           int64               `json:"id"`
-	ReceiptID    int64               `json:"receipt_id"`
-	LineNo       *int32              `json:"line_no"`
-	Name         string              `json:"name"`
-	Qty          *decimal.Decimal    `json:"qty"`
-	UnitPrice    *types.MoneyWrapper `json:"unit_price"`
-	LineTotal    *types.MoneyWrapper `json:"line_total"`
-	Sku          *string             `json:"sku"`
-	CategoryHint *string             `json:"category_hint"`
-	CreatedAt    time.Time           `json:"created_at"`
-	UpdatedAt    time.Time           `json:"updated_at"`
+	ID           int64            `json:"id"`
+	ReceiptID    int64            `json:"receipt_id"`
+	LineNo       *int32           `json:"line_no"`
+	Name         string           `json:"name"`
+	Qty          *decimal.Decimal `json:"qty"`
+	UnitPrice    *types.Money     `json:"unit_price"`
+	LineTotal    *types.Money     `json:"line_total"`
+	Sku          *string          `json:"sku"`
+	CategoryHint *string          `json:"category_hint"`
+	CreatedAt    time.Time        `json:"created_at"`
+	UpdatedAt    time.Time        `json:"updated_at"`
 }
 
 type Transaction struct {
@@ -83,16 +83,16 @@ type Transaction struct {
 	AccountID     int64                      `json:"account_id"`
 	EmailID       *string                    `json:"email_id"`
 	TxDate        time.Time                  `json:"tx_date"`
-	TxAmount      *types.MoneyWrapper        `json:"tx_amount"`
+	TxAmount      *types.Money               `json:"tx_amount"`
 	TxDirection   arian.TransactionDirection `json:"tx_direction"`
 	TxDesc        *string                    `json:"tx_desc"`
-	BalanceAfter  *types.MoneyWrapper        `json:"balance_after"`
+	BalanceAfter  *types.Money               `json:"balance_after"`
 	Merchant      *string                    `json:"merchant"`
 	CategoryID    *int64                     `json:"category_id"`
 	CatStatus     arian.CategorizationStatus `json:"cat_status"`
 	Suggestions   []string                   `json:"suggestions"`
 	UserNotes     *string                    `json:"user_notes"`
-	ForeignAmount *types.MoneyWrapper        `json:"foreign_amount"`
+	ForeignAmount *types.Money               `json:"foreign_amount"`
 	ExchangeRate  *decimal.Decimal           `json:"exchange_rate"`
 	ReceiptID     *int64                     `json:"receipt_id"`
 	CreatedAt     time.Time                  `json:"created_at"`

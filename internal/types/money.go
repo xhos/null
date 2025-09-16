@@ -8,50 +8,52 @@ import (
 	"google.golang.org/genproto/googleapis/type/money"
 )
 
-// MoneyWrapper wraps money.Money to implement sql.Scanner and driver.Valuer
-type MoneyWrapper struct {
-	*money.Money
+// Money embeds money.Money and implements database interfaces
+type Money struct {
+	money.Money
 }
 
-// NewMoneyWrapper creates a new MoneyWrapper
-func NewMoneyWrapper(m *money.Money) *MoneyWrapper {
-	return &MoneyWrapper{Money: m}
-}
-
-// Scan implements sql.Scanner for MoneyWrapper
-func (m *MoneyWrapper) Scan(src interface{}) error {
+// Scan implements sql.Scanner for database reads
+func (m *Money) Scan(src any) error {
 	if src == nil {
-		m.Money = nil
 		return nil
 	}
-	bytes, ok := src.([]byte)
+
+	isBytes := func(v any) ([]byte, bool) {
+		switch data := v.(type) {
+		case []byte:
+			return data, true
+		case string:
+			return []byte(data), true
+		default:
+			return nil, false
+		}
+	}
+
+	jsonData, ok := isBytes(src)
 	if !ok {
 		return fmt.Errorf("cannot scan %T into Money", src)
 	}
-	m.Money = &money.Money{}
-	return json.Unmarshal(bytes, m.Money)
+
+	return json.Unmarshal(jsonData, &m.Money)
 }
 
-// Value implements driver.Valuer for MoneyWrapper
-func (m *MoneyWrapper) Value() (driver.Value, error) {
-	if m.Money == nil {
+// Value implements driver.Valuer for database writes
+func (m *Money) Value() (driver.Value, error) {
+	if m == nil {
 		return nil, nil
 	}
-	return json.Marshal(m.Money)
-}
 
-// UnwrapMoney extracts the money.Money from MoneyWrapper
-func (m *MoneyWrapper) UnwrapMoney() *money.Money {
-	if m == nil {
-		return nil
+	// WHY: protobuf omits zero values, but we need all fields for consistency
+	data := struct {
+		CurrencyCode string `json:"currency_code"`
+		Units        int64  `json:"units"`
+		Nanos        int32  `json:"nanos"`
+	}{
+		CurrencyCode: m.CurrencyCode,
+		Units:        m.Units,
+		Nanos:        m.Nanos,
 	}
-	return m.Money
-}
 
-// WrapMoney creates a MoneyWrapper from money.Money
-func WrapMoney(m *money.Money) *MoneyWrapper {
-	if m == nil {
-		return nil
-	}
-	return &MoneyWrapper{Money: m}
+	return json.Marshal(data)
 }

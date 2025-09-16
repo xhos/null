@@ -34,46 +34,47 @@ sql:
               import: 'github.com/shopspring/decimal'
               type: 'Decimal'
               pointer: true
-          # money fields - use custom MoneyWrapper for JSONB
+
+          # money fields - use custom Money for JSONB
           - column: 'accounts.anchor_balance'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'transactions.tx_amount'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'transactions.balance_after'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'transactions.foreign_amount'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'receipts.total_amount'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'receipts.tax_amount'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'receipt_items.unit_price'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
           - column: 'receipt_items.line_total'
             go_type:
               import: 'ariand/internal/types'
-              type: 'MoneyWrapper'
+              type: 'Money'
               pointer: true
 
           # pg json to go json

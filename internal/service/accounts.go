@@ -71,21 +71,20 @@ func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Ge
 func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error) {
 	needsDefaultBalance := len(params.AnchorBalance) == 0
 	if needsDefaultBalance {
-		defaultMoney := &money.Money{
-			CurrencyCode: "CAD", // force everyone to be canadian, eh?
-			Units:        0,
-			Nanos:        0,
+		defaultMoney := &types.Money{
+			Money: money.Money{
+				CurrencyCode: "CAD", // force everyone to be canadian, eh?
+				Units:        0,
+				Nanos:        0,
+			},
 		}
 
-		wrapper := types.WrapMoney(defaultMoney)
-		jsonBytes, err := wrapper.Value()
+		jsonBytes, err := defaultMoney.Value()
 		if err != nil {
 			return nil, wrapErr("AccountService.Create", err)
 		}
 
-		if bytes, ok := jsonBytes.([]byte); ok {
-			params.AnchorBalance = bytes
-		}
+		params.AnchorBalance = jsonBytes.([]byte)
 	}
 
 	created, err := s.queries.CreateAccount(ctx, params)
@@ -155,7 +154,7 @@ func (s *acctSvc) GetAnchorBalance(ctx context.Context, id int64) (*money.Money,
 		}, nil
 	}
 
-	return result.UnwrapMoney(), nil
+	return &result.Money, nil
 }
 
 func (s *acctSvc) GetBalance(ctx context.Context, accountID int64) (*money.Money, error) {
@@ -171,15 +170,14 @@ func (s *acctSvc) GetBalance(ctx context.Context, accountID int64) (*money.Money
 
 	hasNoTransactions := currentBalance == nil
 	if hasNoTransactions {
-		anchorMoney := anchorInfo.UnwrapMoney()
 		return &money.Money{
-			CurrencyCode: anchorMoney.CurrencyCode,
+			CurrencyCode: anchorInfo.CurrencyCode,
 			Units:        0,
 			Nanos:        0,
 		}, nil
 	}
 
-	return currentBalance.UnwrapMoney(), nil
+	return &currentBalance.Money, nil
 }
 
 func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error {

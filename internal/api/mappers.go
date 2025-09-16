@@ -18,17 +18,26 @@ import (
 
 // ==================== MONEY UNWRAPPING ====================
 
-// unwrapMoney extracts *money.Money from *types.MoneyWrapper
-func unwrapMoney(wrapper *types.MoneyWrapper) *money.Money {
-	if wrapper == nil {
+// unwrapMoney extracts *money.Money from *types.Money
+func unwrapMoney(m *types.Money) *money.Money {
+	if m == nil {
 		return nil
 	}
-	return wrapper.UnwrapMoney()
+	return &m.Money
 }
 
-// wrapMoney creates *types.MoneyWrapper from *money.Money
-func wrapMoney(m *money.Money) *types.MoneyWrapper {
-	return types.WrapMoney(m)
+// wrapMoney creates *types.Money from *money.Money
+func wrapMoney(m *money.Money) *types.Money {
+	if m == nil {
+		return nil
+	}
+	return &types.Money{
+		Money: money.Money{
+			CurrencyCode: m.CurrencyCode,
+			Units:        m.Units,
+			Nanos:        m.Nanos,
+		},
+	}
 }
 
 // wrapMoneyToBytes converts *money.Money to []byte for sqlc parameters
@@ -36,15 +45,18 @@ func wrapMoneyToBytes(m *money.Money) ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
-	wrapper := types.WrapMoney(m)
-	jsonBytes, err := wrapper.Value()
+	money := &types.Money{
+		Money: money.Money{
+			CurrencyCode: m.CurrencyCode,
+			Units:        m.Units,
+			Nanos:        m.Nanos,
+		},
+	}
+	jsonBytes, err := money.Value()
 	if err != nil {
 		return nil, err
 	}
-	if bytes, ok := jsonBytes.([]byte); ok {
-		return bytes, nil
-	}
-	return nil, status.Error(codes.Internal, "failed to convert money to bytes")
+	return jsonBytes.([]byte), nil
 }
 
 // ==================== ERROR HANDLING ====================
