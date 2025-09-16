@@ -1,5 +1,9 @@
 package linking
 
+// TODO: Temporarily commented out during MoneyWrapper migration
+// This needs to be updated to work with the new JSONB money types
+
+/*
 import (
 	"ariand/internal/db/sqlc"
 	"context"
@@ -11,7 +15,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+*/
 
+/*
 type Service interface {
 	LinkReceiptToTransaction(ctx context.Context, receiptID int64) error
 }
@@ -259,3 +265,4 @@ func (s *service) updateReceiptWithMatch(ctx context.Context, receiptID, transac
 		TransactionID: transactionID,
 	})
 }
+*/

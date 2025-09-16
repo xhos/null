@@ -1,7 +1,12 @@
 package ai
 
+// TODO: Temporarily commented out during MoneyWrapper migration
+// This needs to be updated to work with the new JSONB money types
+
+/*
 import (
 	"ariand/internal/db/sqlc"
+	"ariand/internal/types"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -9,13 +14,13 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// decimalToFloat converts decimal.Decimal to float64
-func decimalToFloat(d *decimal.Decimal) float64 {
-	if d == nil {
-		return 0.0
+// moneyToFloat converts MoneyWrapper to float64
+func moneyToFloat(wrapper *types.MoneyWrapper) (float64, string) {
+	if wrapper == nil || wrapper.Money == nil {
+		return 0.0, "USD"
 	}
-	f, _ := d.Float64()
-	return f
+	amount := float64(wrapper.Money.Units) + float64(wrapper.Money.Nanos)/1e9
+	return amount, wrapper.Money.CurrencyCode
 }
 
 // BuildCategorizationPrompt constructs a best-practice prompt:
@@ -31,6 +36,9 @@ func BuildCategorizationPrompt(tx *sqlc.Transaction, allowedCategories []string)
 		}
 		return *s
 	}
+	
+	amount, currency := moneyToFloat(tx.TxAmount)
+	
 	return fmt.Sprintf(
 		`You are a financial assistant. Categorize this transaction.
 
@@ -70,11 +78,13 @@ Now categorize:
 		strings.Join(allowedCategories, ", "),
 		val(tx.Merchant),
 		val(tx.TxDesc),
-		decimalToFloat(tx.TxAmount), tx.TxCurrency,
+		amount, currency,
 		tx.TxDate.Format("2006-01-02T15:04:05Z07:00"),
 	)
 }
+*/
 
+/*
 // CategoryResult holds the parsed response from ParseCategorizationOutput.
 type CategoryResult struct {
 	Category    string   `json:"category"`
@@ -185,3 +195,4 @@ func BuildMerchantExtractionPrompt(description string) string {
 		description,
 	)
 }
+*/

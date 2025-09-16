@@ -56,6 +56,10 @@
     git push
   '';
 
+  scripts.sqlc-regen.exec = ''
+    rm -rf internal/db/sqlc/; sqlc generate
+  '';
+
   scripts.regen.exec = ''
     rm -rf internal/db/sqlc/; sqlc generate; rm -rf internal/gen/; buf generate
   '';

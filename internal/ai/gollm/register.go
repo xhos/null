@@ -1,5 +1,7 @@
 package gollm
 
+// TODO: Temporarily commented out during MoneyWrapper migration
+/*
 import "ariand/internal/ai"
 
 func init() {
@@ -10,3 +12,4 @@ func init() {
 	mgr.Register("anthropic", newBuilder("anthropic"))
 	mgr.Register("ollama", newBuilder("ollama"))
 }
+*/

@@ -1,5 +1,9 @@
 package gollm
 
+// TODO: Temporarily commented out during MoneyWrapper migration
+// This needs to be updated to work with the new JSONB money types
+
+/*
 import (
 	"ariand/internal/ai"
 	"ariand/internal/db/sqlc"
@@ -12,7 +16,9 @@ import (
 	gollm "github.com/teilomillet/gollm"
 	llm "github.com/teilomillet/gollm/llm"
 )
+*/
 
+/*
 // ---------- plumbing for test stubs ----------
 
 // llmNew is wrapped so unit-tests can replace it with a fake.
@@ -127,3 +133,4 @@ func newBuilder(engine string) ai.Builder {
 		}, nil
 	}
 }
+*/
