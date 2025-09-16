@@ -64,6 +64,8 @@
     rm -rf internal/db/sqlc/; sqlc generate; rm -rf internal/gen/; buf generate
   '';
 
+  scripts.cover.exec = "go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html";
+
   git-hooks.hooks = {
     gotest.enable = true;
     gofmt.enable = true;
