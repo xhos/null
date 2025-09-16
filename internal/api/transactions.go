@@ -15,7 +15,7 @@ func (s *Server) ListTransactions(ctx context.Context, req *connect.Request[pb.L
 	}
 
 	params := buildListTransactionsParams(userID, req.Msg)
-	transactions, err := s.services.Transactions.ListForUser(ctx, params)
+	transactions, err := s.services.Transactions.List(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -33,12 +33,12 @@ func (s *Server) GetTransaction(ctx context.Context, req *connect.Request[pb.Get
 		return nil, err
 	}
 
-	params := sqlc.GetTransactionForUserParams{
+	params := sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	transaction, err := s.services.Transactions.GetForUser(ctx, params)
+	transaction, err := s.services.Transactions.Get(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -54,19 +54,22 @@ func (s *Server) CreateTransaction(ctx context.Context, req *connect.Request[pb.
 		return nil, err
 	}
 
-	params := buildCreateTransactionParams(userID, req.Msg)
-	transactionID, err := s.services.Transactions.CreateForUser(ctx, params)
+	params, err := buildCreateTransactionParams(userID, req.Msg)
+	if err != nil {
+		return nil, handleError(err)
+	}
+	transactionID, err := s.services.Transactions.Create(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	// get the created transaction
-	getParams := sqlc.GetTransactionForUserParams{
+	getParams := sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     transactionID,
 	}
 
-	transaction, err := s.services.Transactions.GetForUser(ctx, getParams)
+	transaction, err := s.services.Transactions.Get(ctx, getParams)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -82,19 +85,22 @@ func (s *Server) UpdateTransaction(ctx context.Context, req *connect.Request[pb.
 		return nil, err
 	}
 
-	params := buildUpdateTransactionParams(userID, req.Msg)
+	params, err := buildUpdateTransactionParams(userID, req.Msg)
+	if err != nil {
+		return nil, handleError(err)
+	}
 	err = s.services.Transactions.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	// get the updated transaction
-	getParams := sqlc.GetTransactionForUserParams{
+	getParams := sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	transaction, err := s.services.Transactions.GetForUser(ctx, getParams)
+	transaction, err := s.services.Transactions.Get(ctx, getParams)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -110,12 +116,12 @@ func (s *Server) DeleteTransaction(ctx context.Context, req *connect.Request[pb.
 		return nil, err
 	}
 
-	params := sqlc.DeleteTransactionForUserParams{
+	params := sqlc.DeleteTransactionParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	affectedRows, err := s.services.Transactions.DeleteForUser(ctx, params)
+	affectedRows, err := s.services.Transactions.Delete(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -131,12 +137,12 @@ func (s *Server) BulkDeleteTransactions(ctx context.Context, req *connect.Reques
 		return nil, err
 	}
 
-	params := sqlc.BulkDeleteTransactionsForUserParams{
+	params := sqlc.BulkDeleteTransactionsParams{
 		UserID:         userID,
 		TransactionIds: req.Msg.TransactionIds,
 	}
 
-	err = s.services.Transactions.BulkDeleteForUser(ctx, params)
+	err = s.services.Transactions.BulkDelete(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -153,24 +159,24 @@ func (s *Server) CategorizeTransaction(ctx context.Context, req *connect.Request
 	}
 
 	// manual categorization via bulk categorize
-	params := sqlc.BulkCategorizeTransactionsForUserParams{
+	params := sqlc.BulkCategorizeTransactionsParams{
 		UserID:         userID,
 		TransactionIds: []int64{req.Msg.GetTransactionId()},
 		CategoryID:     req.Msg.GetCategoryId(),
 	}
 
-	err = s.services.Transactions.BulkCategorizeForUser(ctx, params)
+	err = s.services.Transactions.BulkCategorize(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	// get the updated transaction
-	getParams := sqlc.GetTransactionForUserParams{
+	getParams := sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     req.Msg.GetTransactionId(),
 	}
 
-	transaction, err := s.services.Transactions.GetForUser(ctx, getParams)
+	transaction, err := s.services.Transactions.Get(ctx, getParams)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -192,7 +198,7 @@ func (s *Server) SearchTransactions(ctx context.Context, req *connect.Request[pb
 	}
 
 	return connect.NewResponse(&pb.SearchTransactionsResponse{
-		Transactions: mapSlice(transactions, func(tx *sqlc.ListTransactionsForUserRow) *pb.TransactionWithScore {
+		Transactions: mapSlice(transactions, func(tx *sqlc.ListTransactionsRow) *pb.TransactionWithScore {
 			return &pb.TransactionWithScore{
 				Transaction: toProtoTransactionFromListRow(tx),
 			}
@@ -243,13 +249,13 @@ func (s *Server) BulkCategorizeTransactions(ctx context.Context, req *connect.Re
 		return nil, err
 	}
 
-	params := sqlc.BulkCategorizeTransactionsForUserParams{
+	params := sqlc.BulkCategorizeTransactionsParams{
 		UserID:         userID,
 		TransactionIds: req.Msg.TransactionIds,
 		CategoryID:     req.Msg.GetCategoryId(),
 	}
 
-	err = s.services.Transactions.BulkCategorizeForUser(ctx, params)
+	err = s.services.Transactions.BulkCategorize(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -265,13 +271,13 @@ func (s *Server) GetTransactionCountByAccount(ctx context.Context, req *connect.
 		return nil, err
 	}
 
-	counts, err := s.services.Transactions.GetTransactionCountByAccountForUser(ctx, userID)
+	counts, err := s.services.Transactions.GetTransactionCountByAccount(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	return connect.NewResponse(&pb.GetTransactionCountByAccountResponse{
-		Counts: mapSlice(counts, func(count *sqlc.GetTransactionCountByAccountForUserRow) *pb.TransactionCountByAccount {
+		Counts: mapSlice(counts, func(count *sqlc.GetTransactionCountByAccountRow) *pb.TransactionCountByAccount {
 			return &pb.TransactionCountByAccount{
 				AccountId:        count.ID,
 				TransactionCount: count.TransactionCount,
@@ -286,20 +292,20 @@ func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Req
 		return nil, err
 	}
 
-	params := sqlc.FindCandidateTransactionsForUserParams{
+	params := sqlc.FindCandidateTransactionsParams{
 		UserID:   userID,
 		Merchant: req.Msg.GetMerchant(),
 		Date:     timestampToDate(req.Msg.PurchaseDate),
 		Total:    moneyToDecimal(req.Msg.TotalAmount),
 	}
 
-	candidates, err := s.services.Transactions.FindCandidateTransactionsForUser(ctx, params)
+	candidates, err := s.services.Transactions.FindCandidateTransactions(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	return connect.NewResponse(&pb.FindCandidateTransactionsResponse{
-		Candidates: mapSlice(candidates, func(candidate *sqlc.FindCandidateTransactionsForUserRow) *pb.TransactionWithScore {
+		Candidates: mapSlice(candidates, func(candidate *sqlc.FindCandidateTransactionsRow) *pb.TransactionWithScore {
 			return &pb.TransactionWithScore{
 				Transaction: toProtoTransactionFromFindRow(candidate),
 			}
@@ -319,12 +325,12 @@ func (s *Server) IdentifyMerchant(ctx context.Context, req *connect.Request[pb.I
 	}
 
 	// get the updated transaction to return the identified merchant
-	getParams := sqlc.GetTransactionForUserParams{
+	getParams := sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     req.Msg.GetTransactionId(),
 	}
 
-	transaction, err := s.services.Transactions.GetForUser(ctx, getParams)
+	transaction, err := s.services.Transactions.Get(ctx, getParams)
 	if err != nil {
 		return nil, handleError(err)
 	}

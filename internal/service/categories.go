@@ -9,23 +9,28 @@ import (
 	"sync"
 
 	"github.com/charmbracelet/log"
+	"github.com/google/uuid"
 )
 
 type CategoryService interface {
-	List(ctx context.Context) ([]sqlc.Category, error)
-	Get(ctx context.Context, id int64) (*sqlc.Category, error)
+	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Category, error)
+	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Category, error)
 	Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error)
 	Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error)
-	Delete(ctx context.Context, id int64) (int64, error)
-	BySlug(ctx context.Context, slug string) (*sqlc.Category, error)
-	ListSlugs(ctx context.Context) ([]string, error)
+	Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error)
+	BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sqlc.Category, error)
+	ListSlugs(ctx context.Context, userID uuid.UUID) ([]string, error)
 }
 
 var (
-	slugCache   []string
+	slugCache   map[uuid.UUID][]string
 	slugCacheMu sync.RWMutex
 	slugRegex   = regexp.MustCompile(`^[a-z0-9]+(\.[a-z0-9]+)*$`)
 )
+
+func init() {
+	slugCache = make(map[uuid.UUID][]string)
+}
 
 type catSvc struct {
 	queries *sqlc.Queries
@@ -36,16 +41,19 @@ func newCatSvc(queries *sqlc.Queries, lg *log.Logger) CategoryService {
 	return &catSvc{queries: queries, log: lg}
 }
 
-func (s *catSvc) List(ctx context.Context) ([]sqlc.Category, error) {
-	categories, err := s.queries.ListCategories(ctx)
+func (s *catSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.Category, error) {
+	categories, err := s.queries.ListCategories(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("CategoryService.List", err)
 	}
 	return categories, nil
 }
 
-func (s *catSvc) Get(ctx context.Context, id int64) (*sqlc.Category, error) {
-	category, err := s.queries.GetCategory(ctx, id)
+func (s *catSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Category, error) {
+	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
+		ID:     id,
+		UserID: userID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("CategoryService.Get", ErrNotFound)
 	}
@@ -56,7 +64,8 @@ func (s *catSvc) Get(ctx context.Context, id int64) (*sqlc.Category, error) {
 }
 
 func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error) {
-	if !slugRegex.MatchString(params.Slug) {
+	isValidSlug := slugRegex.MatchString(params.Slug)
+	if !isValidSlug {
 		return nil, wrapErr("CategoryService.Create", ErrValidation)
 	}
 
@@ -65,14 +74,17 @@ func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (
 		return nil, wrapErr("CategoryService.Create", err)
 	}
 
-	s.invalidateSlugCache()
+	s.invalidateSlugCache(params.UserID)
 
 	return &category, nil
 }
 
 func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
-	if params.Slug != nil && !slugRegex.MatchString(*params.Slug) {
-		return nil, wrapErr("CategoryService.Update", ErrValidation)
+	if params.Slug != nil {
+		isValidSlug := slugRegex.MatchString(*params.Slug)
+		if !isValidSlug {
+			return nil, wrapErr("CategoryService.Update", ErrValidation)
+		}
 	}
 
 	category, err := s.queries.UpdateCategory(ctx, params)
@@ -83,27 +95,30 @@ func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (
 		return nil, wrapErr("CategoryService.Update", err)
 	}
 
-	s.invalidateSlugCache()
+	s.invalidateSlugCache(params.UserID)
 
 	return &category, nil
 }
 
-func (s *catSvc) Delete(ctx context.Context, id int64) (int64, error) {
-	affected, err := s.queries.DeleteCategory(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, wrapErr("CategoryService.Delete", ErrNotFound)
-	}
+func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error) {
+	affected, err := s.queries.DeleteCategory(ctx, sqlc.DeleteCategoryParams{
+		ID:     id,
+		UserID: userID,
+	})
 	if err != nil {
 		return 0, wrapErr("CategoryService.Delete", err)
 	}
 
-	s.invalidateSlugCache()
+	s.invalidateSlugCache(userID)
 
 	return affected, nil
 }
 
-func (s *catSvc) BySlug(ctx context.Context, slug string) (*sqlc.Category, error) {
-	category, err := s.queries.GetCategoryBySlug(ctx, slug)
+func (s *catSvc) BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sqlc.Category, error) {
+	category, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
+		Slug:   slug,
+		UserID: userID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("CategoryService.BySlug", ErrNotFound)
 	}
@@ -113,38 +128,41 @@ func (s *catSvc) BySlug(ctx context.Context, slug string) (*sqlc.Category, error
 	return &category, nil
 }
 
-func (s *catSvc) ListSlugs(ctx context.Context) ([]string, error) {
+func (s *catSvc) ListSlugs(ctx context.Context, userID uuid.UUID) ([]string, error) {
 	slugCacheMu.RLock()
-	if slugCache != nil {
-		cached := make([]string, len(slugCache))
-		copy(cached, slugCache)
+	cached, exists := slugCache[userID]
+	if exists {
+		result := make([]string, len(cached))
+		copy(result, cached)
 		slugCacheMu.RUnlock()
-		return cached, nil
+		return result, nil
 	}
 	slugCacheMu.RUnlock()
 
 	slugCacheMu.Lock()
 	defer slugCacheMu.Unlock()
 
-	if slugCache != nil {
-		cached := make([]string, len(slugCache))
-		copy(cached, slugCache)
-		return cached, nil
+	// Double-check after acquiring write lock
+	cached, exists = slugCache[userID]
+	if exists {
+		result := make([]string, len(cached))
+		copy(result, cached)
+		return result, nil
 	}
 
-	slugs, err := s.queries.ListCategorySlugs(ctx)
+	slugs, err := s.queries.ListCategorySlugs(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("CategoryService.ListSlugs", err)
 	}
 
-	slugCache = slugs
-	cached := make([]string, len(slugCache))
-	copy(cached, slugCache)
-	return cached, nil
+	slugCache[userID] = slugs
+	result := make([]string, len(slugs))
+	copy(result, slugs)
+	return result, nil
 }
 
-func (s *catSvc) invalidateSlugCache() {
+func (s *catSvc) invalidateSlugCache(userID uuid.UUID) {
 	slugCacheMu.Lock()
-	slugCache = nil
+	delete(slugCache, userID)
 	slugCacheMu.Unlock()
 }

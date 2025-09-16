@@ -2,6 +2,7 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	"ariand/internal/types"
 	"context"
 	"database/sql"
 	"errors"
@@ -9,19 +10,18 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/money"
 )
 
 type AccountService interface {
-	List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsForUserRow, error)
-	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.GetAccountForUserRow, error)
+	List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsRow, error)
+	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.GetAccountRow, error)
 	Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error)
 	Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error)
-	Delete(ctx context.Context, params sqlc.DeleteAccountForUserParams) (int64, error)
+	Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error)
 	GetAccountCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	CheckUserAccountAccess(ctx context.Context, params sqlc.CheckUserAccountAccessParams) (bool, error)
-	GetAnchorBalance(ctx context.Context, id int64) (*sqlc.GetAccountAnchorBalanceRow, error)
+	GetAnchorBalance(ctx context.Context, id int64) (*money.Money, error)
 	GetBalance(ctx context.Context, accountID int64) (*money.Money, error)
 	SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error
 	SyncBalances(ctx context.Context, accountID int64) error
@@ -32,7 +32,6 @@ type acctSvc struct {
 	log     *log.Logger
 }
 
-// WithTx creates a new service instance with a transaction
 func (s *acctSvc) WithTx(tx pgx.Tx) AccountService {
 	return &acctSvc{
 		queries: s.queries.WithTx(tx),
@@ -44,16 +43,16 @@ func newAcctSvc(queries *sqlc.Queries, lg *log.Logger) AccountService {
 	return &acctSvc{queries: queries, log: lg}
 }
 
-func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsForUserRow, error) {
-	accounts, err := s.queries.ListAccountsForUser(ctx, userID)
+func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsRow, error) {
+	accounts, err := s.queries.ListAccounts(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("AccountService.List", err)
 	}
 	return accounts, nil
 }
 
-func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.GetAccountForUserRow, error) {
-	account, err := s.queries.GetAccountForUser(ctx, sqlc.GetAccountForUserParams{
+func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.GetAccountRow, error) {
+	account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
 		UserID: userID,
 		ID:     id,
 	})
@@ -70,12 +69,23 @@ func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Ge
 }
 
 func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error) {
-	if params.AnchorCurrency == "" {
-		params.AnchorCurrency = "CAD" // force everyone to be canadian, eh?
-	}
+	needsDefaultBalance := len(params.AnchorBalance) == 0
+	if needsDefaultBalance {
+		defaultMoney := &money.Money{
+			CurrencyCode: "CAD", // force everyone to be canadian, eh?
+			Units:        0,
+			Nanos:        0,
+		}
 
-	if params.AnchorBalance.IsZero() {
-		params.AnchorBalance = decimal.Zero
+		wrapper := types.WrapMoney(defaultMoney)
+		jsonBytes, err := wrapper.Value()
+		if err != nil {
+			return nil, wrapErr("AccountService.Create", err)
+		}
+
+		if bytes, ok := jsonBytes.([]byte); ok {
+			params.AnchorBalance = bytes
+		}
 	}
 
 	created, err := s.queries.CreateAccount(ctx, params)
@@ -83,7 +93,6 @@ func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, u
 		return nil, wrapErr("AccountService.Create", err)
 	}
 
-	// ensure user has a default account set
 	if err := userSvc.EnsureDefaultAccount(ctx, params.OwnerID); err != nil {
 		s.log.Warn("Failed to set default account for user", "user_id", params.OwnerID, "error", err)
 	}
@@ -104,8 +113,8 @@ func (s *acctSvc) Update(ctx context.Context, params sqlc.UpdateAccountParams) (
 	return &updated, nil
 }
 
-func (s *acctSvc) Delete(ctx context.Context, params sqlc.DeleteAccountForUserParams) (int64, error) {
-	affected, err := s.queries.DeleteAccountForUser(ctx, params)
+func (s *acctSvc) Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error) {
+	affected, err := s.queries.DeleteAccount(ctx, params)
 	if err != nil {
 		return 0, wrapErr("AccountService.Delete", err)
 	}
@@ -128,7 +137,7 @@ func (s *acctSvc) CheckUserAccountAccess(ctx context.Context, params sqlc.CheckU
 	return access, nil
 }
 
-func (s *acctSvc) GetAnchorBalance(ctx context.Context, id int64) (*sqlc.GetAccountAnchorBalanceRow, error) {
+func (s *acctSvc) GetAnchorBalance(ctx context.Context, id int64) (*money.Money, error) {
 	result, err := s.queries.GetAccountAnchorBalance(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("AccountService.GetAnchorBalance", ErrNotFound)
@@ -138,7 +147,15 @@ func (s *acctSvc) GetAnchorBalance(ctx context.Context, id int64) (*sqlc.GetAcco
 		return nil, wrapErr("AccountService.GetAnchorBalance", err)
 	}
 
-	return &result, nil
+	if result == nil {
+		return &money.Money{
+			CurrencyCode: "CAD",
+			Units:        0,
+			Nanos:        0,
+		}, nil
+	}
+
+	return result.UnwrapMoney(), nil
 }
 
 func (s *acctSvc) GetBalance(ctx context.Context, accountID int64) (*money.Money, error) {
@@ -147,28 +164,22 @@ func (s *acctSvc) GetBalance(ctx context.Context, accountID int64) (*money.Money
 		return nil, wrapErr("AccountService.GetBalance", err)
 	}
 
-	bal, err := s.queries.GetAccountBalance(ctx, accountID)
+	currentBalance, err := s.queries.GetAccountBalance(ctx, accountID)
 	if err != nil {
 		return nil, wrapErr("AccountService.GetBalance", err)
 	}
-	if bal == nil {
+
+	hasNoTransactions := currentBalance == nil
+	if hasNoTransactions {
+		anchorMoney := anchorInfo.UnwrapMoney()
 		return &money.Money{
-			CurrencyCode: anchorInfo.AnchorCurrency,
+			CurrencyCode: anchorMoney.CurrencyCode,
 			Units:        0,
 			Nanos:        0,
 		}, nil
 	}
 
-	// convert decimal to money
-	balFloat, _ := bal.Float64()
-	units := int64(balFloat)
-	nanos := int32((balFloat - float64(units)) * 1e9)
-
-	return &money.Money{
-		CurrencyCode: anchorInfo.AnchorCurrency,
-		Units:        units,
-		Nanos:        nanos,
-	}, nil
+	return currentBalance.UnwrapMoney(), nil
 }
 
 func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error {

@@ -1,9 +1,9 @@
--- name: ListTransactionsForUser :many
+-- name: ListTransactions :many
 SELECT
-  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount, t.tx_currency,
+  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
   t.tx_direction, t.tx_desc, t.balance_after, t.category_id, t.cat_status,
   t.merchant, t.user_notes, t.suggestions, t.receipt_id,
-  t.foreign_currency, t.foreign_amount, t.exchange_rate,
+  t.foreign_amount, t.exchange_rate,
   t.created_at, t.updated_at,
   c.slug AS category_slug,
   c.label AS category_label,
@@ -21,26 +21,26 @@ WHERE (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL)
       )
   AND (sqlc.narg('start')::timestamptz IS NULL OR t.tx_date >= sqlc.narg('start')::timestamptz)
   AND (sqlc.narg('end')::timestamptz IS NULL OR t.tx_date <= sqlc.narg('end')::timestamptz)
-  AND (sqlc.narg('amount_min')::numeric IS NULL OR t.tx_amount >= sqlc.narg('amount_min')::numeric)
-  AND (sqlc.narg('amount_max')::numeric IS NULL OR t.tx_amount <= sqlc.narg('amount_max')::numeric)
+  AND (sqlc.narg('amount_min')::numeric IS NULL OR (t.tx_amount->>'units')::bigint >= sqlc.narg('amount_min')::numeric)
+  AND (sqlc.narg('amount_max')::numeric IS NULL OR (t.tx_amount->>'units')::bigint <= sqlc.narg('amount_max')::numeric)
   AND (sqlc.narg('direction')::smallint IS NULL OR t.tx_direction = sqlc.narg('direction')::smallint)
   AND (sqlc.narg('account_ids')::bigint[] IS NULL OR t.account_id = ANY(sqlc.narg('account_ids')::bigint[]))
   AND (sqlc.narg('categories')::text[] IS NULL OR c.slug = ANY(sqlc.narg('categories')::text[]))
   AND (sqlc.narg('merchant_q')::text IS NULL OR t.merchant ILIKE ('%' || sqlc.narg('merchant_q')::text || '%'))
   AND (sqlc.narg('desc_q')::text IS NULL OR t.tx_desc ILIKE ('%' || sqlc.narg('desc_q')::text || '%'))
-  AND (sqlc.narg('currency')::char(3) IS NULL OR t.tx_currency = sqlc.narg('currency')::char(3))
+  AND (sqlc.narg('currency')::char(3) IS NULL OR t.tx_amount->>'currency_code' = sqlc.narg('currency')::char(3))
   AND (sqlc.narg('tod_start')::time IS NULL OR t.tx_date::time >= sqlc.narg('tod_start')::time)
   AND (sqlc.narg('tod_end')::time IS NULL OR t.tx_date::time <= sqlc.narg('tod_end')::time)
   AND (sqlc.narg('uncategorized')::boolean IS NULL OR (sqlc.narg('uncategorized')::boolean = true AND t.category_id IS NULL))
 ORDER BY t.tx_date DESC, t.id DESC
 LIMIT COALESCE(sqlc.narg('limit')::int, 100);
 
--- name: GetTransactionForUser :one
+-- name: GetTransaction :one
 SELECT
-  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount, t.tx_currency,
+  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
   t.tx_direction, t.tx_desc, t.balance_after, t.category_id, t.cat_status,
   t.merchant, t.user_notes, t.suggestions, t.receipt_id,
-  t.foreign_currency, t.foreign_amount, t.exchange_rate,
+  t.foreign_amount, t.exchange_rate,
   t.created_at, t.updated_at,
   c.slug AS category_slug,
   c.label AS category_label,
@@ -53,26 +53,24 @@ LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = sqlc.arg(use
 WHERE t.id = sqlc.arg(id)::bigint
   AND (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL);
 
--- name: CreateTransactionForUser :one
+-- name: CreateTransaction :one
 INSERT INTO transactions (
-  email_id, account_id, tx_date, tx_amount, tx_currency, tx_direction,
+  email_id, account_id, tx_date, tx_amount, tx_direction,
   tx_desc, balance_after, category_id, merchant, user_notes,
-  foreign_currency, foreign_amount, exchange_rate, suggestions, receipt_id
+  foreign_amount, exchange_rate, suggestions, receipt_id
 )
 SELECT
   sqlc.narg('email_id')::text,
   sqlc.arg(account_id)::bigint,
   sqlc.arg(tx_date)::timestamptz,
-  sqlc.arg(tx_amount)::numeric,
-  sqlc.arg(tx_currency)::char(3),
+  sqlc.arg(tx_amount)::jsonb,
   sqlc.arg(tx_direction)::smallint,
   sqlc.narg('tx_desc')::text,
-  sqlc.narg('balance_after')::numeric,
+  sqlc.narg('balance_after')::jsonb,
   sqlc.narg('category_id')::bigint,
   sqlc.narg('merchant')::text,
   sqlc.narg('user_notes')::text,
-  sqlc.narg('foreign_currency')::char(3),
-  sqlc.narg('foreign_amount')::numeric,
+  sqlc.narg('foreign_amount')::jsonb,
   sqlc.narg('exchange_rate')::numeric,
   sqlc.narg('suggestions')::text[],
   sqlc.narg('receipt_id')::bigint
@@ -86,15 +84,13 @@ RETURNING id;
 UPDATE transactions
 SET email_id = COALESCE(sqlc.narg('email_id')::text, email_id),
     tx_date = COALESCE(sqlc.narg('tx_date')::timestamptz, tx_date),
-    tx_amount = COALESCE(sqlc.narg('tx_amount')::numeric, tx_amount),
-    tx_currency = COALESCE(sqlc.narg('tx_currency')::char(3), tx_currency),
+    tx_amount = COALESCE(sqlc.narg('tx_amount')::jsonb, tx_amount),
     tx_direction = COALESCE(sqlc.narg('tx_direction')::smallint, tx_direction),
     tx_desc = COALESCE(sqlc.narg('tx_desc')::text, tx_desc),
     category_id = COALESCE(sqlc.narg('category_id')::bigint, category_id),
     merchant = COALESCE(sqlc.narg('merchant')::text, merchant),
     user_notes = COALESCE(sqlc.narg('user_notes')::text, user_notes),
-    foreign_currency = COALESCE(sqlc.narg('foreign_currency')::char(3), foreign_currency),
-    foreign_amount = COALESCE(sqlc.narg('foreign_amount')::numeric, foreign_amount),
+    foreign_amount = COALESCE(sqlc.narg('foreign_amount')::jsonb, foreign_amount),
     exchange_rate = COALESCE(sqlc.narg('exchange_rate')::numeric, exchange_rate),
     suggestions = COALESCE(sqlc.narg('suggestions')::text[], suggestions),
     receipt_id = COALESCE(sqlc.narg('receipt_id')::bigint, receipt_id),
@@ -107,7 +103,7 @@ WHERE id = sqlc.arg(id)::bigint
   )
 RETURNING account_id;
 
--- name: DeleteTransactionForUser :one
+-- name: DeleteTransaction :one
 DELETE FROM transactions
 WHERE id = sqlc.arg(id)::bigint
   AND account_id IN (
@@ -136,7 +132,7 @@ WHERE id = sqlc.arg(id)::bigint
   )
 RETURNING id, cat_status;
 
--- name: BulkCategorizeTransactionsForUser :execrows
+-- name: BulkCategorizeTransactions :execrows
 UPDATE transactions
 SET category_id = sqlc.arg(category_id)::bigint,
     cat_status = 3  -- manual categorization
@@ -147,7 +143,7 @@ WHERE id = ANY(sqlc.arg(transaction_ids)::bigint[])
     WHERE a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL
   );
 
--- name: BulkDeleteTransactionsForUser :execrows
+-- name: BulkDeleteTransactions :execrows
 DELETE FROM transactions
 WHERE id = ANY(sqlc.arg(transaction_ids)::bigint[])
   AND account_id IN (
@@ -156,7 +152,7 @@ WHERE id = ANY(sqlc.arg(transaction_ids)::bigint[])
     WHERE a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL
   );
 
--- name: GetTransactionCountByAccountForUser :many
+-- name: GetTransactionCountByAccount :many
 SELECT a.id, a.name, COUNT(t.id) AS transaction_count
 FROM accounts a
 LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = sqlc.arg(user_id)::uuid
@@ -168,31 +164,37 @@ ORDER BY transaction_count DESC;
 -- name: SyncAccountBalances :exec
 WITH transaction_deltas AS (
   SELECT id,
-         SUM(CASE WHEN tx_direction = 1 THEN tx_amount ELSE -tx_amount END)
+         SUM(CASE WHEN tx_direction = 1 THEN (tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0 
+                  ELSE -((tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0) END)
            OVER (PARTITION BY account_id ORDER BY tx_date, id) AS running_delta
   FROM transactions
   WHERE account_id = sqlc.arg(account_id)::bigint
 ),
 anchor_point AS (
   SELECT a.anchor_balance,
-         COALESCE(SUM(CASE WHEN t.tx_direction = 1 THEN t.tx_amount ELSE -t.tx_amount END), 0.0) AS delta_at_anchor
+         COALESCE(SUM(CASE WHEN t.tx_direction = 1 THEN (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 
+                           ELSE -((t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0) END), 0.0) AS delta_at_anchor
   FROM accounts a
   LEFT JOIN transactions t ON t.account_id = a.id AND t.tx_date < a.anchor_date
   WHERE a.id = sqlc.arg(account_id)::bigint
   GROUP BY a.id, a.anchor_balance
 )
 UPDATE transactions
-SET balance_after = ap.anchor_balance + td.running_delta - ap.delta_at_anchor
+SET balance_after = jsonb_build_object(
+  'currency_code', tx_amount->>'currency_code',
+  'units', ((ap.anchor_balance->>'units')::bigint + td.running_delta - ap.delta_at_anchor)::bigint,
+  'nanos', 0
+)
 FROM transaction_deltas td, anchor_point ap
 WHERE transactions.id = td.id
   AND transactions.account_id = sqlc.arg(account_id)::bigint;
 
--- name: FindCandidateTransactionsForUser :many
+-- name: FindCandidateTransactions :many
 SELECT
-  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount, t.tx_currency,
+  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
   t.tx_direction, t.tx_desc, t.balance_after, t.category_id, t.cat_status,
   t.merchant, t.user_notes, t.suggestions, t.receipt_id,
-  t.foreign_currency, t.foreign_amount, t.exchange_rate,
+  t.foreign_amount, t.exchange_rate,
   t.created_at, t.updated_at,
   c.slug AS category_slug,
   c.label AS category_label,
@@ -206,7 +208,7 @@ WHERE (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL)
   AND t.receipt_id IS NULL
   AND t.tx_direction = 2
   AND t.tx_date >= (sqlc.arg(date)::date - interval '60 days')
-  AND t.tx_amount BETWEEN sqlc.arg(total)::numeric AND (sqlc.arg(total)::numeric * 1.20)
+  AND (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 BETWEEN sqlc.arg(total)::numeric AND (sqlc.arg(total)::numeric * 1.20)
   AND similarity(t.tx_desc::text, sqlc.arg(merchant)::text) > 0.3
 ORDER BY merchant_score DESC
 LIMIT 10;

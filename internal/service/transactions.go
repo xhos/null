@@ -3,6 +3,7 @@ package service
 import (
 	"ariand/internal/ai"
 	"ariand/internal/db/sqlc"
+	"ariand/internal/types"
 	"context"
 	"database/sql"
 	"errors"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 const (
@@ -21,21 +21,21 @@ const (
 )
 
 type TransactionService interface {
-	List(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error)
-	Get(ctx context.Context, params sqlc.GetTransactionForUserParams) (*sqlc.GetTransactionForUserRow, error)
-	Create(ctx context.Context, params sqlc.CreateTransactionForUserParams) (int64, error)
+	List(ctx context.Context, params sqlc.ListTransactionsParams) ([]sqlc.ListTransactionsRow, error)
+	Get(ctx context.Context, params sqlc.GetTransactionParams) (*sqlc.GetTransactionRow, error)
+	Create(ctx context.Context, params sqlc.CreateTransactionParams) (int64, error)
 	Update(ctx context.Context, params sqlc.UpdateTransactionParams) error
-	Delete(ctx context.Context, params sqlc.DeleteTransactionForUserParams) (int64, error)
-	BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsForUserParams) error
-	BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsForUserParams) error
-	GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountForUserRow, error)
-	FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsForUserParams) ([]sqlc.FindCandidateTransactionsForUserRow, error)
+	Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error)
+	BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error
+	BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error
+	GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountRow, error)
+	FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsParams) ([]sqlc.FindCandidateTransactionsRow, error)
 	SetTransactionReceipt(ctx context.Context, params sqlc.SetTransactionReceiptParams) error
 	CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
 	IdentifyMerchantForTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
-	SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error)
-	GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error)
-	GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error)
+	SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsRow, error)
+	GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsRow, error)
+	GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsRow, error)
 }
 
 type txnSvc struct {
@@ -55,40 +55,40 @@ type categorizationResult struct {
 	Suggestions  []string
 }
 
-func (s *txnSvc) List(ctx context.Context, params sqlc.ListTransactionsForUserParams) ([]sqlc.ListTransactionsForUserRow, error) {
+func (s *txnSvc) List(ctx context.Context, params sqlc.ListTransactionsParams) ([]sqlc.ListTransactionsRow, error) {
 	// truncate overly long description queries for performance
 	if params.DescQ != nil && len(*params.DescQ) > maxDescQLength {
 		truncated := (*params.DescQ)[:maxDescQLength]
 		params.DescQ = &truncated
 	}
 
-	rows, err := s.queries.ListTransactionsForUser(ctx, params)
+	rows, err := s.queries.ListTransactions(ctx, params)
 	if err != nil {
-		return nil, wrapErr("TransactionService.ListForUser", err)
+		return nil, wrapErr("TransactionService.List", err)
 	}
 
 	return rows, nil
 }
 
-func (s *txnSvc) Get(ctx context.Context, params sqlc.GetTransactionForUserParams) (*sqlc.GetTransactionForUserRow, error) {
-	row, err := s.queries.GetTransactionForUser(ctx, params)
+func (s *txnSvc) Get(ctx context.Context, params sqlc.GetTransactionParams) (*sqlc.GetTransactionRow, error) {
+	row, err := s.queries.GetTransaction(ctx, params)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("TransactionService.GetForUser", ErrNotFound)
+		return nil, wrapErr("TransactionService.Get", ErrNotFound)
 	}
 
 	if err != nil {
-		return nil, wrapErr("TransactionService.GetForUser", err)
+		return nil, wrapErr("TransactionService.Get", err)
 	}
 
 	return &row, nil
 }
 
-func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionForUserParams) (int64, error) {
+func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams) (int64, error) {
 	if err := s.validateCreateParams(params); err != nil {
 		return 0, fmt.Errorf("TransactionService.Create: %w", err)
 	}
 
-	id, err := s.queries.CreateTransactionForUser(ctx, params)
+	id, err := s.queries.CreateTransaction(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.Create", err)
 	}
@@ -109,42 +109,42 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	return nil
 }
 
-func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionForUserParams) (int64, error) {
-	id, err := s.queries.DeleteTransactionForUser(ctx, params)
+func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error) {
+	id, err := s.queries.DeleteTransaction(ctx, params)
 	if err != nil {
-		return 0, wrapErr("TransactionService.DeleteForUser", err)
+		return 0, wrapErr("TransactionService.Delete", err)
 	}
 	return id, nil
 }
 
-func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsForUserParams) error {
-	_, err := s.queries.BulkDeleteTransactionsForUser(ctx, params)
+func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error {
+	_, err := s.queries.BulkDeleteTransactions(ctx, params)
 	if err != nil {
-		return wrapErr("TransactionService.BulkDeleteForUser", err)
+		return wrapErr("TransactionService.BulkDelete", err)
 	}
 	return nil
 }
 
-func (s *txnSvc) BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsForUserParams) error {
-	_, err := s.queries.BulkCategorizeTransactionsForUser(ctx, params)
+func (s *txnSvc) BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error {
+	_, err := s.queries.BulkCategorizeTransactions(ctx, params)
 	if err != nil {
-		return wrapErr("TransactionService.BulkCategorizeForUser", err)
+		return wrapErr("TransactionService.BulkCategorize", err)
 	}
 	return nil
 }
 
-func (s *txnSvc) GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountForUserRow, error) {
-	counts, err := s.queries.GetTransactionCountByAccountForUser(ctx, userID)
+func (s *txnSvc) GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountRow, error) {
+	counts, err := s.queries.GetTransactionCountByAccount(ctx, userID)
 	if err != nil {
-		return nil, wrapErr("TransactionService.GetTransactionCountByAccountForUser", err)
+		return nil, wrapErr("TransactionService.GetTransactionCountByAccount", err)
 	}
 	return counts, nil
 }
 
-func (s *txnSvc) FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsForUserParams) ([]sqlc.FindCandidateTransactionsForUserRow, error) {
-	candidates, err := s.queries.FindCandidateTransactionsForUser(ctx, params)
+func (s *txnSvc) FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsParams) ([]sqlc.FindCandidateTransactionsRow, error) {
+	candidates, err := s.queries.FindCandidateTransactions(ctx, params)
 	if err != nil {
-		return nil, wrapErr("TransactionService.FindCandidateTransactionsForUser", err)
+		return nil, wrapErr("TransactionService.FindCandidateTransactions", err)
 	}
 	return candidates, nil
 }
@@ -160,7 +160,7 @@ func (s *txnSvc) SetTransactionReceipt(ctx context.Context, params sqlc.SetTrans
 func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error {
 	s.log.Info("CategorizeTransaction", "user", userID, "tx", txID, "method", "similarity")
 
-	tx, err := s.queries.GetTransactionForUser(ctx, sqlc.GetTransactionForUserParams{
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     txID,
 	})
@@ -173,14 +173,13 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 		return wrapErr("CategorizeTransaction.GetTransaction", err)
 	}
 
-	// Convert GetTransactionForUserRow to Transaction for determineCategory
+	// Convert GetTransactionRow to Transaction for determineCategory
 	txForCategory := &sqlc.Transaction{
 		ID:           tx.ID,
 		AccountID:    tx.AccountID,
 		EmailID:      tx.EmailID,
 		TxDate:       tx.TxDate,
 		TxAmount:     tx.TxAmount,
-		TxCurrency:   tx.TxCurrency,
 		TxDirection:  tx.TxDirection,
 		TxDesc:       tx.TxDesc,
 		BalanceAfter: tx.BalanceAfter,
@@ -200,7 +199,7 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 
 	var categoryID *int64 // will be nil if no category found
 	if result.CategorySlug != "" {
-		category, err := s.catSvc.BySlug(ctx, result.CategorySlug)
+		category, err := s.catSvc.BySlug(ctx, userID, result.CategorySlug)
 		if err != nil {
 			return wrapErr("CategorizeTransaction.FindCategoryBySlug", err)
 		}
@@ -233,7 +232,7 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 func (s *txnSvc) IdentifyMerchantForTransaction(ctx context.Context, userID uuid.UUID, txID int64) error {
 	s.log.Info("IdentifyMerchantForTransaction", "user", userID, "tx", txID)
 
-	tx, err := s.queries.GetTransactionForUser(ctx, sqlc.GetTransactionForUserParams{
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     txID,
 	})
@@ -283,12 +282,12 @@ func (s *txnSvc) IdentifyMerchantForTransaction(ctx context.Context, userID uuid
 func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction) (*categorizationResult, error) {
 	// 1. rule-based similarity (fast path)
 	if tx.TxDesc != nil {
-		params := sqlc.ListTransactionsForUserParams{
+		params := sqlc.ListTransactionsParams{
 			UserID: userID,
 			DescQ:  tx.TxDesc,
 			Limit:  int32Ptr(10),
 		}
-		if rows, err := s.queries.ListTransactionsForUser(ctx, params); err == nil {
+		if rows, err := s.queries.ListTransactions(ctx, params); err == nil {
 			desc := strings.ToLower(*tx.TxDesc)
 			for _, m := range rows {
 				// must be a different txn with usable fields
@@ -300,7 +299,7 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 					continue
 				}
 				if similarity(desc, strings.ToLower(*m.TxDesc)) >= 0.7 &&
-					amountClose(*tx.TxAmount, *m.TxAmount, 0.20) {
+					amountClose(tx.TxAmount, m.TxAmount, 0.20) {
 					s.log.Info("found similar transaction for auto-categorization",
 						"txID", tx.ID, "similarTxID", m.ID)
 					return &categorizationResult{CategorySlug: *m.CategorySlug, Status: "auto"}, nil
@@ -314,7 +313,7 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 		if provider, err := s.aiMgr.GetProvider(defaultAIProvider, defaultAIModel); err == nil {
 			s.log.Info("falling back to AI for categorization", "txID", tx.ID)
 
-			slugs, err := s.catSvc.ListSlugs(ctx)
+			slugs, err := s.catSvc.ListSlugs(ctx, userID)
 			if err != nil {
 				return nil, wrapErr("determineCategory.ListSlugs", err)
 			}
@@ -335,9 +334,17 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 }
 
 // validateCreateParams validates transaction creation parameters
-func (s *txnSvc) validateCreateParams(params sqlc.CreateTransactionForUserParams) error {
-	if params.TxAmount.IsZero() {
-		return fmt.Errorf("tx_amount cannot be zero: %w", ErrValidation)
+func (s *txnSvc) validateCreateParams(params sqlc.CreateTransactionParams) error {
+	if len(params.TxAmount) == 0 {
+		return fmt.Errorf("tx_amount cannot be empty: %w", ErrValidation)
+	}
+
+	// Try to parse the JSONB amount to validate it's not zero
+	var wrapper types.MoneyWrapper
+	if err := wrapper.Scan(params.TxAmount); err == nil {
+		if wrapper.Money != nil && wrapper.Money.Units == 0 && wrapper.Money.Nanos == 0 {
+			return fmt.Errorf("tx_amount cannot be zero: %w", ErrValidation)
+		}
 	}
 
 	switch params.TxDirection {
@@ -377,8 +384,8 @@ func similarity(a, b string) float64 {
 	return float64(inter) / float64(union)
 }
 
-func (s *txnSvc) SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error) {
-	params := sqlc.ListTransactionsForUserParams{
+func (s *txnSvc) SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsRow, error) {
+	params := sqlc.ListTransactionsParams{
 		UserID: userID,
 		DescQ:  &query,
 		Limit:  limit,
@@ -394,8 +401,8 @@ func (s *txnSvc) SearchTransactions(ctx context.Context, userID uuid.UUID, query
 	return s.List(ctx, params)
 }
 
-func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error) {
-	params := sqlc.ListTransactionsForUserParams{
+func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsRow, error) {
+	params := sqlc.ListTransactionsParams{
 		UserID:     userID,
 		AccountIds: []int64{accountID},
 		Limit:      limit,
@@ -406,8 +413,8 @@ func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID,
 	return s.List(ctx, params)
 }
 
-func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsForUserRow, error) {
-	params := sqlc.ListTransactionsForUserParams{
+func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.ListTransactionsRow, error) {
+	params := sqlc.ListTransactionsParams{
 		UserID:        userID,
 		Uncategorized: boolPtr(true),
 		Limit:         limit,
@@ -427,16 +434,33 @@ func boolPtr(b bool) *bool {
 
 // amountClose reports whether a and b are within tolerance
 // (e.g. 0.2 == 20%) of each other.
-func amountClose(a, b decimal.Decimal, tolerance float64) bool {
-	if tolerance < 0 {
+func amountClose(a, b *types.MoneyWrapper, tolerance float64) bool {
+	if tolerance < 0 || a == nil || b == nil {
 		return false
 	}
-	if a.Equal(b) {
+
+	// Convert to float64 for comparison
+	aFloat := float64(a.Money.Units) + float64(a.Money.Nanos)/1e9
+	bFloat := float64(b.Money.Units) + float64(b.Money.Nanos)/1e9
+
+	if aFloat == bFloat {
 		return true
 	}
 
-	maxMag := decimal.Max(a.Abs(), b.Abs())
-	limit := maxMag.Mul(decimal.NewFromFloat(tolerance))
+	// Calculate tolerance
+	maxMag := aFloat
+	if bFloat > aFloat {
+		maxMag = bFloat
+	}
+	if maxMag < 0 {
+		maxMag = -maxMag
+	}
 
-	return a.Sub(b).Abs().LessThanOrEqual(limit)
+	limit := maxMag * tolerance
+	diff := aFloat - bFloat
+	if diff < 0 {
+		diff = -diff
+	}
+
+	return diff <= limit
 }

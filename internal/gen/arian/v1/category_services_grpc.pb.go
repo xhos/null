@@ -19,32 +19,30 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CategoryService_ListCategories_FullMethodName               = "/arian.v1.CategoryService/ListCategories"
-	CategoryService_ListCategoriesWithUsage_FullMethodName      = "/arian.v1.CategoryService/ListCategoriesWithUsage"
-	CategoryService_ListCategoriesForUser_FullMethodName        = "/arian.v1.CategoryService/ListCategoriesForUser"
-	CategoryService_GetCategory_FullMethodName                  = "/arian.v1.CategoryService/GetCategory"
-	CategoryService_GetCategoryBySlug_FullMethodName            = "/arian.v1.CategoryService/GetCategoryBySlug"
-	CategoryService_GetCategoryWithStats_FullMethodName         = "/arian.v1.CategoryService/GetCategoryWithStats"
-	CategoryService_CreateCategory_FullMethodName               = "/arian.v1.CategoryService/CreateCategory"
-	CategoryService_BulkCreateCategories_FullMethodName         = "/arian.v1.CategoryService/BulkCreateCategories"
-	CategoryService_UpdateCategory_FullMethodName               = "/arian.v1.CategoryService/UpdateCategory"
-	CategoryService_DeleteCategory_FullMethodName               = "/arian.v1.CategoryService/DeleteCategory"
-	CategoryService_DeleteUnusedCategories_FullMethodName       = "/arian.v1.CategoryService/DeleteUnusedCategories"
-	CategoryService_GetCategoryUsageStats_FullMethodName        = "/arian.v1.CategoryService/GetCategoryUsageStats"
-	CategoryService_GetCategoriesWithStats_FullMethodName       = "/arian.v1.CategoryService/GetCategoriesWithStats"
-	CategoryService_SearchCategories_FullMethodName             = "/arian.v1.CategoryService/SearchCategories"
-	CategoryService_ListCategorySlugs_FullMethodName            = "/arian.v1.CategoryService/ListCategorySlugs"
-	CategoryService_GetMostUsedCategoriesForUser_FullMethodName = "/arian.v1.CategoryService/GetMostUsedCategoriesForUser"
-	CategoryService_GetUnusedCategories_FullMethodName          = "/arian.v1.CategoryService/GetUnusedCategories"
+	CategoryService_ListCategoriesWithUsage_FullMethodName = "/arian.v1.CategoryService/ListCategoriesWithUsage"
+	CategoryService_ListCategories_FullMethodName          = "/arian.v1.CategoryService/ListCategories"
+	CategoryService_GetCategory_FullMethodName             = "/arian.v1.CategoryService/GetCategory"
+	CategoryService_GetCategoryBySlug_FullMethodName       = "/arian.v1.CategoryService/GetCategoryBySlug"
+	CategoryService_GetCategoryWithStats_FullMethodName    = "/arian.v1.CategoryService/GetCategoryWithStats"
+	CategoryService_CreateCategory_FullMethodName          = "/arian.v1.CategoryService/CreateCategory"
+	CategoryService_BulkCreateCategories_FullMethodName    = "/arian.v1.CategoryService/BulkCreateCategories"
+	CategoryService_UpdateCategory_FullMethodName          = "/arian.v1.CategoryService/UpdateCategory"
+	CategoryService_DeleteCategory_FullMethodName          = "/arian.v1.CategoryService/DeleteCategory"
+	CategoryService_DeleteUnusedCategories_FullMethodName  = "/arian.v1.CategoryService/DeleteUnusedCategories"
+	CategoryService_GetCategoryUsageStats_FullMethodName   = "/arian.v1.CategoryService/GetCategoryUsageStats"
+	CategoryService_GetCategoriesWithStats_FullMethodName  = "/arian.v1.CategoryService/GetCategoriesWithStats"
+	CategoryService_SearchCategories_FullMethodName        = "/arian.v1.CategoryService/SearchCategories"
+	CategoryService_ListCategorySlugs_FullMethodName       = "/arian.v1.CategoryService/ListCategorySlugs"
+	CategoryService_GetMostUsedCategories_FullMethodName   = "/arian.v1.CategoryService/GetMostUsedCategories"
+	CategoryService_GetUnusedCategories_FullMethodName     = "/arian.v1.CategoryService/GetUnusedCategories"
 )
 
 // CategoryServiceClient is the client API for CategoryService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CategoryServiceClient interface {
-	ListCategories(ctx context.Context, in *ListCategoriesRequest, opts ...grpc.CallOption) (*ListCategoriesResponse, error)
 	ListCategoriesWithUsage(ctx context.Context, in *ListCategoriesWithUsageRequest, opts ...grpc.CallOption) (*ListCategoriesWithUsageResponse, error)
-	ListCategoriesForUser(ctx context.Context, in *ListCategoriesForUserRequest, opts ...grpc.CallOption) (*ListCategoriesForUserResponse, error)
+	ListCategories(ctx context.Context, in *ListCategoriesRequest, opts ...grpc.CallOption) (*ListCategoriesResponse, error)
 	GetCategory(ctx context.Context, in *GetCategoryRequest, opts ...grpc.CallOption) (*GetCategoryResponse, error)
 	GetCategoryBySlug(ctx context.Context, in *GetCategoryBySlugRequest, opts ...grpc.CallOption) (*GetCategoryBySlugResponse, error)
 	GetCategoryWithStats(ctx context.Context, in *GetCategoryWithStatsRequest, opts ...grpc.CallOption) (*GetCategoryWithStatsResponse, error)
@@ -57,7 +55,7 @@ type CategoryServiceClient interface {
 	GetCategoriesWithStats(ctx context.Context, in *GetCategoriesWithStatsRequest, opts ...grpc.CallOption) (*GetCategoriesWithStatsResponse, error)
 	SearchCategories(ctx context.Context, in *SearchCategoriesRequest, opts ...grpc.CallOption) (*SearchCategoriesResponse, error)
 	ListCategorySlugs(ctx context.Context, in *ListCategorySlugsRequest, opts ...grpc.CallOption) (*ListCategorySlugsResponse, error)
-	GetMostUsedCategoriesForUser(ctx context.Context, in *GetMostUsedCategoriesForUserRequest, opts ...grpc.CallOption) (*GetMostUsedCategoriesForUserResponse, error)
+	GetMostUsedCategories(ctx context.Context, in *GetMostUsedCategoriesRequest, opts ...grpc.CallOption) (*GetMostUsedCategoriesResponse, error)
 	GetUnusedCategories(ctx context.Context, in *GetUnusedCategoriesRequest, opts ...grpc.CallOption) (*GetUnusedCategoriesResponse, error)
 }
 
@@ -67,16 +65,6 @@ type categoryServiceClient struct {
 
 func NewCategoryServiceClient(cc grpc.ClientConnInterface) CategoryServiceClient {
 	return &categoryServiceClient{cc}
-}
-
-func (c *categoryServiceClient) ListCategories(ctx context.Context, in *ListCategoriesRequest, opts ...grpc.CallOption) (*ListCategoriesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCategoriesResponse)
-	err := c.cc.Invoke(ctx, CategoryService_ListCategories_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *categoryServiceClient) ListCategoriesWithUsage(ctx context.Context, in *ListCategoriesWithUsageRequest, opts ...grpc.CallOption) (*ListCategoriesWithUsageResponse, error) {
@@ -89,10 +77,10 @@ func (c *categoryServiceClient) ListCategoriesWithUsage(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *categoryServiceClient) ListCategoriesForUser(ctx context.Context, in *ListCategoriesForUserRequest, opts ...grpc.CallOption) (*ListCategoriesForUserResponse, error) {
+func (c *categoryServiceClient) ListCategories(ctx context.Context, in *ListCategoriesRequest, opts ...grpc.CallOption) (*ListCategoriesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListCategoriesForUserResponse)
-	err := c.cc.Invoke(ctx, CategoryService_ListCategoriesForUser_FullMethodName, in, out, cOpts...)
+	out := new(ListCategoriesResponse)
+	err := c.cc.Invoke(ctx, CategoryService_ListCategories_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -219,10 +207,10 @@ func (c *categoryServiceClient) ListCategorySlugs(ctx context.Context, in *ListC
 	return out, nil
 }
 
-func (c *categoryServiceClient) GetMostUsedCategoriesForUser(ctx context.Context, in *GetMostUsedCategoriesForUserRequest, opts ...grpc.CallOption) (*GetMostUsedCategoriesForUserResponse, error) {
+func (c *categoryServiceClient) GetMostUsedCategories(ctx context.Context, in *GetMostUsedCategoriesRequest, opts ...grpc.CallOption) (*GetMostUsedCategoriesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetMostUsedCategoriesForUserResponse)
-	err := c.cc.Invoke(ctx, CategoryService_GetMostUsedCategoriesForUser_FullMethodName, in, out, cOpts...)
+	out := new(GetMostUsedCategoriesResponse)
+	err := c.cc.Invoke(ctx, CategoryService_GetMostUsedCategories_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -243,9 +231,8 @@ func (c *categoryServiceClient) GetUnusedCategories(ctx context.Context, in *Get
 // All implementations must embed UnimplementedCategoryServiceServer
 // for forward compatibility.
 type CategoryServiceServer interface {
-	ListCategories(context.Context, *ListCategoriesRequest) (*ListCategoriesResponse, error)
 	ListCategoriesWithUsage(context.Context, *ListCategoriesWithUsageRequest) (*ListCategoriesWithUsageResponse, error)
-	ListCategoriesForUser(context.Context, *ListCategoriesForUserRequest) (*ListCategoriesForUserResponse, error)
+	ListCategories(context.Context, *ListCategoriesRequest) (*ListCategoriesResponse, error)
 	GetCategory(context.Context, *GetCategoryRequest) (*GetCategoryResponse, error)
 	GetCategoryBySlug(context.Context, *GetCategoryBySlugRequest) (*GetCategoryBySlugResponse, error)
 	GetCategoryWithStats(context.Context, *GetCategoryWithStatsRequest) (*GetCategoryWithStatsResponse, error)
@@ -258,7 +245,7 @@ type CategoryServiceServer interface {
 	GetCategoriesWithStats(context.Context, *GetCategoriesWithStatsRequest) (*GetCategoriesWithStatsResponse, error)
 	SearchCategories(context.Context, *SearchCategoriesRequest) (*SearchCategoriesResponse, error)
 	ListCategorySlugs(context.Context, *ListCategorySlugsRequest) (*ListCategorySlugsResponse, error)
-	GetMostUsedCategoriesForUser(context.Context, *GetMostUsedCategoriesForUserRequest) (*GetMostUsedCategoriesForUserResponse, error)
+	GetMostUsedCategories(context.Context, *GetMostUsedCategoriesRequest) (*GetMostUsedCategoriesResponse, error)
 	GetUnusedCategories(context.Context, *GetUnusedCategoriesRequest) (*GetUnusedCategoriesResponse, error)
 	mustEmbedUnimplementedCategoryServiceServer()
 }
@@ -270,14 +257,11 @@ type CategoryServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCategoryServiceServer struct{}
 
-func (UnimplementedCategoryServiceServer) ListCategories(context.Context, *ListCategoriesRequest) (*ListCategoriesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCategories not implemented")
-}
 func (UnimplementedCategoryServiceServer) ListCategoriesWithUsage(context.Context, *ListCategoriesWithUsageRequest) (*ListCategoriesWithUsageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCategoriesWithUsage not implemented")
 }
-func (UnimplementedCategoryServiceServer) ListCategoriesForUser(context.Context, *ListCategoriesForUserRequest) (*ListCategoriesForUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCategoriesForUser not implemented")
+func (UnimplementedCategoryServiceServer) ListCategories(context.Context, *ListCategoriesRequest) (*ListCategoriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCategories not implemented")
 }
 func (UnimplementedCategoryServiceServer) GetCategory(context.Context, *GetCategoryRequest) (*GetCategoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategory not implemented")
@@ -315,8 +299,8 @@ func (UnimplementedCategoryServiceServer) SearchCategories(context.Context, *Sea
 func (UnimplementedCategoryServiceServer) ListCategorySlugs(context.Context, *ListCategorySlugsRequest) (*ListCategorySlugsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCategorySlugs not implemented")
 }
-func (UnimplementedCategoryServiceServer) GetMostUsedCategoriesForUser(context.Context, *GetMostUsedCategoriesForUserRequest) (*GetMostUsedCategoriesForUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMostUsedCategoriesForUser not implemented")
+func (UnimplementedCategoryServiceServer) GetMostUsedCategories(context.Context, *GetMostUsedCategoriesRequest) (*GetMostUsedCategoriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMostUsedCategories not implemented")
 }
 func (UnimplementedCategoryServiceServer) GetUnusedCategories(context.Context, *GetUnusedCategoriesRequest) (*GetUnusedCategoriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUnusedCategories not implemented")
@@ -342,24 +326,6 @@ func RegisterCategoryServiceServer(s grpc.ServiceRegistrar, srv CategoryServiceS
 	s.RegisterService(&CategoryService_ServiceDesc, srv)
 }
 
-func _CategoryService_ListCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCategoriesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CategoryServiceServer).ListCategories(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CategoryService_ListCategories_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).ListCategories(ctx, req.(*ListCategoriesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CategoryService_ListCategoriesWithUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCategoriesWithUsageRequest)
 	if err := dec(in); err != nil {
@@ -378,20 +344,20 @@ func _CategoryService_ListCategoriesWithUsage_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_ListCategoriesForUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCategoriesForUserRequest)
+func _CategoryService_ListCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCategoriesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).ListCategoriesForUser(ctx, in)
+		return srv.(CategoryServiceServer).ListCategories(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CategoryService_ListCategoriesForUser_FullMethodName,
+		FullMethod: CategoryService_ListCategories_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).ListCategoriesForUser(ctx, req.(*ListCategoriesForUserRequest))
+		return srv.(CategoryServiceServer).ListCategories(ctx, req.(*ListCategoriesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -612,20 +578,20 @@ func _CategoryService_ListCategorySlugs_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CategoryService_GetMostUsedCategoriesForUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMostUsedCategoriesForUserRequest)
+func _CategoryService_GetMostUsedCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMostUsedCategoriesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CategoryServiceServer).GetMostUsedCategoriesForUser(ctx, in)
+		return srv.(CategoryServiceServer).GetMostUsedCategories(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CategoryService_GetMostUsedCategoriesForUser_FullMethodName,
+		FullMethod: CategoryService_GetMostUsedCategories_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).GetMostUsedCategoriesForUser(ctx, req.(*GetMostUsedCategoriesForUserRequest))
+		return srv.(CategoryServiceServer).GetMostUsedCategories(ctx, req.(*GetMostUsedCategoriesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -656,16 +622,12 @@ var CategoryService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CategoryServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ListCategories",
-			Handler:    _CategoryService_ListCategories_Handler,
-		},
-		{
 			MethodName: "ListCategoriesWithUsage",
 			Handler:    _CategoryService_ListCategoriesWithUsage_Handler,
 		},
 		{
-			MethodName: "ListCategoriesForUser",
-			Handler:    _CategoryService_ListCategoriesForUser_Handler,
+			MethodName: "ListCategories",
+			Handler:    _CategoryService_ListCategories_Handler,
 		},
 		{
 			MethodName: "GetCategory",
@@ -716,8 +678,8 @@ var CategoryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CategoryService_ListCategorySlugs_Handler,
 		},
 		{
-			MethodName: "GetMostUsedCategoriesForUser",
-			Handler:    _CategoryService_GetMostUsedCategoriesForUser_Handler,
+			MethodName: "GetMostUsedCategories",
+			Handler:    _CategoryService_GetMostUsedCategories_Handler,
 		},
 		{
 			MethodName: "GetUnusedCategories",

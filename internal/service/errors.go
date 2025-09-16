@@ -18,23 +18,18 @@ func wrapErr(op string, err error) error {
 		return nil
 	}
 
-	// if it's already a sentinel, preserve it
-	var sentinel error
-	switch {
-	case errors.Is(err, ErrNotFound):
-		sentinel = ErrNotFound
-	case errors.Is(err, ErrPermission):
-		sentinel = ErrPermission
-	case errors.Is(err, ErrConflict):
-		sentinel = ErrConflict
-	case errors.Is(err, ErrValidation):
-		sentinel = ErrValidation
-	case errors.Is(err, ErrUnimplemented):
-		sentinel = ErrUnimplemented
+	knownErrors := []error{
+		ErrNotFound,
+		ErrPermission,
+		ErrConflict,
+		ErrValidation,
+		ErrUnimplemented,
 	}
 
-	if sentinel != nil {
-		return fmt.Errorf("%s: %w", op, sentinel)
+	for _, knownErr := range knownErrors {
+		if errors.Is(err, knownErr) {
+			return fmt.Errorf("%s: %w", op, knownErr)
+		}
 	}
 
 	return fmt.Errorf("%s: %w", op, err)

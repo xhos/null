@@ -145,7 +145,7 @@ func (s *Server) GetAccountBalances(ctx context.Context, req *connect.Request[pb
 	}
 
 	// get all accounts for the user
-	accounts, err := s.services.Accounts.ListForUser(ctx, userID)
+	accounts, err := s.services.Accounts.List(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -167,7 +167,7 @@ func (s *Server) GetNetBalance(ctx context.Context, req *connect.Request[pb.GetN
 	}
 
 	return connect.NewResponse(&pb.GetNetBalanceResponse{
-		NetBalance: decimalToMoney(netBalance, "CAD"),
+		NetBalance: netBalance,
 	}), nil
 }
 
@@ -183,7 +183,7 @@ func (s *Server) GetTotalBalance(ctx context.Context, req *connect.Request[pb.Ge
 	}
 
 	return connect.NewResponse(&pb.GetTotalBalanceResponse{
-		TotalBalance: decimalToMoney(totalBalance, "CAD"),
+		TotalBalance: totalBalance,
 	}), nil
 }
 
@@ -199,6 +199,6 @@ func (s *Server) GetTotalDebt(ctx context.Context, req *connect.Request[pb.GetTo
 	}
 
 	return connect.NewResponse(&pb.GetTotalDebtResponse{
-		TotalDebt: decimalToMoney(totalDebt, "CAD"),
+		TotalDebt: totalDebt,
 	}), nil
 }

@@ -1,7 +1,7 @@
--- name: ListReceiptsForUser :many
+-- name: ListReceipts :many
 SELECT DISTINCT
   r.id, r.engine, r.parse_status, r.link_status, r.match_ids,
-  r.merchant, r.purchase_date, r.total_amount, r.currency, r.tax_amount,
+  r.merchant, r.purchase_date, r.total_amount, r.tax_amount,
   r.raw_payload, r.canonical_data, r.image_url, r.image_sha256,
   r.lat, r.lon, r.location_source, r.location_label,
   r.created_at, r.updated_at
@@ -13,19 +13,9 @@ WHERE a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL
 ORDER BY r.created_at DESC;
 
 -- name: GetReceipt :one
-SELECT
-  id, engine, parse_status, link_status, match_ids,
-  merchant, purchase_date, total_amount, currency, tax_amount,
-  raw_payload, canonical_data, image_url, image_sha256,
-  lat, lon, location_source, location_label,
-  created_at, updated_at
-FROM receipts
-WHERE id = @id::bigint;
-
--- name: GetReceiptForUser :one
 SELECT DISTINCT
   r.id, r.engine, r.parse_status, r.link_status, r.match_ids,
-  r.merchant, r.purchase_date, r.total_amount, r.currency, r.tax_amount,
+  r.merchant, r.purchase_date, r.total_amount, r.tax_amount,
   r.raw_payload, r.canonical_data, r.image_url, r.image_sha256,
   r.lat, r.lon, r.location_source, r.location_label,
   r.created_at, r.updated_at
@@ -39,7 +29,7 @@ WHERE r.id = @id::bigint
 -- name: CreateReceipt :one
 INSERT INTO receipts (
   engine, parse_status, link_status, match_ids,
-  merchant, purchase_date, total_amount, currency, tax_amount,
+  merchant, purchase_date, total_amount, tax_amount,
   raw_payload, canonical_data, image_url, image_sha256,
   lat, lon, location_source, location_label
 ) VALUES (
@@ -49,9 +39,8 @@ INSERT INTO receipts (
   sqlc.narg('match_ids')::bigint[],
   sqlc.narg('merchant')::text,
   sqlc.narg('purchase_date')::date,
-  sqlc.narg('total_amount')::numeric,
-  sqlc.narg('currency')::char(3),
-  sqlc.narg('tax_amount')::numeric,
+  sqlc.narg('total_amount')::jsonb,
+  sqlc.narg('tax_amount')::jsonb,
   sqlc.narg('raw_payload')::jsonb,
   sqlc.narg('canonical_data')::jsonb,
   sqlc.narg('image_url')::text,
@@ -63,7 +52,7 @@ INSERT INTO receipts (
 )
 RETURNING
   id, engine, parse_status, link_status, match_ids,
-  merchant, purchase_date, total_amount, currency, tax_amount,
+  merchant, purchase_date, total_amount, tax_amount,
   raw_payload, canonical_data, image_url, image_sha256,
   lat, lon, location_source, location_label,
   created_at, updated_at;
@@ -76,9 +65,8 @@ SET engine = COALESCE(sqlc.narg('engine')::smallint, engine),
     match_ids = COALESCE(sqlc.narg('match_ids')::bigint[], match_ids),
     merchant = COALESCE(sqlc.narg('merchant')::text, merchant),
     purchase_date = COALESCE(sqlc.narg('purchase_date')::date, purchase_date),
-    total_amount = COALESCE(sqlc.narg('total_amount')::numeric, total_amount),
-    currency = COALESCE(sqlc.narg('currency')::char(3), currency),
-    tax_amount = COALESCE(sqlc.narg('tax_amount')::numeric, tax_amount),
+    total_amount = COALESCE(sqlc.narg('total_amount')::jsonb, total_amount),
+    tax_amount = COALESCE(sqlc.narg('tax_amount')::jsonb, tax_amount),
     raw_payload = COALESCE(sqlc.narg('raw_payload')::jsonb, raw_payload),
     canonical_data = COALESCE(sqlc.narg('canonical_data')::jsonb, canonical_data),
     image_url = COALESCE(sqlc.narg('image_url')::text, image_url),
@@ -89,7 +77,7 @@ SET engine = COALESCE(sqlc.narg('engine')::smallint, engine),
     location_label = COALESCE(sqlc.narg('location_label')::text, location_label)
 WHERE id = @id::bigint;
 
--- name: DeleteReceiptForUser :execrows
+-- name: DeleteReceipt :execrows
 DELETE FROM receipts 
 WHERE id = @id::bigint
   AND EXISTS (
@@ -124,8 +112,8 @@ INSERT INTO receipt_items (
   sqlc.narg('line_no')::int,
   @name::text,
   COALESCE(sqlc.narg('qty')::numeric, 1),
-  sqlc.narg('unit_price')::numeric,
-  sqlc.narg('line_total')::numeric,
+  sqlc.narg('unit_price')::jsonb,
+  sqlc.narg('line_total')::jsonb,
   sqlc.narg('sku')::text,
   sqlc.narg('category_hint')::text
 )
@@ -137,8 +125,8 @@ UPDATE receipt_items
 SET line_no = COALESCE(sqlc.narg('line_no')::int, line_no),
     name = COALESCE(sqlc.narg('name')::text, name),
     qty = COALESCE(sqlc.narg('qty')::numeric, qty),
-    unit_price = COALESCE(sqlc.narg('unit_price')::numeric, unit_price),
-    line_total = COALESCE(sqlc.narg('line_total')::numeric, line_total),
+    unit_price = COALESCE(sqlc.narg('unit_price')::jsonb, unit_price),
+    line_total = COALESCE(sqlc.narg('line_total')::jsonb, line_total),
     sku = COALESCE(sqlc.narg('sku')::text, sku),
     category_hint = COALESCE(sqlc.narg('category_hint')::text, category_hint)
 WHERE id = @id::bigint
@@ -160,28 +148,20 @@ DELETE FROM receipt_items WHERE receipt_id = @receipt_id::bigint;
 
 -- Utility queries
 -- name: GetUnlinkedReceipts :many
-SELECT id, merchant, purchase_date, total_amount, currency, created_at
+SELECT id, merchant, purchase_date, total_amount, created_at
 FROM receipts
 WHERE link_status = 1  -- unlinked
 ORDER BY created_at DESC
 LIMIT COALESCE(sqlc.narg('limit')::int, 50);
 
 -- name: GetReceiptMatchCandidates :many
-SELECT r.id, r.merchant, r.purchase_date, r.total_amount, r.currency,
+SELECT r.id, r.merchant, r.purchase_date, r.total_amount,
        COUNT(t.id) AS potential_matches
 FROM receipts r
 LEFT JOIN transactions t ON t.id = ANY(r.match_ids)
 WHERE r.link_status = 3  -- needs verification
-GROUP BY r.id, r.merchant, r.purchase_date, r.total_amount, r.currency
+GROUP BY r.id, r.merchant, r.purchase_date, r.total_amount
 ORDER BY r.created_at DESC;
-
--- name: FindCandidateTransactions :many
-SELECT id, account_id, tx_date, tx_amount, tx_currency, tx_desc, merchant
-FROM transactions
-WHERE tx_amount BETWEEN @min_amount::numeric AND @max_amount::numeric
-  AND tx_date BETWEEN @start_date::timestamptz AND @end_date::timestamptz
-  AND receipt_id IS NULL  -- not already linked
-ORDER BY ABS(tx_amount - @target_amount::numeric), ABS(EXTRACT(EPOCH FROM (tx_date - @target_date::timestamptz))) / 86400;
 
 -- name: LinkTransactionToReceipt :exec
 UPDATE transactions 

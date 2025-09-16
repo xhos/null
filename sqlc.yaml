@@ -34,47 +34,46 @@ sql:
               import: 'github.com/shopspring/decimal'
               type: 'Decimal'
               pointer: true
-          # TODO: why tho
-          # money fields - use decimal.Decimal with currency stored separately
-          # We'll convert to google.type.Money in the service layer
+          # money fields - use custom MoneyWrapper for JSONB
           - column: 'accounts.anchor_balance'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
+              pointer: true
           - column: 'transactions.tx_amount'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
           - column: 'transactions.balance_after'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
           - column: 'transactions.foreign_amount'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
           - column: 'receipts.total_amount'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
           - column: 'receipts.tax_amount'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
           - column: 'receipt_items.unit_price'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
           - column: 'receipt_items.line_total'
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              import: 'ariand/internal/types'
+              type: 'MoneyWrapper'
               pointer: true
 
           # pg json to go json

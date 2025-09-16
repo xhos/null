@@ -7,6 +7,8 @@ import (
 
 	"connectrpc.com/connect"
 	"google.golang.org/genproto/googleapis/type/money"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListAccountsRequest]) (*connect.Response[pb.ListAccountsResponse], error) {
@@ -15,7 +17,7 @@ func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListA
 		return nil, err
 	}
 
-	accounts, err := s.services.Accounts.ListForUser(ctx, userID)
+	accounts, err := s.services.Accounts.List(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -31,7 +33,7 @@ func (s *Server) GetAccount(ctx context.Context, req *connect.Request[pb.GetAcco
 		return nil, err
 	}
 
-	account, err := s.services.Accounts.GetForUser(ctx, userID, req.Msg.GetId())
+	account, err := s.services.Accounts.Get(ctx, userID, req.Msg.GetId())
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -75,12 +77,12 @@ func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.Dele
 		return nil, err
 	}
 
-	params := sqlc.DeleteAccountForUserParams{
+	params := sqlc.DeleteAccountParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	affectedRows, err := s.services.Accounts.DeleteForUser(ctx, params)
+	affectedRows, err := s.services.Accounts.Delete(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -91,16 +93,26 @@ func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.Dele
 }
 
 func (s *Server) SetAccountAnchor(ctx context.Context, req *connect.Request[pb.SetAccountAnchorRequest]) (*connect.Response[pb.SetAccountAnchorResponse], error) {
-	balance := moneyToDecimal(req.Msg.GetBalance())
-	currency := req.Msg.GetBalance().CurrencyCode
-
-	params := sqlc.UpdateAccountParams{
-		ID:             req.Msg.GetId(),
-		AnchorBalance:  &balance,
-		AnchorCurrency: &currency,
+	// Convert money to MoneyWrapper and then to JSONB bytes
+	wrapper := wrapMoney(req.Msg.GetBalance())
+	jsonBytes, err := wrapper.Value()
+	if err != nil {
+		return nil, handleError(err)
 	}
 
-	_, err := s.services.Accounts.Update(ctx, params)
+	var balanceBytes []byte
+	if bytes, ok := jsonBytes.([]byte); ok {
+		balanceBytes = bytes
+	} else {
+		return nil, status.Error(codes.Internal, "failed to convert money to bytes")
+	}
+
+	params := sqlc.UpdateAccountParams{
+		ID:            req.Msg.GetId(),
+		AnchorBalance: balanceBytes,
+	}
+
+	_, err = s.services.Accounts.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -127,7 +139,7 @@ func (s *Server) GetAccountsCount(ctx context.Context, req *connect.Request[pb.G
 		return nil, err
 	}
 
-	count, err := s.services.Accounts.GetUserAccountsCount(ctx, userID)
+	count, err := s.services.Accounts.GetAccountCount(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
 	}

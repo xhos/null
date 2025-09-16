@@ -2,9 +2,9 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
-	"ariand/internal/linking"
 	"ariand/internal/receiptparser"
 	"ariand/internal/storage"
+	"ariand/internal/types"
 	"bytes"
 	"context"
 	"database/sql"
@@ -13,17 +13,16 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 // TODO: this whole thing
 
 type ReceiptService interface {
-	ListForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.Receipt, error)
-	GetForUser(ctx context.Context, params sqlc.GetReceiptForUserParams) (*sqlc.Receipt, error)
+	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Receipt, error)
+	Get(ctx context.Context, params sqlc.GetReceiptParams) (*sqlc.Receipt, error)
 	Create(ctx context.Context, params sqlc.CreateReceiptParams) (*sqlc.Receipt, error)
 	Update(ctx context.Context, params sqlc.UpdateReceiptParams) error
-	DeleteForUser(ctx context.Context, params sqlc.DeleteReceiptForUserParams) error
+	Delete(ctx context.Context, params sqlc.DeleteReceiptParams) error
 
 	ListItemsForReceipt(ctx context.Context, receiptID int64) ([]sqlc.ReceiptItem, error)
 	GetItem(ctx context.Context, id int64) (*sqlc.ReceiptItem, error)
@@ -37,8 +36,8 @@ type ReceiptService interface {
 	GetMatchCandidates(ctx context.Context) ([]sqlc.GetReceiptMatchCandidatesRow, error)
 
 	UploadReceipt(ctx context.Context, userID uuid.UUID, imageData []byte, provider string) (*sqlc.Receipt, error)
-	ParseReceipt(ctx context.Context, receiptID int64, provider string) (*sqlc.Receipt, error)
-	ConfirmReceipt(ctx context.Context, receiptID int64) error
+	ParseReceipt(ctx context.Context, userID uuid.UUID, receiptID int64, provider string) (*sqlc.Receipt, error)
+	ConfirmReceipt(ctx context.Context, userID uuid.UUID, receiptID int64) error
 	SearchReceipts(ctx context.Context, userID uuid.UUID, query string, limit *int32) ([]sqlc.Receipt, error)
 	GetReceiptsByTransaction(ctx context.Context, transactionID int64) ([]sqlc.Receipt, error)
 }
@@ -47,8 +46,8 @@ type receiptSvc struct {
 	queries *sqlc.Queries
 	parser  receiptparser.Client
 	storage storage.Storage
-	linking linking.Service
-	log     *log.Logger
+	// linking linking.Service // temporarily disabled
+	log *log.Logger
 }
 
 func newReceiptSvc(queries *sqlc.Queries, parser receiptparser.Client, storage storage.Storage, lg *log.Logger) ReceiptService {
@@ -56,26 +55,26 @@ func newReceiptSvc(queries *sqlc.Queries, parser receiptparser.Client, storage s
 		queries: queries,
 		parser:  parser,
 		storage: storage,
-		linking: linking.NewService(queries),
-		log:     lg,
+		// linking: linking.NewService(queries), // temporarily disabled
+		log: lg,
 	}
 }
 
-func (s *receiptSvc) ListForUser(ctx context.Context, userID uuid.UUID) ([]sqlc.Receipt, error) {
-	receipts, err := s.queries.ListReceiptsForUser(ctx, userID)
+func (s *receiptSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.Receipt, error) {
+	receipts, err := s.queries.ListReceipts(ctx, userID)
 	if err != nil {
-		return nil, wrapErr("ReceiptService.ListForUser", err)
+		return nil, wrapErr("ReceiptService.List", err)
 	}
 	return receipts, nil
 }
 
-func (s *receiptSvc) GetForUser(ctx context.Context, params sqlc.GetReceiptForUserParams) (*sqlc.Receipt, error) {
-	receipt, err := s.queries.GetReceiptForUser(ctx, params)
+func (s *receiptSvc) Get(ctx context.Context, params sqlc.GetReceiptParams) (*sqlc.Receipt, error) {
+	receipt, err := s.queries.GetReceipt(ctx, params)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("ReceiptService.GetForUser", ErrNotFound)
+		return nil, wrapErr("ReceiptService.Get", ErrNotFound)
 	}
 	if err != nil {
-		return nil, wrapErr("ReceiptService.GetForUser", err)
+		return nil, wrapErr("ReceiptService.Get", err)
 	}
 	return &receipt, nil
 }
@@ -96,10 +95,10 @@ func (s *receiptSvc) Update(ctx context.Context, params sqlc.UpdateReceiptParams
 	return nil
 }
 
-func (s *receiptSvc) DeleteForUser(ctx context.Context, params sqlc.DeleteReceiptForUserParams) error {
-	_, err := s.queries.DeleteReceiptForUser(ctx, params)
+func (s *receiptSvc) Delete(ctx context.Context, params sqlc.DeleteReceiptParams) error {
+	_, err := s.queries.DeleteReceipt(ctx, params)
 	if err != nil {
-		return wrapErr("ReceiptService.DeleteForUser", err)
+		return wrapErr("ReceiptService.Delete", err)
 	}
 	return nil
 }
@@ -211,9 +210,12 @@ func (s *receiptSvc) UploadReceipt(ctx context.Context, userID uuid.UUID, imageD
 	return &receipt, nil
 }
 
-func (s *receiptSvc) ParseReceipt(ctx context.Context, receiptID int64, provider string) (*sqlc.Receipt, error) {
+func (s *receiptSvc) ParseReceipt(ctx context.Context, userID uuid.UUID, receiptID int64, provider string) (*sqlc.Receipt, error) {
 	// get receipt to access stored image
-	receipt, err := s.queries.GetReceipt(ctx, receiptID)
+	receipt, err := s.queries.GetReceipt(ctx, sqlc.GetReceiptParams{
+		UserID: userID,
+		ID:     receiptID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("ReceiptService.ParseReceipt", ErrNotFound)
 	}
@@ -257,9 +259,13 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, receiptID int64, provider
 		}
 
 		if parsedReceipt.TotalAmount != nil {
-			totalAmountDecimal := moneyToDecimal(parsedReceipt.TotalAmount)
-			updateParams.TotalAmount = &totalAmountDecimal
-			updateParams.Currency = &parsedReceipt.TotalAmount.CurrencyCode
+			totalAmountWrapper := types.WrapMoney(parsedReceipt.TotalAmount)
+			jsonBytes, err := totalAmountWrapper.Value()
+			if err == nil {
+				if bytes, ok := jsonBytes.([]byte); ok {
+					updateParams.TotalAmount = bytes
+				}
+			}
 		}
 
 		// create receipt items
@@ -269,27 +275,27 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, receiptID int64, provider
 
 			var itemParams []sqlc.BulkCreateReceiptItemsParams
 			for i, item := range parsedReceipt.Items {
-				qtyDecimal := decimal.NewFromFloat(item.Quantity)
 				lineNo := int32(i + 1)
 
-				// Convert money to decimal
-				var unitPriceDecimal, lineTotalDecimal *decimal.Decimal
+				// Convert money to MoneyWrapper
+				var unitPriceWrapper, lineTotalWrapper *types.MoneyWrapper
 				if item.UnitPrice != nil {
-					unitPrice := moneyToDecimal(item.UnitPrice)
-					unitPriceDecimal = &unitPrice
+					unitPriceWrapper = types.WrapMoney(item.UnitPrice)
 				}
 				if item.LineTotal != nil {
-					lineTotal := moneyToDecimal(item.LineTotal)
-					lineTotalDecimal = &lineTotal
+					lineTotalWrapper = types.WrapMoney(item.LineTotal)
 				}
+
+				// Convert quantity to decimal
+				qtyDecimal := decimal.NewFromFloat(item.Quantity)
 
 				itemParams = append(itemParams, sqlc.BulkCreateReceiptItemsParams{
 					ReceiptID: receiptID,
 					LineNo:    &lineNo,
 					Name:      item.Name,
 					Qty:       &qtyDecimal,
-					UnitPrice: unitPriceDecimal,
-					LineTotal: lineTotalDecimal,
+					UnitPrice: unitPriceWrapper,
+					LineTotal: lineTotalWrapper,
 				})
 			}
 
@@ -305,13 +311,17 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, receiptID int64, provider
 
 	// attempt to link to transaction if parsing succeeded
 	if err == nil {
-		if linkErr := s.linking.LinkReceiptToTransaction(ctx, receiptID); linkErr != nil {
-			s.log.Warn("failed to link receipt to transaction", "receiptID", receiptID, "error", linkErr)
-		}
+		// Linking temporarily disabled during MoneyWrapper migration
+		// if linkErr := s.linking.LinkReceiptToTransaction(ctx, receiptID); linkErr != nil {
+		//	s.log.Warn("failed to link receipt to transaction", "receiptID", receiptID, "error", linkErr)
+		// }
 	}
 
 	// return updated receipt
-	updatedReceipt, err := s.queries.GetReceipt(ctx, receiptID)
+	updatedReceipt, err := s.queries.GetReceipt(ctx, sqlc.GetReceiptParams{
+		UserID: userID,
+		ID:     receiptID,
+	})
 	if err != nil {
 		return nil, wrapErr("ReceiptService.ParseReceipt", err)
 	}
@@ -323,8 +333,11 @@ func (s *receiptSvc) SearchReceipts(ctx context.Context, userID uuid.UUID, query
 	return nil, wrapErr("ReceiptService.SearchReceipts", ErrUnimplemented)
 }
 
-func (s *receiptSvc) ConfirmReceipt(ctx context.Context, receiptID int64) error {
-	receipt, err := s.queries.GetReceipt(ctx, receiptID)
+func (s *receiptSvc) ConfirmReceipt(ctx context.Context, userID uuid.UUID, receiptID int64) error {
+	receipt, err := s.queries.GetReceipt(ctx, sqlc.GetReceiptParams{
+		UserID: userID,
+		ID:     receiptID,
+	})
 	if err != nil {
 		return wrapErr("ReceiptService.ConfirmReceipt", err)
 	}
@@ -354,9 +367,4 @@ func (s *receiptSvc) GetReceiptsByTransaction(ctx context.Context, transactionID
 	return nil, wrapErr("ReceiptService.GetReceiptsByTransaction", ErrUnimplemented)
 }
 
-func moneyToDecimal(m *money.Money) decimal.Decimal {
-	if m == nil {
-		return decimal.Zero
-	}
-	return decimal.NewFromFloat(float64(m.Units) + float64(m.Nanos)/1e9)
-}
+// moneyToDecimal function removed - now using MoneyWrapper directly

@@ -2,11 +2,12 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	"ariand/internal/types"
 	"context"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
+	"google.golang.org/genproto/googleapis/type/money"
 )
 
 type AccountSummary struct {
@@ -15,17 +16,17 @@ type AccountSummary struct {
 }
 
 type DashboardService interface {
-	Balance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
-	Debt(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
-	NetBalance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error)
-	Trends(ctx context.Context, params sqlc.GetDashboardTrendsForUserParams) ([]sqlc.GetDashboardTrendsForUserRow, error)
-	Summary(ctx context.Context, params sqlc.GetDashboardSummaryForUserParams) (*sqlc.GetDashboardSummaryForUserRow, error)
-	MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonForUserParams) ([]sqlc.GetMonthlyComparisonForUserRow, error)
-	TopCategories(ctx context.Context, params sqlc.GetTopCategoriesForUserParams) ([]sqlc.GetTopCategoriesForUserRow, error)
-	TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsForUserParams) ([]sqlc.GetTopMerchantsForUserRow, error)
-	AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesForUserRow, error)
+	Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
+	Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error)
+	NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
+	Trends(ctx context.Context, params sqlc.GetDashboardTrendsParams) ([]sqlc.GetDashboardTrendsRow, error)
+	Summary(ctx context.Context, params sqlc.GetDashboardSummaryParams) (*sqlc.GetDashboardSummaryRow, error)
+	MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonParams) ([]sqlc.GetMonthlyComparisonRow, error)
+	TopCategories(ctx context.Context, params sqlc.GetTopCategoriesParams) ([]sqlc.GetTopCategoriesRow, error)
+	TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsParams) ([]sqlc.GetTopMerchantsRow, error)
+	AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error)
 	GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error)
-	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsForUserRow, error)
+	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error)
 }
 
 type dashSvc struct {
@@ -36,118 +37,207 @@ func newDashSvc(queries *sqlc.Queries) DashboardService {
 	return &dashSvc{queries: queries}
 }
 
-func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
+func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
 	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
-		return decimal.Zero, wrapErr("DashboardService.BalanceForUser", err)
+		return nil, wrapErr("DashboardService.Balance", err)
 	}
 
-	total := decimal.Zero
+	totalUnits := int64(0)
+	totalNanos := int32(0)
+	currency := "CAD"
+
 	for _, balance := range balances {
-		if balance.CurrentBalance > 0 {
-			balanceDecimal := decimal.NewFromInt32(balance.CurrentBalance)
-			total = total.Add(balanceDecimal)
+		hasBalance := len(balance.CurrentBalance) > 0
+		if !hasBalance {
+			continue
+		}
+
+		var wrapper types.MoneyWrapper
+		if err := wrapper.Scan(balance.CurrentBalance); err != nil {
+			continue
+		}
+
+		if wrapper.Money == nil {
+			continue
+		}
+
+		isPositiveBalance := wrapper.Money.Units > 0 || (wrapper.Money.Units == 0 && wrapper.Money.Nanos > 0)
+		if isPositiveBalance {
+			totalUnits += wrapper.Money.Units
+			totalNanos += wrapper.Money.Nanos
+			currency = wrapper.Money.CurrencyCode
 		}
 	}
 
-	return total, nil
-}
-
-func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
-	balances, err := s.AccountBalances(ctx, userID)
-	if err != nil {
-		return decimal.Zero, wrapErr("DashboardService.DebtForUser", err)
+	hasNanosOverflow := totalNanos >= 1e9
+	if hasNanosOverflow {
+		totalUnits += int64(totalNanos / 1e9)
+		totalNanos = totalNanos % 1e9
 	}
 
-	total := decimal.Zero
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        totalUnits,
+		Nanos:        totalNanos,
+	}, nil
+}
+
+func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+	balances, err := s.AccountBalances(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("DashboardService.Debt", err)
+	}
+
+	totalUnits := int64(0)
+	totalNanos := int32(0)
+	currency := "CAD"
+
 	for _, balance := range balances {
-		if balance.CurrentBalance < 0 {
-			balanceDecimal := decimal.NewFromInt32(-balance.CurrentBalance)
-			total = total.Add(balanceDecimal)
+		hasBalance := len(balance.CurrentBalance) > 0
+		if !hasBalance {
+			continue
+		}
+
+		var wrapper types.MoneyWrapper
+		if err := wrapper.Scan(balance.CurrentBalance); err != nil {
+			continue
+		}
+
+		if wrapper.Money == nil {
+			continue
+		}
+
+		isNegativeBalance := wrapper.Money.Units < 0 || (wrapper.Money.Units == 0 && wrapper.Money.Nanos < 0)
+		if isNegativeBalance {
+			totalUnits += -wrapper.Money.Units
+			totalNanos += -wrapper.Money.Nanos
+			currency = wrapper.Money.CurrencyCode
 		}
 	}
 
-	return total, nil
+	hasNanosOverflow := totalNanos >= 1e9
+	if hasNanosOverflow {
+		totalUnits += int64(totalNanos / 1e9)
+		totalNanos = totalNanos % 1e9
+	}
+
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        totalUnits,
+		Nanos:        totalNanos,
+	}, nil
 }
 
-func (s *dashSvc) Trends(ctx context.Context, params sqlc.GetDashboardTrendsForUserParams) ([]sqlc.GetDashboardTrendsForUserRow, error) {
-	trends, err := s.queries.GetDashboardTrendsForUser(ctx, params)
+func (s *dashSvc) Trends(ctx context.Context, params sqlc.GetDashboardTrendsParams) ([]sqlc.GetDashboardTrendsRow, error) {
+	trends, err := s.queries.GetDashboardTrends(ctx, params)
 	if err != nil {
-		return nil, wrapErr("DashboardService.TrendsForUser", err)
+		return nil, wrapErr("DashboardService.Trends", err)
 	}
 	return trends, nil
 }
 
-func (s *dashSvc) Summary(ctx context.Context, params sqlc.GetDashboardSummaryForUserParams) (*sqlc.GetDashboardSummaryForUserRow, error) {
-	summary, err := s.queries.GetDashboardSummaryForUser(ctx, params)
+func (s *dashSvc) Summary(ctx context.Context, params sqlc.GetDashboardSummaryParams) (*sqlc.GetDashboardSummaryRow, error) {
+	summary, err := s.queries.GetDashboardSummary(ctx, params)
 	if err != nil {
-		return nil, wrapErr("DashboardService.SummaryForUser", err)
+		return nil, wrapErr("DashboardService.Summary", err)
 	}
 	return &summary, nil
 }
 
-func (s *dashSvc) MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonForUserParams) ([]sqlc.GetMonthlyComparisonForUserRow, error) {
-	comparison, err := s.queries.GetMonthlyComparisonForUser(ctx, params)
+func (s *dashSvc) MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonParams) ([]sqlc.GetMonthlyComparisonRow, error) {
+	comparison, err := s.queries.GetMonthlyComparison(ctx, params)
 	if err != nil {
-		return nil, wrapErr("DashboardService.MonthlyComparisonForUser", err)
+		return nil, wrapErr("DashboardService.MonthlyComparison", err)
 	}
 	return comparison, nil
 }
 
-func (s *dashSvc) TopCategories(ctx context.Context, params sqlc.GetTopCategoriesForUserParams) ([]sqlc.GetTopCategoriesForUserRow, error) {
-	categories, err := s.queries.GetTopCategoriesForUser(ctx, params)
+func (s *dashSvc) TopCategories(ctx context.Context, params sqlc.GetTopCategoriesParams) ([]sqlc.GetTopCategoriesRow, error) {
+	categories, err := s.queries.GetTopCategories(ctx, params)
 	if err != nil {
-		return nil, wrapErr("DashboardService.TopCategoriesForUser", err)
+		return nil, wrapErr("DashboardService.TopCategories", err)
 	}
 	return categories, nil
 }
 
-func (s *dashSvc) TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsForUserParams) ([]sqlc.GetTopMerchantsForUserRow, error) {
-	merchants, err := s.queries.GetTopMerchantsForUser(ctx, params)
+func (s *dashSvc) TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsParams) ([]sqlc.GetTopMerchantsRow, error) {
+	merchants, err := s.queries.GetTopMerchants(ctx, params)
 	if err != nil {
-		return nil, wrapErr("DashboardService.TopMerchantsForUser", err)
+		return nil, wrapErr("DashboardService.TopMerchants", err)
 	}
 	return merchants, nil
 }
 
-func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (decimal.Decimal, error) {
+func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
 	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
-		return decimal.Zero, wrapErr("DashboardService.NetBalanceForUser", err)
+		return nil, wrapErr("DashboardService.NetBalance", err)
 	}
 
-	total := decimal.Zero
+	totalUnits := int64(0)
+	totalNanos := int32(0)
+	currency := "CAD"
+
 	for _, balance := range balances {
-		balanceDecimal := decimal.NewFromInt32(balance.CurrentBalance)
-		total = total.Add(balanceDecimal)
+		hasBalance := len(balance.CurrentBalance) > 0
+		if !hasBalance {
+			continue
+		}
+
+		var wrapper types.MoneyWrapper
+		if err := wrapper.Scan(balance.CurrentBalance); err != nil {
+			continue
+		}
+
+		if wrapper.Money != nil {
+			totalUnits += wrapper.Money.Units
+			totalNanos += wrapper.Money.Nanos
+			currency = wrapper.Money.CurrencyCode
+		}
 	}
 
-	return total, nil
+	hasNanosOverflow := totalNanos >= 1e9
+	hasNanosUnderflow := totalNanos <= -1e9
+	if hasNanosOverflow || hasNanosUnderflow {
+		totalUnits += int64(totalNanos / 1e9)
+		totalNanos = totalNanos % 1e9
+	}
+
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        totalUnits,
+		Nanos:        totalNanos,
+	}, nil
 }
 
-func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesForUserRow, error) {
-	balances, err := s.queries.GetAccountBalancesForUser(ctx, userID)
+func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error) {
+	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
-		return nil, wrapErr("DashboardService.AccountBalancesForUser", err)
+		return nil, wrapErr("DashboardService.AccountBalances", err)
 	}
 	return balances, nil
 }
 
 func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error) {
 	var start, end *time.Time
-	if startDate != nil {
-		if parsed, err := time.Parse("2006-01-02", *startDate); err != nil {
+
+	hasStartDate := startDate != nil
+	if hasStartDate {
+		parsed, err := time.Parse("2006-01-02", *startDate)
+		if err != nil {
 			return nil, wrapErr("DashboardService.GetAccountSummary.ParseStartDate", err)
-		} else {
-			start = &parsed
 		}
+		start = &parsed
 	}
-	if endDate != nil {
-		if parsed, err := time.Parse("2006-01-02", *endDate); err != nil {
+
+	hasEndDate := endDate != nil
+	if hasEndDate {
+		parsed, err := time.Parse("2006-01-02", *endDate)
+		if err != nil {
 			return nil, wrapErr("DashboardService.GetAccountSummary.ParseEndDate", err)
-		} else {
-			end = &parsed
 		}
+		end = &parsed
 	}
 
 	summaryParams := sqlc.GetDashboardSummaryForAccountParams{
@@ -178,21 +268,22 @@ func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accou
 	}, nil
 }
 
-func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsForUserRow, error) {
+func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error) {
 	var start, end *time.Time
-	if parsed, err := time.Parse("2006-01-02", startDate); err != nil {
+
+	parsedStart, err := time.Parse("2006-01-02", startDate)
+	if err != nil {
 		return nil, wrapErr("DashboardService.GetSpendingTrends.ParseStartDate", err)
-	} else {
-		start = &parsed
 	}
+	start = &parsedStart
 
-	if parsed, err := time.Parse("2006-01-02", endDate); err != nil {
+	parsedEnd, err := time.Parse("2006-01-02", endDate)
+	if err != nil {
 		return nil, wrapErr("DashboardService.GetSpendingTrends.ParseEndDate", err)
-	} else {
-		end = &parsed
 	}
+	end = &parsedEnd
 
-	params := sqlc.GetDashboardTrendsForUserParams{
+	params := sqlc.GetDashboardTrendsParams{
 		UserID: userID,
 		Start:  start,
 		End:    end,

@@ -29,6 +29,7 @@ func (r *iteratorForBulkCreateCategories) Next() bool {
 
 func (r iteratorForBulkCreateCategories) Values() ([]interface{}, error) {
 	return []interface{}{
+		r.rows[0].UserID,
 		r.rows[0].Slug,
 		r.rows[0].Label,
 		r.rows[0].Color,
@@ -40,7 +41,7 @@ func (r iteratorForBulkCreateCategories) Err() error {
 }
 
 func (q *Queries) BulkCreateCategories(ctx context.Context, arg []BulkCreateCategoriesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"categories"}, []string{"slug", "label", "color"}, &iteratorForBulkCreateCategories{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"categories"}, []string{"user_id", "slug", "label", "color"}, &iteratorForBulkCreateCategories{rows: arg})
 }
 
 // iteratorForBulkCreateReceiptItems implements pgx.CopyFromSource.

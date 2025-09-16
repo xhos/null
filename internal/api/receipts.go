@@ -14,7 +14,7 @@ func (s *Server) ListReceipts(ctx context.Context, req *connect.Request[pb.ListR
 		return nil, err
 	}
 
-	receipts, err := s.services.Receipts.ListForUser(ctx, userID)
+	receipts, err := s.services.Receipts.List(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -31,12 +31,12 @@ func (s *Server) GetReceipt(ctx context.Context, req *connect.Request[pb.GetRece
 		return nil, err
 	}
 
-	params := sqlc.GetReceiptForUserParams{
+	params := sqlc.GetReceiptParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	receipt, err := s.services.Receipts.GetForUser(ctx, params)
+	receipt, err := s.services.Receipts.Get(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -102,12 +102,12 @@ func (s *Server) UpdateReceipt(ctx context.Context, req *connect.Request[pb.Upda
 	}
 
 	// get updated receipt
-	getParams := sqlc.GetReceiptForUserParams{
+	getParams := sqlc.GetReceiptParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	receipt, err := s.services.Receipts.GetForUser(ctx, getParams)
+	receipt, err := s.services.Receipts.Get(ctx, getParams)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -123,12 +123,12 @@ func (s *Server) DeleteReceipt(ctx context.Context, req *connect.Request[pb.Dele
 		return nil, err
 	}
 
-	params := sqlc.DeleteReceiptForUserParams{
+	params := sqlc.DeleteReceiptParams{
 		UserID: userID,
 		ID:     req.Msg.GetId(),
 	}
 
-	err = s.services.Receipts.DeleteForUser(ctx, params)
+	err = s.services.Receipts.Delete(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -139,12 +139,17 @@ func (s *Server) DeleteReceipt(ctx context.Context, req *connect.Request[pb.Dele
 }
 
 func (s *Server) ParseReceipt(ctx context.Context, req *connect.Request[pb.ParseReceiptRequest]) (*connect.Response[pb.ParseReceiptResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	engine := "default"
 	if req.Msg.Engine != nil {
 		engine = req.Msg.Engine.String()
 	}
 
-	receipt, err := s.services.Receipts.ParseReceipt(ctx, req.Msg.GetReceiptId(), engine)
+	receipt, err := s.services.Receipts.ParseReceipt(ctx, userID, req.Msg.GetReceiptId(), engine)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -246,7 +251,10 @@ func (s *Server) CreateReceipt(ctx context.Context, req *connect.Request[pb.Crea
 }
 
 func (s *Server) CreateReceiptItem(ctx context.Context, req *connect.Request[pb.CreateReceiptItemRequest]) (*connect.Response[pb.CreateReceiptItemResponse], error) {
-	params := buildReceiptItemParams(req.Msg)
+	params, err := buildReceiptItemParams(req.Msg)
+	if err != nil {
+		return nil, handleError(err)
+	}
 	item, err := s.services.Receipts.CreateItem(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
@@ -303,7 +311,10 @@ func (s *Server) ListReceiptItems(ctx context.Context, req *connect.Request[pb.L
 }
 
 func (s *Server) UpdateReceiptItem(ctx context.Context, req *connect.Request[pb.UpdateReceiptItemRequest]) (*connect.Response[pb.UpdateReceiptItemResponse], error) {
-	params := buildUpdateReceiptItemParams(req.Msg)
+	params, err := buildUpdateReceiptItemParams(req.Msg)
+	if err != nil {
+		return nil, handleError(err)
+	}
 	item, err := s.services.Receipts.UpdateItem(ctx, params)
 	if err != nil {
 		return nil, handleError(err)

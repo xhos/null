@@ -1,6 +1,6 @@
--- name: ListAccountsForUser :many
+-- name: ListAccounts :many
 SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance, a.anchor_currency,
+       a.anchor_date, a.anchor_balance,
        a.created_at, a.updated_at,
        (a.owner_id = @user_id::uuid) AS is_owner
 FROM accounts a
@@ -8,9 +8,9 @@ LEFT JOIN account_users au ON au.account_id = a.id AND au.user_id = @user_id::uu
 WHERE a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL
 ORDER BY is_owner DESC, a.created_at;
 
--- name: GetAccountForUser :one
+-- name: GetAccount :one
 SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance, a.anchor_currency,
+       a.anchor_date, a.anchor_balance,
        a.created_at, a.updated_at,
        (a.owner_id = @user_id::uuid) AS is_owner
 FROM accounts a
@@ -21,18 +21,17 @@ WHERE a.id = @id::bigint
 -- name: CreateAccount :one
 INSERT INTO accounts (
   owner_id, name, bank, account_type, alias,
-  anchor_balance, anchor_currency
+  anchor_balance
 ) VALUES (
   @owner_id::uuid,
   @name::text,
   @bank::text,
   @account_type::smallint,
   sqlc.narg('alias')::text,
-  @anchor_balance::numeric,
-  @anchor_currency::char(3)
+  @anchor_balance::jsonb
 )
 RETURNING id, owner_id, name, bank, account_type, alias,
-          anchor_date, anchor_balance, anchor_currency,
+          anchor_date, anchor_balance,
           created_at, updated_at;
 
 -- name: UpdateAccount :one
@@ -42,22 +41,20 @@ SET name = COALESCE(sqlc.narg('name')::text, name),
     account_type = COALESCE(sqlc.narg('account_type')::smallint, account_type),
     alias = COALESCE(sqlc.narg('alias')::text, alias),
     anchor_date = COALESCE(sqlc.narg('anchor_date')::date, anchor_date),
-    anchor_balance = COALESCE(sqlc.narg('anchor_balance')::numeric, anchor_balance),
-    anchor_currency = COALESCE(sqlc.narg('anchor_currency')::char(3), anchor_currency)
+    anchor_balance = COALESCE(sqlc.narg('anchor_balance')::jsonb, anchor_balance)
 WHERE id = @id::bigint
 RETURNING id, owner_id, name, bank, account_type, alias,
-          anchor_date, anchor_balance, anchor_currency,
+          anchor_date, anchor_balance,
           created_at, updated_at;
 
--- name: DeleteAccountForUser :execrows
+-- name: DeleteAccount :execrows
 DELETE FROM accounts 
 WHERE id = @id::bigint AND owner_id = @user_id::uuid;
 
 -- name: SetAccountAnchor :execrows
 UPDATE accounts
 SET anchor_date = NOW()::date,
-    anchor_balance = @anchor_balance::numeric,
-    anchor_currency = @anchor_currency::char(3)
+    anchor_balance = @anchor_balance::jsonb
 WHERE id = @id::bigint;
 
 -- name: GetAccountBalance :one
@@ -68,7 +65,7 @@ ORDER BY tx_date DESC, id DESC
 LIMIT 1;
 
 -- name: GetAccountAnchorBalance :one
-SELECT anchor_balance, anchor_currency
+SELECT anchor_balance
 FROM accounts
 WHERE id = @id::bigint;
 
