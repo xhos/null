@@ -9,6 +9,7 @@ import (
 	"ariand/internal/db"
 	"ariand/internal/service"
 	"ariand/internal/version"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,11 +24,19 @@ func main() {
 	cfg := config.Load()
 
 	// ----- logger -----------------
-	logger := log.NewWithOptions(os.Stdout, log.Options{
-		ReportTimestamp: true,
-		Prefix:          "ariand",
-		Level:           cfg.LogLevel,
-	})
+	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal("failed to create log file", "err", err)
+	}
+	defer logFile.Close()
+
+	logger := log.NewWithOptions(
+		io.MultiWriter(os.Stdout, logFile),
+		log.Options{
+			ReportTimestamp: true,
+			Level:           cfg.LogLevel,
+			Formatter:       log.JSONFormatter,
+		})
 
 	logger.Info("starting ariand", "version", version.FullVersion())
 
