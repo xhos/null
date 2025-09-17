@@ -48,6 +48,12 @@ func (rw *responseWriter) Write(data []byte) (int, error) {
 	return rw.ResponseWriter.Write(data)
 }
 
+func (rw *responseWriter) Flush() {
+	if flusher, ok := rw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func getUserFromContext(r *http.Request) (*User, bool) {
 	user, ok := r.Context().Value(UserContextKey).(*User)
 	return user, ok

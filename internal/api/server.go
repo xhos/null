@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpchealth"
+	"connectrpc.com/grpcreflect"
 	"github.com/charmbracelet/log"
 )
 
@@ -66,6 +67,19 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	healthPath, healthHandler := grpchealth.NewHandler(s.healthCheck)
 	mux.Handle(healthPath, healthHandler)
 
+	reflector := grpcreflect.NewStaticReflector(
+		"arian.v1.UserService",
+		"arian.v1.AccountService",
+		"arian.v1.TransactionService",
+		"arian.v1.CategoryService",
+		"arian.v1.DashboardService",
+		"arian.v1.ReceiptService",
+	)
+	reflectPath, reflectHandler := grpcreflect.NewHandlerV1(reflector)
+	mux.Handle(reflectPath, reflectHandler)
+	reflectPathAlpha, reflectHandlerAlpha := grpcreflect.NewHandlerV1Alpha(reflector)
+	mux.Handle(reflectPathAlpha, reflectHandlerAlpha)
+
 	// Create interceptors for automatic user ID extraction
 	interceptors := connect.WithInterceptors(middleware.UserIDExtractor())
 
@@ -89,6 +103,5 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 
 	s.log.Info("all connect-go services registered",
 		"health_endpoint", healthPath,
-		"services", 6,
 	)
 }
