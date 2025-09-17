@@ -55,7 +55,6 @@ func (s *Server) GetHandler(authConfig *middleware.AuthConfig) http.Handler {
 
 	stack := middleware.CreateStack(
 		middleware.CORS(),
-		middleware.Logging(s.log),
 		middleware.Auth(authConfig, s.log),
 		middleware.UserContext(),
 	)
@@ -80,10 +79,12 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	reflectPathAlpha, reflectHandlerAlpha := grpcreflect.NewHandlerV1Alpha(reflector)
 	mux.Handle(reflectPathAlpha, reflectHandlerAlpha)
 
-	// Create interceptors for automatic user ID extraction
-	interceptors := connect.WithInterceptors(middleware.UserIDExtractor())
+	interceptors := connect.WithInterceptors(
+		middleware.ConnectLoggingInterceptor(s.log),
+		middleware.UserIDExtractor(),
+	)
 
-	path, handler := arianv1connect.NewUserServiceHandler(s)
+	path, handler := arianv1connect.NewUserServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
 	path, handler = arianv1connect.NewAccountServiceHandler(s, interceptors)

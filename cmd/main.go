@@ -24,8 +24,9 @@ func main() {
 
 	// ----- logger -----------------
 	logger := log.NewWithOptions(os.Stdout, log.Options{
-		Prefix: "ariand",
-		Level:  cfg.LogLevel,
+		ReportTimestamp: true,
+		Prefix:          "ariand",
+		Level:           cfg.LogLevel,
 	})
 
 	logger.Info("starting ariand", "version", version.FullVersion())

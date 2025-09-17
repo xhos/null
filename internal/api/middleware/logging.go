@@ -1,12 +1,14 @@
 package middleware
 
 import (
-	"bytes"
-	"io"
-	"net/http"
+	"context"
+	"errors"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/charmbracelet/log"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type User struct {
@@ -23,96 +25,82 @@ const (
 	UserIDKey       contextKey = "user_id"
 )
 
-// responseWriter wraps http.ResponseWriter to capture response data
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-	body       *bytes.Buffer
-}
-
-func newResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{
-		ResponseWriter: w,
-		statusCode:     http.StatusOK,
-		body:           &bytes.Buffer{},
+// ConnectLoggingInterceptor creates a Connect unary interceptor for structured logging
+func ConnectLoggingInterceptor(logger *log.Logger) connect.UnaryInterceptorFunc {
+	marshaler := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: false,
+		Indent:          "",
 	}
-}
 
-func (rw *responseWriter) WriteHeader(statusCode int) {
-	rw.statusCode = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (rw *responseWriter) Write(data []byte) (int, error) {
-	rw.body.Write(data)
-	return rw.ResponseWriter.Write(data)
-}
-
-func (rw *responseWriter) Flush() {
-	if flusher, ok := rw.ResponseWriter.(http.Flusher); ok {
-		flusher.Flush()
-	}
-}
-
-func getUserFromContext(r *http.Request) (*User, bool) {
-	user, ok := r.Context().Value(UserContextKey).(*User)
-	return user, ok
-}
-
-func isInternalRequest(r *http.Request) bool {
-	internal, ok := r.Context().Value(InternalAuthKey).(bool)
-	return ok && internal
-}
-
-func Logging(logger *log.Logger) Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
+		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			start := time.Now()
+			procedure := req.Spec().Procedure
 
-			// Capture request body for debug logging
-			var requestBody []byte
-			if r.Body != nil {
-				requestBody, _ = io.ReadAll(r.Body)
-				r.Body = io.NopCloser(bytes.NewBuffer(requestBody))
-			}
+			// Extract HTTP info from headers
+			userAgent := req.Header().Get("User-Agent")
+			contentType := req.Header().Get("Content-Type")
 
-			// Wrap response writer to capture response
-			rw := newResponseWriter(w)
-
-			logFields := []interface{}{
-				"method", r.Method,
-				"path", r.URL.Path,
-				"user_agent", r.Header.Get("User-Agent"),
-				"content_type", r.Header.Get("Content-Type"),
-			}
-
-			if user, ok := getUserFromContext(r); ok {
+			// Extract user info from context if available
+			var logFields []any
+			if user, ok := ctx.Value(UserContextKey).(*User); ok {
 				logFields = append(logFields, "user_id", user.ID, "user_email", user.Email)
-			} else if isInternalRequest(r) {
+			} else if internal, ok := ctx.Value(InternalAuthKey).(bool); ok && internal {
 				logFields = append(logFields, "auth_type", "internal")
 			}
 
-			logger.Debug("incoming request", append(logFields, "request_body", string(requestBody))...)
+			// Log incoming request with comprehensive info
+			requestFields := append([]any{
+				"timestamp", start.Format(time.RFC3339),
+				"procedure", procedure,
+				"user_agent", userAgent,
+				"content_type", contentType,
+			}, logFields...)
 
-			// Process request
-			next.ServeHTTP(rw, r)
-
-			// Log response
-			duration := time.Since(start)
-			responseFields := append(logFields,
-				"status_code", rw.statusCode,
-				"duration_ms", duration.Milliseconds(),
-			)
-
-			responseBody := rw.body.String()
-
-			// Always log errors (4xx/5xx status codes)
-			if rw.statusCode >= 400 {
-				logger.Error("API error response", append(responseFields, "response_body", responseBody)...)
-			} else {
-				// Debug log successful responses
-				logger.Debug("API response", append(responseFields, "response_body", responseBody)...)
+			if reqMsg, ok := req.Any().(proto.Message); ok {
+				if jsonBytes, err := marshaler.Marshal(reqMsg); err == nil {
+					requestFields = append(requestFields, "request", string(jsonBytes))
+				}
 			}
-		})
-	}
+
+			logger.Debug("connect request", requestFields...)
+
+			// Call the actual handler
+			resp, err := next(ctx, req)
+			duration := time.Since(start)
+
+			// Log response or error with comprehensive info
+			responseFields := append([]any{
+				"timestamp", time.Now().Format(time.RFC3339),
+				"procedure", procedure,
+				"user_agent", userAgent,
+				"content_type", contentType,
+				"duration_ms", duration.Milliseconds(),
+			}, logFields...)
+
+			if err != nil {
+				// Log error responses with Connect error details
+				responseFields = append(responseFields, "error", err.Error())
+				if connectErr := new(connect.Error); errors.As(err, &connectErr) {
+					responseFields = append(responseFields,
+						"code", connectErr.Code().String(),
+					)
+				}
+				logger.Error("connect error", responseFields...)
+				return nil, err
+			}
+
+			// Log successful response with status info
+			responseFields = append(responseFields, "status", "success")
+			if respMsg, ok := resp.Any().(proto.Message); ok {
+				if jsonBytes, err := marshaler.Marshal(respMsg); err == nil {
+					responseFields = append(responseFields, "response", string(jsonBytes))
+				}
+			}
+
+			logger.Debug("connect response", responseFields...)
+			return resp, nil
+		}
+	})
 }
