@@ -35,6 +35,8 @@ type Account struct {
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Alias         *string                `protobuf:"bytes,10,opt,name=alias,proto3,oneof" json:"alias,omitempty"`
+	MainCurrency  string                 `protobuf:"bytes,11,opt,name=main_currency,json=mainCurrency,proto3" json:"main_currency,omitempty"`
+	Colors        []string               `protobuf:"bytes,12,rep,name=colors,proto3" json:"colors,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -139,6 +141,20 @@ func (x *Account) GetAlias() string {
 	return ""
 }
 
+func (x *Account) GetMainCurrency() string {
+	if x != nil {
+		return x.MainCurrency
+	}
+	return ""
+}
+
+func (x *Account) GetColors() []string {
+	if x != nil {
+		return x.Colors
+	}
+	return nil
+}
+
 type AccountBalance struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -219,7 +235,7 @@ var File_arian_v1_account_proto protoreflect.FileDescriptor
 
 const file_arian_v1_account_proto_rawDesc = "" +
 	"\n" +
-	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x9a\x03\n" +
+	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xd7\x03\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
@@ -234,7 +250,9 @@ const file_arian_v1_account_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x19\n" +
 	"\x05alias\x18\n" +
-	" \x01(\tH\x00R\x05alias\x88\x01\x01B\b\n" +
+	" \x01(\tH\x00R\x05alias\x88\x01\x01\x12#\n" +
+	"\rmain_currency\x18\v \x01(\tR\fmainCurrency\x12\x16\n" +
+	"\x06colors\x18\f \x03(\tR\x06colorsB\b\n" +
 	"\x06_alias\"\xc7\x01\n" +
 	"\x0eAccountBalance\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +

@@ -1,6 +1,6 @@
 -- name: ListAccounts :many
 SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance,
+       a.anchor_date, a.anchor_balance, a.main_currency, a.colors,
        a.created_at, a.updated_at,
        (a.owner_id = @user_id::uuid) AS is_owner
 FROM accounts a
@@ -10,7 +10,7 @@ ORDER BY is_owner DESC, a.created_at;
 
 -- name: GetAccount :one
 SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance,
+       a.anchor_date, a.anchor_balance, a.main_currency, a.colors,
        a.created_at, a.updated_at,
        (a.owner_id = @user_id::uuid) AS is_owner
 FROM accounts a
@@ -21,18 +21,18 @@ WHERE a.id = @id::bigint
 -- name: CreateAccount :one
 INSERT INTO accounts (
   owner_id, name, bank, account_type, alias,
-  anchor_balance
+  anchor_balance, main_currency, colors
 ) VALUES (
   @owner_id::uuid,
   @name::text,
   @bank::text,
   @account_type::smallint,
   sqlc.narg('alias')::text,
-  @anchor_balance::jsonb
+  @anchor_balance::jsonb,
+  @main_currency::text,
+  @colors::text[]
 )
-RETURNING id, owner_id, name, bank, account_type, alias,
-          anchor_date, anchor_balance,
-          created_at, updated_at;
+RETURNING *;
 
 -- name: UpdateAccount :one
 UPDATE accounts
@@ -41,11 +41,11 @@ SET name = COALESCE(sqlc.narg('name')::text, name),
     account_type = COALESCE(sqlc.narg('account_type')::smallint, account_type),
     alias = COALESCE(sqlc.narg('alias')::text, alias),
     anchor_date = COALESCE(sqlc.narg('anchor_date')::date, anchor_date),
-    anchor_balance = COALESCE(sqlc.narg('anchor_balance')::jsonb, anchor_balance)
+    anchor_balance = COALESCE(sqlc.narg('anchor_balance')::jsonb, anchor_balance),
+    main_currency = COALESCE(sqlc.narg('main_currency')::text, main_currency),
+    colors = COALESCE(sqlc.narg('colors')::text[], colors)
 WHERE id = @id::bigint
-RETURNING id, owner_id, name, bank, account_type, alias,
-          anchor_date, anchor_balance,
-          created_at, updated_at;
+RETURNING *;
 
 -- name: DeleteAccount :execrows
 DELETE FROM accounts 

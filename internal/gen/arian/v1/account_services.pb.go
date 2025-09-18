@@ -217,6 +217,8 @@ type CreateAccountRequest struct {
 	Type          AccountType            `protobuf:"varint,4,opt,name=type,proto3,enum=arian.v1.AccountType" json:"type,omitempty"`
 	Alias         *string                `protobuf:"bytes,5,opt,name=alias,proto3,oneof" json:"alias,omitempty"`
 	AnchorBalance *money.Money           `protobuf:"bytes,6,opt,name=anchor_balance,json=anchorBalance,proto3" json:"anchor_balance,omitempty"`
+	MainCurrency  string                 `protobuf:"bytes,7,opt,name=main_currency,json=mainCurrency,proto3" json:"main_currency,omitempty"`
+	Colors        []string               `protobuf:"bytes,8,rep,name=colors,proto3" json:"colors,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -293,6 +295,20 @@ func (x *CreateAccountRequest) GetAnchorBalance() *money.Money {
 	return nil
 }
 
+func (x *CreateAccountRequest) GetMainCurrency() string {
+	if x != nil {
+		return x.MainCurrency
+	}
+	return ""
+}
+
+func (x *CreateAccountRequest) GetColors() []string {
+	if x != nil {
+		return x.Colors
+	}
+	return nil
+}
+
 type CreateAccountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Account       *Account               `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
@@ -349,6 +365,8 @@ type UpdateAccountRequest struct {
 	Alias         *string                `protobuf:"bytes,7,opt,name=alias,proto3,oneof" json:"alias,omitempty"`
 	AnchorDate    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=anchor_date,json=anchorDate,proto3,oneof" json:"anchor_date,omitempty"`
 	AnchorBalance *money.Money           `protobuf:"bytes,9,opt,name=anchor_balance,json=anchorBalance,proto3,oneof" json:"anchor_balance,omitempty"`
+	MainCurrency  *string                `protobuf:"bytes,10,opt,name=main_currency,json=mainCurrency,proto3,oneof" json:"main_currency,omitempty"`
+	Colors        []string               `protobuf:"bytes,11,rep,name=colors,proto3" json:"colors,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -442,6 +460,20 @@ func (x *UpdateAccountRequest) GetAnchorDate() *timestamppb.Timestamp {
 func (x *UpdateAccountRequest) GetAnchorBalance() *money.Money {
 	if x != nil {
 		return x.AnchorBalance
+	}
+	return nil
+}
+
+func (x *UpdateAccountRequest) GetMainCurrency() string {
+	if x != nil && x.MainCurrency != nil {
+		return *x.MainCurrency
+	}
+	return ""
+}
+
+func (x *UpdateAccountRequest) GetColors() []string {
+	if x != nil {
+		return x.Colors
 	}
 	return nil
 }
@@ -1047,17 +1079,20 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"A\n" +
 	"\x12GetAccountResponse\x12+\n" +
-	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x97\x02\n" +
+	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x90\x03\n" +
 	"\x14CreateAccountRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12\x1d\n" +
 	"\x04bank\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04bank\x123\n" +
 	"\x04type\x18\x04 \x01(\x0e2\x15.arian.v1.AccountTypeB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04type\x12$\n" +
 	"\x05alias\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x00R\x05alias\x88\x01\x01\x129\n" +
-	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalanceB\b\n" +
+	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x129\n" +
+	"\rmain_currency\x18\a \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03R\fmainCurrency\x12<\n" +
+	"\x06colors\x18\b \x03(\tB$\xbaH!\x92\x01\x1e\b\x03\x10\x03\"\x18r\x162\x11^#[0-9a-fA-F]{6}$\x98\x01\aR\x06colorsB\b\n" +
 	"\x06_alias\"D\n" +
 	"\x15CreateAccountResponse\x12+\n" +
-	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x98\x04\n" +
+	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\xa8\x05\n" +
 	"\x14UpdateAccountRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
@@ -1069,13 +1104,18 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\x05alias\x18\a \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x03R\x05alias\x88\x01\x01\x12@\n" +
 	"\vanchor_date\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x04R\n" +
 	"anchorDate\x88\x01\x01\x12>\n" +
-	"\x0eanchor_balance\x18\t \x01(\v2\x12.google.type.MoneyH\x05R\ranchorBalance\x88\x01\x01B\a\n" +
+	"\x0eanchor_balance\x18\t \x01(\v2\x12.google.type.MoneyH\x05R\ranchorBalance\x88\x01\x01\x12>\n" +
+	"\rmain_currency\x18\n" +
+	" \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03H\x06R\fmainCurrency\x88\x01\x01\x12<\n" +
+	"\x06colors\x18\v \x03(\tB$\xbaH!\x92\x01\x1e\b\x03\x10\x03\"\x18r\x162\x11^#[0-9a-fA-F]{6}$\x98\x01\aR\x06colorsB\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_bankB\x0f\n" +
 	"\r_account_typeB\b\n" +
 	"\x06_aliasB\x0e\n" +
 	"\f_anchor_dateB\x11\n" +
-	"\x0f_anchor_balance\"D\n" +
+	"\x0f_anchor_balanceB\x10\n" +
+	"\x0e_main_currency\"D\n" +
 	"\x15UpdateAccountResponse\x12+\n" +
 	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"R\n" +
 	"\x14DeleteAccountRequest\x12!\n" +

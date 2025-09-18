@@ -24,6 +24,8 @@ type Account struct {
 	AnchorBalance *types.Money      `json:"anchor_balance"`
 	CreatedAt     time.Time         `json:"created_at"`
 	UpdatedAt     time.Time         `json:"updated_at"`
+	MainCurrency  string            `json:"main_currency"`
+	Colors        []string          `json:"colors"`
 }
 
 type AccountUser struct {

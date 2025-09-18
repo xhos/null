@@ -38,18 +38,18 @@ func (q *Queries) CheckUserAccountAccess(ctx context.Context, arg CheckUserAccou
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
   owner_id, name, bank, account_type, alias,
-  anchor_balance
+  anchor_balance, main_currency, colors
 ) VALUES (
   $1::uuid,
   $2::text,
   $3::text,
   $4::smallint,
   $5::text,
-  $6::jsonb
+  $6::jsonb,
+  $7::text,
+  $8::text[]
 )
-RETURNING id, owner_id, name, bank, account_type, alias,
-          anchor_date, anchor_balance,
-          created_at, updated_at
+RETURNING id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors
 `
 
 type CreateAccountParams struct {
@@ -59,6 +59,8 @@ type CreateAccountParams struct {
 	AccountType   int16     `json:"account_type"`
 	Alias         *string   `json:"alias"`
 	AnchorBalance []byte    `json:"anchor_balance"`
+	MainCurrency  string    `json:"main_currency"`
+	Colors        []string  `json:"colors"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
@@ -69,6 +71,8 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		arg.AccountType,
 		arg.Alias,
 		arg.AnchorBalance,
+		arg.MainCurrency,
+		arg.Colors,
 	)
 	var i Account
 	err := row.Scan(
@@ -82,6 +86,8 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.AnchorBalance,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MainCurrency,
+		&i.Colors,
 	)
 	return i, err
 }
@@ -106,7 +112,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) (i
 
 const getAccount = `-- name: GetAccount :one
 SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance,
+       a.anchor_date, a.anchor_balance, a.main_currency, a.colors,
        a.created_at, a.updated_at,
        (a.owner_id = $1::uuid) AS is_owner
 FROM accounts a
@@ -129,6 +135,8 @@ type GetAccountRow struct {
 	Alias         *string           `json:"alias"`
 	AnchorDate    time.Time         `json:"anchor_date"`
 	AnchorBalance *types.Money      `json:"anchor_balance"`
+	MainCurrency  string            `json:"main_currency"`
+	Colors        []string          `json:"colors"`
 	CreatedAt     time.Time         `json:"created_at"`
 	UpdatedAt     time.Time         `json:"updated_at"`
 	IsOwner       bool              `json:"is_owner"`
@@ -146,6 +154,8 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 		&i.Alias,
 		&i.AnchorDate,
 		&i.AnchorBalance,
+		&i.MainCurrency,
+		&i.Colors,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IsOwner,
@@ -197,7 +207,7 @@ func (q *Queries) GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (i
 
 const listAccounts = `-- name: ListAccounts :many
 SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance,
+       a.anchor_date, a.anchor_balance, a.main_currency, a.colors,
        a.created_at, a.updated_at,
        (a.owner_id = $1::uuid) AS is_owner
 FROM accounts a
@@ -215,6 +225,8 @@ type ListAccountsRow struct {
 	Alias         *string           `json:"alias"`
 	AnchorDate    time.Time         `json:"anchor_date"`
 	AnchorBalance *types.Money      `json:"anchor_balance"`
+	MainCurrency  string            `json:"main_currency"`
+	Colors        []string          `json:"colors"`
 	CreatedAt     time.Time         `json:"created_at"`
 	UpdatedAt     time.Time         `json:"updated_at"`
 	IsOwner       bool              `json:"is_owner"`
@@ -238,6 +250,8 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 			&i.Alias,
 			&i.AnchorDate,
 			&i.AnchorBalance,
+			&i.MainCurrency,
+			&i.Colors,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.IsOwner,
@@ -279,11 +293,11 @@ SET name = COALESCE($1::text, name),
     account_type = COALESCE($3::smallint, account_type),
     alias = COALESCE($4::text, alias),
     anchor_date = COALESCE($5::date, anchor_date),
-    anchor_balance = COALESCE($6::jsonb, anchor_balance)
-WHERE id = $7::bigint
-RETURNING id, owner_id, name, bank, account_type, alias,
-          anchor_date, anchor_balance,
-          created_at, updated_at
+    anchor_balance = COALESCE($6::jsonb, anchor_balance),
+    main_currency = COALESCE($7::text, main_currency),
+    colors = COALESCE($8::text[], colors)
+WHERE id = $9::bigint
+RETURNING id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors
 `
 
 type UpdateAccountParams struct {
@@ -293,6 +307,8 @@ type UpdateAccountParams struct {
 	Alias         *string    `json:"alias"`
 	AnchorDate    *time.Time `json:"anchor_date"`
 	AnchorBalance []byte     `json:"anchor_balance"`
+	MainCurrency  *string    `json:"main_currency"`
+	Colors        []string   `json:"colors"`
 	ID            int64      `json:"id"`
 }
 
@@ -304,6 +320,8 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		arg.Alias,
 		arg.AnchorDate,
 		arg.AnchorBalance,
+		arg.MainCurrency,
+		arg.Colors,
 		arg.ID,
 	)
 	var i Account
@@ -318,6 +336,8 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		&i.AnchorBalance,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MainCurrency,
+		&i.Colors,
 	)
 	return i, err
 }

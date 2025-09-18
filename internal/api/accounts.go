@@ -6,7 +6,6 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
-	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -157,9 +156,13 @@ func (s *Server) SyncAccountBalances(ctx context.Context, req *connect.Request[p
 }
 
 func (s *Server) GetAnchorBalance(ctx context.Context, req *connect.Request[pb.GetAnchorBalanceRequest]) (*connect.Response[pb.GetAnchorBalanceResponse], error) {
-	// placeholder implementation - would need to fetch anchor balance from database
+	anchorBalance, err := s.services.Accounts.GetAnchorBalance(ctx, req.Msg.GetId())
+	if err != nil {
+		return nil, handleError(err)
+	}
+
 	return connect.NewResponse(&pb.GetAnchorBalanceResponse{
-		AnchorBalance: &money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0},
-		Currency:      "CAD",
+		AnchorBalance: anchorBalance,
+		Currency:      anchorBalance.GetCurrencyCode(),
 	}), nil
 }

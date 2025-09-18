@@ -5,6 +5,7 @@ import (
 	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/service"
 	"ariand/internal/types"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -223,6 +224,12 @@ func buildUpdateAccountParams(req *pb.UpdateAccountRequest) sqlc.UpdateAccountPa
 		}
 		params.AnchorBalance = balanceBytes
 	}
+	if req.MainCurrency != nil {
+		params.MainCurrency = req.MainCurrency
+	}
+	if len(req.Colors) > 0 {
+		params.Colors = req.Colors
+	}
 
 	return params
 }
@@ -242,6 +249,8 @@ func toProtoAccount(a *sqlc.ListAccountsRow) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: unwrapMoney(a.AnchorBalance),
+		MainCurrency:  a.MainCurrency,
+		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
@@ -260,6 +269,8 @@ func toProtoAccountFromGetRow(a *sqlc.GetAccountRow) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: unwrapMoney(a.AnchorBalance),
+		MainCurrency:  a.MainCurrency,
+		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
@@ -278,6 +289,8 @@ func toProtoAccountFromModel(a *sqlc.Account) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: unwrapMoney(a.AnchorBalance),
+		MainCurrency:  a.MainCurrency,
+		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
 	}
@@ -294,6 +307,20 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 		return sqlc.CreateAccountParams{}, err
 	}
 
+	// Default to CAD if main_currency is empty
+	mainCurrency := req.GetMainCurrency()
+	if mainCurrency == "" {
+		mainCurrency = "CAD"
+	}
+
+	// Default colors if not provided, validate if provided
+	colors := req.GetColors()
+	if len(colors) == 0 {
+		colors = []string{"#1f2937", "#3b82f6", "#10b981"}
+	} else if len(colors) != 3 {
+		return sqlc.CreateAccountParams{}, fmt.Errorf("colors must be exactly 3 hex values, got %d", len(colors))
+	}
+
 	return sqlc.CreateAccountParams{
 		OwnerID:       userID,
 		Name:          req.GetName(),
@@ -301,6 +328,8 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 		AccountType:   int16(req.GetType()),
 		Alias:         req.Alias,
 		AnchorBalance: balanceBytes,
+		MainCurrency:  mainCurrency,
+		Colors:        colors,
 	}, nil
 }
 
