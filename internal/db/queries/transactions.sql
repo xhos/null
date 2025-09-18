@@ -161,6 +161,37 @@ WHERE a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL
 GROUP BY a.id, a.name
 ORDER BY transaction_count DESC;
 
+
+-- name: RecalculateBalancesAfterTransaction :exec
+-- Recalculate balance_after for all transactions after a given date/id
+WITH transaction_deltas AS (
+  SELECT id,
+         SUM(CASE WHEN tx_direction = 1 THEN (tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0 
+                  ELSE -((tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0) END)
+           OVER (PARTITION BY account_id ORDER BY tx_date, id) AS running_delta
+  FROM transactions
+  WHERE account_id = @account_id::bigint
+    AND (tx_date > @from_date::timestamptz OR (tx_date = @from_date::timestamptz AND id >= @from_id::bigint))
+),
+anchor_point AS (
+  SELECT a.anchor_balance,
+         COALESCE(SUM(CASE WHEN t.tx_direction = 1 THEN (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 
+                           ELSE -((t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0) END), 0.0) AS delta_at_anchor
+  FROM accounts a
+  LEFT JOIN transactions t ON t.account_id = a.id AND t.tx_date < a.anchor_date
+  WHERE a.id = @account_id::bigint
+  GROUP BY a.id, a.anchor_balance
+)
+UPDATE transactions
+SET balance_after = jsonb_build_object(
+  'currency_code', tx_amount->>'currency_code',
+  'units', ((ap.anchor_balance->>'units')::bigint + td.running_delta - ap.delta_at_anchor)::bigint,
+  'nanos', 0
+)
+FROM transaction_deltas td, anchor_point ap
+WHERE transactions.id = td.id
+  AND transactions.account_id = @account_id::bigint;
+
 -- name: SyncAccountBalances :exec
 WITH transaction_deltas AS (
   SELECT id,

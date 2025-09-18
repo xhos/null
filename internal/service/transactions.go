@@ -9,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
+	"google.golang.org/genproto/googleapis/type/money"
 )
 
 const (
@@ -88,33 +90,108 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		return 0, fmt.Errorf("TransactionService.Create: %w", err)
 	}
 
+	// calculate balance_after if not provided
+	needsBalanceCalculation := len(params.BalanceAfter) == 0
+	if needsBalanceCalculation {
+		balanceAfter, err := s.calculateBalanceAfter(ctx, params.AccountID, params.TxDate, params.TxAmount, params.TxDirection)
+		if err != nil {
+			return 0, wrapErr("TransactionService.Create.CalculateBalance", err)
+		}
+		params.BalanceAfter = balanceAfter
+	}
+
 	id, err := s.queries.CreateTransaction(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.Create", err)
+	}
+
+	// recalculate balances for subsequent transactions
+	if needsBalanceCalculation {
+		err = s.recalculateSubsequentBalances(ctx, params.AccountID, params.TxDate, id)
+		if err != nil {
+			s.log.Warn("Failed to recalculate subsequent balances", "error", err)
+		}
 	}
 
 	return id, nil
 }
 
 func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams) error {
-	_, err := s.queries.UpdateTransaction(ctx, params)
+	// get current transaction to check what changed
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
+		UserID: params.UserID,
+		ID:     params.ID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return wrapErr("TransactionService.Update", ErrNotFound)
 	}
+	if err != nil {
+		return wrapErr("TransactionService.Update.GetOriginal", err)
+	}
 
+	accountID, err := s.queries.UpdateTransaction(ctx, params)
+	if errors.Is(err, sql.ErrNoRows) {
+		return wrapErr("TransactionService.Update", ErrNotFound)
+	}
 	if err != nil {
 		return wrapErr("TransactionService.Update", err)
+	}
+
+	// check if amount, date, or direction changed - if so, recalculate balances
+	var amountChanged bool
+	if params.TxAmount != nil && tx.TxAmount != nil {
+		existingBytes, _ := tx.TxAmount.Value()
+		if existingBytesSlice, ok := existingBytes.([]byte); ok {
+			amountChanged = !equalBytes(params.TxAmount, existingBytesSlice)
+		}
+	}
+
+	dateChanged := params.TxDate != nil && !params.TxDate.Equal(tx.TxDate)
+	directionChanged := params.TxDirection != nil && int16(*params.TxDirection) != int16(tx.TxDirection)
+
+	if amountChanged || dateChanged || directionChanged {
+		err = s.queries.RecalculateBalancesAfterTransaction(ctx, sqlc.RecalculateBalancesAfterTransactionParams{
+			AccountID: accountID,
+			FromDate:  tx.TxDate,
+			FromID:    tx.ID,
+		})
+		if err != nil {
+			s.log.Warn("Failed to recalculate balances after update", "error", err)
+		}
 	}
 
 	return nil
 }
 
 func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error) {
-	id, err := s.queries.DeleteTransaction(ctx, params)
+	// get transaction info before deletion for balance recalculation
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
+		UserID: params.UserID,
+		ID:     params.ID,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, wrapErr("TransactionService.Delete", ErrNotFound)
+	}
+	if err != nil {
+		return 0, wrapErr("TransactionService.Delete.GetOriginal", err)
+	}
+
+	accountID, err := s.queries.DeleteTransaction(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.Delete", err)
 	}
-	return id, nil
+
+	// recalculate balances for transactions after the deleted one
+	err = s.queries.RecalculateBalancesAfterTransaction(ctx, sqlc.RecalculateBalancesAfterTransactionParams{
+		AccountID: tx.AccountID,
+		FromDate:  tx.TxDate,
+		FromID:    tx.ID,
+	})
+	if err != nil {
+		s.log.Warn("Failed to recalculate balances after deletion", "error", err)
+	}
+
+	return accountID, nil
 }
 
 func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error {
@@ -173,6 +250,7 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 		return wrapErr("CategorizeTransaction.GetTransaction", err)
 	}
 
+	// todo: this is bad
 	// Convert GetTransactionRow to Transaction for determineCategory
 	txForCategory := &sqlc.Transaction{
 		ID:           tx.ID,
@@ -463,4 +541,96 @@ func amountClose(a, b *types.Money, tolerance float64) bool {
 	}
 
 	return diff <= limit
+}
+
+// calculateBalanceAfter computes the balance after a new transaction
+func (s *txnSvc) calculateBalanceAfter(ctx context.Context, accountID int64, txDate time.Time, txAmount []byte, txDirection int16) ([]byte, error) {
+	anchorBalance, err := s.queries.GetAccountAnchorBalance(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	var txMoney types.Money
+	if err := txMoney.Scan(txAmount); err != nil {
+		return nil, err
+	}
+
+	// get sum of all transactions before this one
+	rows, err := s.queries.ListTransactions(ctx, sqlc.ListTransactionsParams{
+		UserID:     uuid.Nil, // will be filtered by account access
+		AccountIds: []int64{accountID},
+		End:        &txDate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// calculate running total up to this transaction
+	var runningTotal int64 = anchorBalance.Units
+	for _, row := range rows {
+		if row.TxDate.After(txDate) {
+			break
+		}
+		if row.TxDate.Equal(txDate) {
+			// for same date, we need to be careful about ordering
+			// for now, assume this new transaction comes after existing ones
+			break
+		}
+
+		var rowMoney types.Money
+		if err := rowMoney.Scan(row.TxAmount); err != nil {
+			continue
+		}
+
+		if row.TxDirection == 1 {
+			runningTotal += rowMoney.Units
+		} else {
+			runningTotal -= rowMoney.Units
+		}
+	}
+
+	// apply this transaction
+	if txDirection == 1 {
+		runningTotal += txMoney.Units
+	} else {
+		runningTotal -= txMoney.Units
+	}
+
+	// create balance_after JSON
+	balanceAfter := &types.Money{
+		Money: money.Money{
+			CurrencyCode: txMoney.CurrencyCode,
+			Units:        runningTotal,
+			Nanos:        0, // simplified for now
+		},
+	}
+
+	balanceBytes, err := balanceAfter.Value()
+	if err != nil {
+		return nil, err
+	}
+
+	return balanceBytes.([]byte), nil
+}
+
+// recalculateSubsequentBalances updates balance_after for transactions after a given date/id
+func (s *txnSvc) recalculateSubsequentBalances(ctx context.Context, accountID int64, fromDate time.Time, fromID int64) error {
+	return s.queries.RecalculateBalancesAfterTransaction(ctx, sqlc.RecalculateBalancesAfterTransactionParams{
+		AccountID: accountID,
+		FromDate:  fromDate,
+		FromID:    fromID,
+	})
+}
+
+// equalBytes compares two byte slices
+func equalBytes(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

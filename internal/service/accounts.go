@@ -185,6 +185,13 @@ func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorPar
 	if err != nil {
 		return wrapErr("AccountService.SetAnchor", err)
 	}
+
+	// recalculate all balances since anchor changed
+	err = s.triggerBalanceRecalculation(ctx, params.ID)
+	if err != nil {
+		s.log.Warn("Failed to recalculate balances after anchor update", "account_id", params.ID, "error", err)
+	}
+
 	return nil
 }
 
@@ -193,5 +200,19 @@ func (s *acctSvc) SyncBalances(ctx context.Context, accountID int64) error {
 	if err != nil {
 		return wrapErr("AccountService.SyncBalances", err)
 	}
+	return nil
+}
+
+// triggerBalanceRecalculation recalculates all balance_after fields for an account
+func (s *acctSvc) triggerBalanceRecalculation(ctx context.Context, accountID int64) error {
+	s.log.Info("Recalculating all balances for account", "account_id", accountID)
+
+	err := s.queries.SyncAccountBalances(ctx, accountID)
+	if err != nil {
+		return wrapErr("AccountService.TriggerBalanceRecalculation", err)
+	}
+
+	s.log.Info("Balance recalculation completed", "account_id", accountID)
+
 	return nil
 }

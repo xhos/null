@@ -562,6 +562,48 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 	return items, nil
 }
 
+const recalculateBalancesAfterTransaction = `-- name: RecalculateBalancesAfterTransaction :exec
+WITH transaction_deltas AS (
+  SELECT id,
+         SUM(CASE WHEN tx_direction = 1 THEN (tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0 
+                  ELSE -((tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0) END)
+           OVER (PARTITION BY account_id ORDER BY tx_date, id) AS running_delta
+  FROM transactions
+  WHERE account_id = $1::bigint
+    AND (tx_date > $2::timestamptz OR (tx_date = $2::timestamptz AND id >= $3::bigint))
+),
+anchor_point AS (
+  SELECT a.anchor_balance,
+         COALESCE(SUM(CASE WHEN t.tx_direction = 1 THEN (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 
+                           ELSE -((t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0) END), 0.0) AS delta_at_anchor
+  FROM accounts a
+  LEFT JOIN transactions t ON t.account_id = a.id AND t.tx_date < a.anchor_date
+  WHERE a.id = $1::bigint
+  GROUP BY a.id, a.anchor_balance
+)
+UPDATE transactions
+SET balance_after = jsonb_build_object(
+  'currency_code', tx_amount->>'currency_code',
+  'units', ((ap.anchor_balance->>'units')::bigint + td.running_delta - ap.delta_at_anchor)::bigint,
+  'nanos', 0
+)
+FROM transaction_deltas td, anchor_point ap
+WHERE transactions.id = td.id
+  AND transactions.account_id = $1::bigint
+`
+
+type RecalculateBalancesAfterTransactionParams struct {
+	AccountID int64     `json:"account_id"`
+	FromDate  time.Time `json:"from_date"`
+	FromID    int64     `json:"from_id"`
+}
+
+// Recalculate balance_after for all transactions after a given date/id
+func (q *Queries) RecalculateBalancesAfterTransaction(ctx context.Context, arg RecalculateBalancesAfterTransactionParams) error {
+	_, err := q.db.Exec(ctx, recalculateBalancesAfterTransaction, arg.AccountID, arg.FromDate, arg.FromID)
+	return err
+}
+
 const setTransactionReceipt = `-- name: SetTransactionReceipt :execrows
 UPDATE transactions
 SET receipt_id = $1::bigint
