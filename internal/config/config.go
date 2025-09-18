@@ -19,6 +19,8 @@ type Config struct {
 	ReceiptParserURL     string        // receipt parser service URL
 	ReceiptParserTimeout time.Duration // timeout for receipt parser requests
 
+	ExchangeAPIURL string // exchange rate API URL
+
 	LogLevel log.Level // logging level
 }
 
@@ -64,6 +66,11 @@ func Load() Config {
 		panic("ARIAN_RECEIPTS_URL environment variable is required")
 	}
 
+	exchangeAPIURL := os.Getenv("EXCHANGE_API_URL")
+	if exchangeAPIURL == "" {
+		panic("EXCHANGE_API_URL environment variable is required")
+	}
+
 	timeoutStr := os.Getenv("RECEIPT_PARSER_TIMEOUT")
 	if timeoutStr == "" {
 		timeoutStr = "30s"
@@ -85,6 +92,7 @@ func Load() Config {
 		BetterAuthURL:        betterAuthURL,
 		ReceiptParserURL:     receiptParserURL,
 		ReceiptParserTimeout: receiptParserTimeout,
+		ExchangeAPIURL:       exchangeAPIURL,
 		LogLevel:             logLevel,
 	}
 }
