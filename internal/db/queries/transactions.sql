@@ -243,3 +243,8 @@ WHERE (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL)
   AND similarity(t.tx_desc::text, sqlc.arg(merchant)::text) > 0.3
 ORDER BY merchant_score DESC
 LIMIT 10;
+
+-- name: GetAccountIDsFromTransactionIDs :many
+SELECT DISTINCT account_id
+FROM transactions
+WHERE id = ANY(@ids::bigint[]);

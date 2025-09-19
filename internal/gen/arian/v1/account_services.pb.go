@@ -1079,7 +1079,7 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"A\n" +
 	"\x12GetAccountResponse\x12+\n" +
-	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x90\x03\n" +
+	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\x8c\x03\n" +
 	"\x14CreateAccountRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12\x1d\n" +
@@ -1088,8 +1088,8 @@ const file_arian_v1_account_services_proto_rawDesc = "" +
 	"\x05alias\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x00R\x05alias\x88\x01\x01\x129\n" +
 	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x129\n" +
 	"\rmain_currency\x18\a \x01(\tB\x14\xbaH\x11r\x0f2\n" +
-	"^[A-Z]{3}$\x98\x01\x03R\fmainCurrency\x12<\n" +
-	"\x06colors\x18\b \x03(\tB$\xbaH!\x92\x01\x1e\b\x03\x10\x03\"\x18r\x162\x11^#[0-9a-fA-F]{6}$\x98\x01\aR\x06colorsB\b\n" +
+	"^[A-Z]{3}$\x98\x01\x03R\fmainCurrency\x128\n" +
+	"\x06colors\x18\b \x03(\tB \xbaH\x1d\x92\x01\x1a\"\x18r\x162\x11^#[0-9a-fA-F]{6}$\x98\x01\aR\x06colorsB\b\n" +
 	"\x06_alias\"D\n" +
 	"\x15CreateAccountResponse\x12+\n" +
 	"\aaccount\x18\x01 \x01(\v2\x11.arian.v1.AccountR\aaccount\"\xa8\x05\n" +

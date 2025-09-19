@@ -158,26 +158,29 @@ func (s *acctSvc) GetAnchorBalance(ctx context.Context, id int64) (*money.Money,
 }
 
 func (s *acctSvc) GetBalance(ctx context.Context, accountID int64) (*money.Money, error) {
-	anchorInfo, err := s.queries.GetAccountAnchorBalance(ctx, accountID)
+	balanceBytes, err := s.queries.GetAccountBalanceSimple(ctx, accountID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, wrapErr("AccountService.GetBalance", ErrNotFound)
+	}
+
 	if err != nil {
 		return nil, wrapErr("AccountService.GetBalance", err)
 	}
 
-	currentBalance, err := s.queries.GetAccountBalance(ctx, accountID)
-	if err != nil {
-		return nil, wrapErr("AccountService.GetBalance", err)
-	}
-
-	hasNoTransactions := currentBalance == nil
-	if hasNoTransactions {
+	if balanceBytes == nil {
 		return &money.Money{
-			CurrencyCode: anchorInfo.CurrencyCode,
+			CurrencyCode: "CAD",
 			Units:        0,
 			Nanos:        0,
 		}, nil
 	}
 
-	return &currentBalance.Money, nil
+	var balance types.Money
+	if err := balance.Scan(balanceBytes); err != nil {
+		return nil, wrapErr("AccountService.GetBalance", err)
+	}
+
+	return &balance.Money, nil
 }
 
 func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error {

@@ -26,6 +26,7 @@ type Account struct {
 	UpdatedAt     time.Time         `json:"updated_at"`
 	MainCurrency  string            `json:"main_currency"`
 	Colors        []string          `json:"colors"`
+	Balance       []byte            `json:"balance"`
 }
 
 type AccountUser struct {

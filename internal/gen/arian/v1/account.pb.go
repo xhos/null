@@ -37,6 +37,7 @@ type Account struct {
 	Alias         *string                `protobuf:"bytes,10,opt,name=alias,proto3,oneof" json:"alias,omitempty"`
 	MainCurrency  string                 `protobuf:"bytes,11,opt,name=main_currency,json=mainCurrency,proto3" json:"main_currency,omitempty"`
 	Colors        []string               `protobuf:"bytes,12,rep,name=colors,proto3" json:"colors,omitempty"`
+	Balance       *money.Money           `protobuf:"bytes,13,opt,name=balance,proto3" json:"balance,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -155,6 +156,13 @@ func (x *Account) GetColors() []string {
 	return nil
 }
 
+func (x *Account) GetBalance() *money.Money {
+	if x != nil {
+		return x.Balance
+	}
+	return nil
+}
+
 type AccountBalance struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -235,7 +243,7 @@ var File_arian_v1_account_proto protoreflect.FileDescriptor
 
 const file_arian_v1_account_proto_rawDesc = "" +
 	"\n" +
-	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xd7\x03\n" +
+	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x85\x04\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
@@ -252,7 +260,8 @@ const file_arian_v1_account_proto_rawDesc = "" +
 	"\x05alias\x18\n" +
 	" \x01(\tH\x00R\x05alias\x88\x01\x01\x12#\n" +
 	"\rmain_currency\x18\v \x01(\tR\fmainCurrency\x12\x16\n" +
-	"\x06colors\x18\f \x03(\tR\x06colorsB\b\n" +
+	"\x06colors\x18\f \x03(\tR\x06colors\x12,\n" +
+	"\abalance\x18\r \x01(\v2\x12.google.type.MoneyR\abalanceB\b\n" +
 	"\x06_alias\"\xc7\x01\n" +
 	"\x0eAccountBalance\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
@@ -288,13 +297,14 @@ var file_arian_v1_account_proto_depIdxs = []int32{
 	4, // 2: arian.v1.Account.anchor_date:type_name -> google.protobuf.Timestamp
 	4, // 3: arian.v1.Account.created_at:type_name -> google.protobuf.Timestamp
 	4, // 4: arian.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
-	2, // 5: arian.v1.AccountBalance.account_type:type_name -> arian.v1.AccountType
-	3, // 6: arian.v1.AccountBalance.current_balance:type_name -> google.type.Money
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	3, // 5: arian.v1.Account.balance:type_name -> google.type.Money
+	2, // 6: arian.v1.AccountBalance.account_type:type_name -> arian.v1.AccountType
+	3, // 7: arian.v1.AccountBalance.current_balance:type_name -> google.type.Money
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_account_proto_init() }

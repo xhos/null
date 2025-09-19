@@ -105,12 +105,10 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		return 0, wrapErr("TransactionService.Create", err)
 	}
 
-	// recalculate balances for subsequent transactions
-	if needsBalanceCalculation {
-		err = s.recalculateSubsequentBalances(ctx, params.AccountID, params.TxDate, id)
-		if err != nil {
-			s.log.Warn("Failed to recalculate subsequent balances", "error", err)
-		}
+	// recalculate all account balances to ensure consistency
+	err = s.queries.SyncAccountBalances(ctx, params.AccountID)
+	if err != nil {
+		s.log.Warn("Failed to sync account balances after transaction creation", "account_id", params.AccountID, "error", err)
 	}
 
 	return id, nil
@@ -150,13 +148,9 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	directionChanged := params.TxDirection != nil && int16(*params.TxDirection) != int16(tx.TxDirection)
 
 	if amountChanged || dateChanged || directionChanged {
-		err = s.queries.RecalculateBalancesAfterTransaction(ctx, sqlc.RecalculateBalancesAfterTransactionParams{
-			AccountID: accountID,
-			FromDate:  tx.TxDate,
-			FromID:    tx.ID,
-		})
+		err = s.queries.SyncAccountBalances(ctx, accountID)
 		if err != nil {
-			s.log.Warn("Failed to recalculate balances after update", "error", err)
+			s.log.Warn("Failed to sync account balances after transaction update", "account_id", accountID, "error", err)
 		}
 	}
 
@@ -181,24 +175,35 @@ func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionParams
 		return 0, wrapErr("TransactionService.Delete", err)
 	}
 
-	// recalculate balances for transactions after the deleted one
-	err = s.queries.RecalculateBalancesAfterTransaction(ctx, sqlc.RecalculateBalancesAfterTransactionParams{
-		AccountID: tx.AccountID,
-		FromDate:  tx.TxDate,
-		FromID:    tx.ID,
-	})
+	// recalculate all account balances to ensure consistency
+	err = s.queries.SyncAccountBalances(ctx, tx.AccountID)
 	if err != nil {
-		s.log.Warn("Failed to recalculate balances after deletion", "error", err)
+		s.log.Warn("Failed to sync account balances after transaction deletion", "account_id", tx.AccountID, "error", err)
 	}
 
 	return accountID, nil
 }
 
 func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error {
-	_, err := s.queries.BulkDeleteTransactions(ctx, params)
+	// Get list of affected accounts before deletion
+	affectedAccounts, err := s.queries.GetAccountIDsFromTransactionIDs(ctx, params.TransactionIds)
+	if err != nil {
+		return wrapErr("TransactionService.BulkDelete.GetAccounts", err)
+	}
+
+	_, err = s.queries.BulkDeleteTransactions(ctx, params)
 	if err != nil {
 		return wrapErr("TransactionService.BulkDelete", err)
 	}
+
+	// Recalculate balances for all affected accounts
+	for _, accountID := range affectedAccounts {
+		err = s.queries.SyncAccountBalances(ctx, accountID)
+		if err != nil {
+			s.log.Warn("Failed to sync account balances after bulk deletion", "account_id", accountID, "error", err)
+		}
+	}
+
 	return nil
 }
 

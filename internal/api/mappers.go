@@ -41,16 +41,33 @@ func wrapMoney(m *money.Money) *types.Money {
 	}
 }
 
+// bytesToMoney converts []byte (JSONB) to *types.Money
+func bytesToMoney(data []byte) *types.Money {
+	if data == nil {
+		return nil
+	}
+	var money types.Money
+	if err := money.Scan(data); err != nil {
+		return nil
+	}
+	return &money
+}
+
 // wrapMoneyToBytes converts *money.Money to []byte for sqlc parameters
 func wrapMoneyToBytes(m *money.Money) ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
+
+	// Explicitly handle zero values that protobuf might omit
+	units := m.Units
+	nanos := m.Nanos
+
 	money := &types.Money{
 		Money: money.Money{
 			CurrencyCode: m.CurrencyCode,
-			Units:        m.Units,
-			Nanos:        m.Nanos,
+			Units:        units,
+			Nanos:        nanos,
 		},
 	}
 	jsonBytes, err := money.Value()
@@ -249,6 +266,7 @@ func toProtoAccount(a *sqlc.ListAccountsRow) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: unwrapMoney(a.AnchorBalance),
+		Balance:       unwrapMoney(bytesToMoney(a.Balance)),
 		MainCurrency:  a.MainCurrency,
 		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
@@ -269,6 +287,7 @@ func toProtoAccountFromGetRow(a *sqlc.GetAccountRow) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: unwrapMoney(a.AnchorBalance),
+		Balance:       unwrapMoney(bytesToMoney(a.Balance)),
 		MainCurrency:  a.MainCurrency,
 		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
@@ -289,6 +308,7 @@ func toProtoAccountFromModel(a *sqlc.Account) *pb.Account {
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
 		AnchorBalance: unwrapMoney(a.AnchorBalance),
+		Balance:       unwrapMoney(bytesToMoney(a.Balance)),
 		MainCurrency:  a.MainCurrency,
 		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),

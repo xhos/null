@@ -303,6 +303,32 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 	return items, nil
 }
 
+const getAccountIDsFromTransactionIDs = `-- name: GetAccountIDsFromTransactionIDs :many
+SELECT DISTINCT account_id
+FROM transactions
+WHERE id = ANY($1::bigint[])
+`
+
+func (q *Queries) GetAccountIDsFromTransactionIDs(ctx context.Context, ids []int64) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getAccountIDsFromTransactionIDs, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var account_id int64
+		if err := rows.Scan(&account_id); err != nil {
+			return nil, err
+		}
+		items = append(items, account_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTransaction = `-- name: GetTransaction :one
 SELECT
   t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
