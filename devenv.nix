@@ -7,6 +7,7 @@
     # sql stuff
     goose
     sqlc
+    sleek
 
     # dev
     air
@@ -63,6 +64,8 @@
   scripts.regen.exec = ''
     rm -rf internal/db/sqlc/; sqlc generate; rm -rf internal/gen/; buf generate
   '';
+
+  scripts.fmtsql.exec = "sleek -i 2 -U false internal/db/queries/*";
 
   scripts.cover.exec = "go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html";
 
