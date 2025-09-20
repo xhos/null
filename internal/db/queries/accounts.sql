@@ -1,91 +1,178 @@
 -- name: ListAccounts :many
-SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance, a.balance, a.main_currency, a.colors,
-       a.created_at, a.updated_at,
-       (a.owner_id = @user_id::uuid) AS is_owner
-FROM accounts a
-LEFT JOIN account_users au ON au.account_id = a.id AND au.user_id = @user_id::uuid
-WHERE a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL
-ORDER BY is_owner DESC, a.created_at;
+select
+  a.id,
+  a.owner_id,
+  a.name,
+  a.bank,
+  a.account_type,
+  a.alias,
+  a.anchor_date,
+  a.anchor_balance,
+  a.balance,
+  a.main_currency,
+  a.colors,
+  a.created_at,
+  a.updated_at,
+  (a.owner_id = @user_id::uuid) as is_owner
+from
+  accounts a
+  left join account_users au on au.account_id = a.id
+  and au.user_id = @user_id::uuid
+where
+  a.owner_id = @user_id::uuid
+  or au.user_id is not null
+order by
+  is_owner desc,
+  a.created_at;
 
 -- name: GetAccount :one
-SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance, a.balance, a.main_currency, a.colors,
-       a.created_at, a.updated_at,
-       (a.owner_id = @user_id::uuid) AS is_owner
-FROM accounts a
-LEFT JOIN account_users au ON au.account_id = a.id AND au.user_id = @user_id::uuid
-WHERE a.id = @id::bigint
-  AND (a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL);
+select
+  a.id,
+  a.owner_id,
+  a.name,
+  a.bank,
+  a.account_type,
+  a.alias,
+  a.anchor_date,
+  a.anchor_balance,
+  a.balance,
+  a.main_currency,
+  a.colors,
+  a.created_at,
+  a.updated_at,
+  (a.owner_id = @user_id::uuid) as is_owner
+from
+  accounts a
+  left join account_users au on au.account_id = a.id
+  and au.user_id = @user_id::uuid
+where
+  a.id = @id::bigint
+  and (
+    a.owner_id = @user_id::uuid
+    or au.user_id is not null
+  );
 
 -- name: CreateAccount :one
-INSERT INTO accounts (
-  owner_id, name, bank, account_type, alias,
-  anchor_balance, balance, main_currency, colors
-) VALUES (
-  @owner_id::uuid,
-  @name::text,
-  @bank::text,
-  @account_type::smallint,
-  sqlc.narg('alias')::text,
-  @anchor_balance::jsonb,
-  @anchor_balance::jsonb,
-  @main_currency::text,
-  @colors::text[]
-)
-RETURNING *;
+insert into
+  accounts (
+    owner_id,
+    name,
+    bank,
+    account_type,
+    alias,
+    anchor_balance,
+    balance,
+    main_currency,
+    colors
+  )
+values
+  (
+    @owner_id::uuid,
+    @name::text,
+    @bank::text,
+    @account_type::smallint,
+    sqlc.narg('alias')::text,
+    @anchor_balance::jsonb,
+    @anchor_balance::jsonb,
+    @main_currency::text,
+    @colors::text []
+  )
+returning
+  *;
 
 -- name: UpdateAccount :one
-UPDATE accounts
-SET name = COALESCE(sqlc.narg('name')::text, name),
-    bank = COALESCE(sqlc.narg('bank')::text, bank),
-    account_type = COALESCE(sqlc.narg('account_type')::smallint, account_type),
-    alias = COALESCE(sqlc.narg('alias')::text, alias),
-    anchor_date = COALESCE(sqlc.narg('anchor_date')::date, anchor_date),
-    anchor_balance = COALESCE(sqlc.narg('anchor_balance')::jsonb, anchor_balance),
-    balance = COALESCE(sqlc.narg('balance')::jsonb, balance),
-    main_currency = COALESCE(sqlc.narg('main_currency')::text, main_currency),
-    colors = COALESCE(sqlc.narg('colors')::text[], colors)
-WHERE id = @id::bigint
-RETURNING *;
+update
+  accounts
+set
+  name = COALESCE(sqlc.narg('name')::text, name),
+  bank = COALESCE(sqlc.narg('bank')::text, bank),
+  account_type = COALESCE(
+    sqlc.narg('account_type')::smallint,
+    account_type
+  ),
+  alias = COALESCE(sqlc.narg('alias')::text, alias),
+  anchor_date = COALESCE(sqlc.narg('anchor_date')::date, anchor_date),
+  anchor_balance = COALESCE(
+    sqlc.narg('anchor_balance')::jsonb,
+    anchor_balance
+  ),
+  balance = COALESCE(sqlc.narg('balance')::jsonb, balance),
+  main_currency = COALESCE(sqlc.narg('main_currency')::text, main_currency),
+  colors = COALESCE(sqlc.narg('colors')::text [], colors)
+where
+  id = @id::bigint
+returning
+  *;
 
 -- name: DeleteAccount :execrows
-DELETE FROM accounts 
-WHERE id = @id::bigint AND owner_id = @user_id::uuid;
+delete from
+  accounts
+where
+  id = @id::bigint
+  and owner_id = @user_id::uuid;
 
 -- name: SetAccountAnchor :execrows
-UPDATE accounts
-SET anchor_date = NOW()::date,
-    anchor_balance = @anchor_balance::jsonb
-WHERE id = @id::bigint;
+update
+  accounts
+set
+  anchor_date = now()::date,
+  anchor_balance = @anchor_balance::jsonb
+where
+  id = @id::bigint;
 
 -- name: GetAccountBalance :one
-SELECT balance_after
-FROM transactions
-WHERE account_id = @account_id::bigint
-ORDER BY tx_date DESC, id DESC
-LIMIT 1;
+select
+  balance_after
+from
+  transactions
+where
+  account_id = @account_id::bigint
+order by
+  tx_date desc,
+  id desc
+limit
+  1;
 
 -- name: GetAccountBalanceSimple :one
-SELECT balance
-FROM accounts
-WHERE id = @account_id::bigint;
+select
+  balance
+from
+  accounts
+where
+  id = @account_id::bigint;
 
 -- name: GetAccountAnchorBalance :one
-SELECT anchor_balance
-FROM accounts
-WHERE id = @id::bigint;
+select
+  anchor_balance
+from
+  accounts
+where
+  id = @id::bigint;
 
 -- name: CheckUserAccountAccess :one
-SELECT EXISTS(
-  SELECT 1 FROM accounts a
-  LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = @user_id::uuid
-  WHERE a.id = @account_id::bigint 
-    AND (a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL)
-) AS has_access;
+select
+  exists(
+    select
+      1
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = @user_id::uuid
+    where
+      a.id = @account_id::bigint
+      and (
+        a.owner_id = @user_id::uuid
+        or au.user_id is not null
+      )
+  ) as has_access;
 
 -- name: GetUserAccountsCount :one
-SELECT COUNT(*) AS account_count
-FROM accounts a
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = @user_id::uuid
-WHERE a.owner_id = @user_id::uuid OR au.user_id IS NOT NULL;
+select
+  COUNT(*) as account_count
+from
+  accounts a
+  left join account_users au on a.id = au.account_id
+  and au.user_id = @user_id::uuid
+where
+  a.owner_id = @user_id::uuid
+  or au.user_id is not null;

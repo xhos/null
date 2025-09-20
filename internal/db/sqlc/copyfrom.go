@@ -9,41 +9,6 @@ import (
 	"context"
 )
 
-// iteratorForBulkCreateCategories implements pgx.CopyFromSource.
-type iteratorForBulkCreateCategories struct {
-	rows                 []BulkCreateCategoriesParams
-	skippedFirstNextCall bool
-}
-
-func (r *iteratorForBulkCreateCategories) Next() bool {
-	if len(r.rows) == 0 {
-		return false
-	}
-	if !r.skippedFirstNextCall {
-		r.skippedFirstNextCall = true
-		return true
-	}
-	r.rows = r.rows[1:]
-	return len(r.rows) > 0
-}
-
-func (r iteratorForBulkCreateCategories) Values() ([]interface{}, error) {
-	return []interface{}{
-		r.rows[0].UserID,
-		r.rows[0].Slug,
-		r.rows[0].Label,
-		r.rows[0].Color,
-	}, nil
-}
-
-func (r iteratorForBulkCreateCategories) Err() error {
-	return nil
-}
-
-func (q *Queries) BulkCreateCategories(ctx context.Context, arg []BulkCreateCategoriesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"categories"}, []string{"user_id", "slug", "label", "color"}, &iteratorForBulkCreateCategories{rows: arg})
-}
-
 // iteratorForBulkCreateReceiptItems implements pgx.CopyFromSource.
 type iteratorForBulkCreateReceiptItems struct {
 	rows                 []BulkCreateReceiptItemsParams

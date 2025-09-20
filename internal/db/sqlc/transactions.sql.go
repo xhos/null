@@ -17,14 +17,23 @@ import (
 )
 
 const bulkCategorizeTransactions = `-- name: BulkCategorizeTransactions :execrows
-UPDATE transactions
-SET category_id = $1::bigint,
-    cat_status = 3  -- manual categorization
-WHERE id = ANY($2::bigint[])
-  AND account_id IN (
-    SELECT a.id FROM accounts a
-    LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $3::uuid
-    WHERE a.owner_id = $3::uuid OR au.user_id IS NOT NULL
+update
+  transactions
+set
+  category_id = $1::bigint,
+  cat_status = 3 -- manual categorization
+where
+  id = ANY($2::bigint [])
+  and account_id in (
+    select
+      a.id
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $3::uuid
+    where
+      a.owner_id = $3::uuid
+      or au.user_id is not null
   )
 `
 
@@ -43,12 +52,20 @@ func (q *Queries) BulkCategorizeTransactions(ctx context.Context, arg BulkCatego
 }
 
 const bulkDeleteTransactions = `-- name: BulkDeleteTransactions :execrows
-DELETE FROM transactions
-WHERE id = ANY($1::bigint[])
-  AND account_id IN (
-    SELECT a.id FROM accounts a
-    LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $2::uuid
-    WHERE a.owner_id = $2::uuid OR au.user_id IS NOT NULL
+delete from
+  transactions
+where
+  id = ANY($1::bigint [])
+  and account_id in (
+    select
+      a.id
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $2::uuid
+    where
+      a.owner_id = $2::uuid
+      or au.user_id is not null
   )
 `
 
@@ -66,18 +83,29 @@ func (q *Queries) BulkDeleteTransactions(ctx context.Context, arg BulkDeleteTran
 }
 
 const categorizeTransactionAtomic = `-- name: CategorizeTransactionAtomic :one
-UPDATE transactions
-SET category_id = $1::bigint,
-    cat_status = $2::smallint,
-    suggestions = $3::text[]
-WHERE id = $4::bigint
-  AND cat_status = 0  -- Only update if still uncategorized
-  AND account_id IN (
-    SELECT a.id FROM accounts a
-    LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $5::uuid
-    WHERE a.owner_id = $5::uuid OR au.user_id IS NOT NULL
+update
+  transactions
+set
+  category_id = $1::bigint,
+  cat_status = $2::smallint,
+  suggestions = $3::text []
+where
+  id = $4::bigint
+  and cat_status = 0 -- Only update if still uncategorized
+  and account_id in (
+    select
+      a.id
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $5::uuid
+    where
+      a.owner_id = $5::uuid
+      or au.user_id is not null
   )
-RETURNING id, cat_status
+returning
+  id,
+  cat_status
 `
 
 type CategorizeTransactionAtomicParams struct {
@@ -107,12 +135,24 @@ func (q *Queries) CategorizeTransactionAtomic(ctx context.Context, arg Categoriz
 }
 
 const createTransaction = `-- name: CreateTransaction :one
-INSERT INTO transactions (
-  email_id, account_id, tx_date, tx_amount, tx_direction,
-  tx_desc, balance_after, category_id, merchant, user_notes,
-  foreign_amount, exchange_rate, suggestions, receipt_id
-)
-SELECT
+insert into
+  transactions (
+    email_id,
+    account_id,
+    tx_date,
+    tx_amount,
+    tx_direction,
+    tx_desc,
+    balance_after,
+    category_id,
+    merchant,
+    user_notes,
+    foreign_amount,
+    exchange_rate,
+    suggestions,
+    receipt_id
+  )
+select
   $1::text,
   $2::bigint,
   $3::timestamptz,
@@ -125,13 +165,20 @@ SELECT
   $10::text,
   $11::jsonb,
   $12::numeric,
-  $13::text[],
+  $13::text [],
   $14::bigint
-FROM accounts a
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $15::uuid
-WHERE a.id = $2::bigint
-  AND (a.owner_id = $15::uuid OR au.user_id IS NOT NULL)
-RETURNING id
+from
+  accounts a
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $15::uuid
+where
+  a.id = $2::bigint
+  and (
+    a.owner_id = $15::uuid
+    or au.user_id is not null
+  )
+returning
+  id
 `
 
 type CreateTransactionParams struct {
@@ -176,14 +223,23 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 }
 
 const deleteTransaction = `-- name: DeleteTransaction :one
-DELETE FROM transactions
-WHERE id = $1::bigint
-  AND account_id IN (
-    SELECT a.id FROM accounts a
-    LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $2::uuid
-    WHERE a.owner_id = $2::uuid OR au.user_id IS NOT NULL
+delete from
+  transactions
+where
+  id = $1::bigint
+  and account_id in (
+    select
+      a.id
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $2::uuid
+    where
+      a.owner_id = $2::uuid
+      or au.user_id is not null
   )
-RETURNING account_id
+returning
+  account_id
 `
 
 type DeleteTransactionParams struct {
@@ -199,28 +255,48 @@ func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionPa
 }
 
 const findCandidateTransactions = `-- name: FindCandidateTransactions :many
-SELECT
-  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
-  t.tx_direction, t.tx_desc, t.balance_after, t.category_id, t.cat_status,
-  t.merchant, t.user_notes, t.suggestions, t.receipt_id,
-  t.foreign_amount, t.exchange_rate,
-  t.created_at, t.updated_at,
-  c.slug AS category_slug,
-  c.label AS category_label,
-  c.color AS category_color,
-  similarity(t.tx_desc::text, $1::text) AS merchant_score
-FROM transactions t
-LEFT JOIN categories c ON t.category_id = c.id
-JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $2::uuid
-WHERE (a.owner_id = $2::uuid OR au.user_id IS NOT NULL)
-  AND t.receipt_id IS NULL
-  AND t.tx_direction = 2
-  AND t.tx_date >= ($3::date - interval '60 days')
-  AND (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 BETWEEN $4::numeric AND ($4::numeric * 1.20)
-  AND similarity(t.tx_desc::text, $1::text) > 0.3
-ORDER BY merchant_score DESC
-LIMIT 10
+select
+  t.id,
+  t.email_id,
+  t.account_id,
+  t.tx_date,
+  t.tx_amount,
+  t.tx_direction,
+  t.tx_desc,
+  t.balance_after,
+  t.category_id,
+  t.cat_status,
+  t.merchant,
+  t.user_notes,
+  t.suggestions,
+  t.receipt_id,
+  t.foreign_amount,
+  t.exchange_rate,
+  t.created_at,
+  t.updated_at,
+  c.slug as category_slug,
+  c.color as category_color,
+  similarity(t.tx_desc::text, $1::text) as merchant_score
+from
+  transactions t
+  left join categories c on t.category_id = c.id
+  join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $2::uuid
+where
+  (
+    a.owner_id = $2::uuid
+    or au.user_id is not null
+  )
+  and t.receipt_id is null
+  and t.tx_direction = 2
+  and t.tx_date >= ($3::date - interval '60 days')
+  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between $4::numeric and ($4::numeric * 1.20)
+  and similarity(t.tx_desc::text, $1::text) > 0.3
+order by
+  merchant_score desc
+limit
+  10
 `
 
 type FindCandidateTransactionsParams struct {
@@ -250,7 +326,6 @@ type FindCandidateTransactionsRow struct {
 	CreatedAt     time.Time                  `json:"created_at"`
 	UpdatedAt     time.Time                  `json:"updated_at"`
 	CategorySlug  *string                    `json:"category_slug"`
-	CategoryLabel *string                    `json:"category_label"`
 	CategoryColor *string                    `json:"category_color"`
 	MerchantScore float32                    `json:"merchant_score"`
 }
@@ -289,7 +364,6 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CategorySlug,
-			&i.CategoryLabel,
 			&i.CategoryColor,
 			&i.MerchantScore,
 		); err != nil {
@@ -304,9 +378,12 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 }
 
 const getAccountIDsFromTransactionIDs = `-- name: GetAccountIDsFromTransactionIDs :many
-SELECT DISTINCT account_id
-FROM transactions
-WHERE id = ANY($1::bigint[])
+select
+  distinct account_id
+from
+  transactions
+where
+  id = ANY($1::bigint [])
 `
 
 func (q *Queries) GetAccountIDsFromTransactionIDs(ctx context.Context, ids []int64) ([]int64, error) {
@@ -330,22 +407,40 @@ func (q *Queries) GetAccountIDsFromTransactionIDs(ctx context.Context, ids []int
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT
-  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
-  t.tx_direction, t.tx_desc, t.balance_after, t.category_id, t.cat_status,
-  t.merchant, t.user_notes, t.suggestions, t.receipt_id,
-  t.foreign_amount, t.exchange_rate,
-  t.created_at, t.updated_at,
-  c.slug AS category_slug,
-  c.label AS category_label,
-  c.color AS category_color,
-  a.name AS account_name
-FROM transactions t
-LEFT JOIN categories c ON t.category_id = c.id
-JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE t.id = $2::bigint
-  AND (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
+select
+  t.id,
+  t.email_id,
+  t.account_id,
+  t.tx_date,
+  t.tx_amount,
+  t.tx_direction,
+  t.tx_desc,
+  t.balance_after,
+  t.category_id,
+  t.cat_status,
+  t.merchant,
+  t.user_notes,
+  t.suggestions,
+  t.receipt_id,
+  t.foreign_amount,
+  t.exchange_rate,
+  t.created_at,
+  t.updated_at,
+  c.slug as category_slug,
+  c.color as category_color,
+  a.name as account_name
+from
+  transactions t
+  left join categories c on t.category_id = c.id
+  join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+where
+  t.id = $2::bigint
+  and (
+    a.owner_id = $1::uuid
+    or au.user_id is not null
+  )
 `
 
 type GetTransactionParams struct {
@@ -373,7 +468,6 @@ type GetTransactionRow struct {
 	CreatedAt     time.Time                  `json:"created_at"`
 	UpdatedAt     time.Time                  `json:"updated_at"`
 	CategorySlug  *string                    `json:"category_slug"`
-	CategoryLabel *string                    `json:"category_label"`
 	CategoryColor *string                    `json:"category_color"`
 	AccountName   string                     `json:"account_name"`
 }
@@ -401,7 +495,6 @@ func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CategorySlug,
-		&i.CategoryLabel,
 		&i.CategoryColor,
 		&i.AccountName,
 	)
@@ -409,13 +502,23 @@ func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) 
 }
 
 const getTransactionCountByAccount = `-- name: GetTransactionCountByAccount :many
-SELECT a.id, a.name, COUNT(t.id) AS transaction_count
-FROM accounts a
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-LEFT JOIN transactions t ON a.id = t.account_id
-WHERE a.owner_id = $1::uuid OR au.user_id IS NOT NULL
-GROUP BY a.id, a.name
-ORDER BY transaction_count DESC
+select
+  a.id,
+  a.name,
+  COUNT(t.id) as transaction_count
+from
+  accounts a
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+  left join transactions t on a.id = t.account_id
+where
+  a.owner_id = $1::uuid
+  or au.user_id is not null
+group by
+  a.id,
+  a.name
+order by
+  transaction_count desc
 `
 
 type GetTransactionCountByAccountRow struct {
@@ -445,41 +548,107 @@ func (q *Queries) GetTransactionCountByAccount(ctx context.Context, userID uuid.
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT
-  t.id, t.email_id, t.account_id, t.tx_date, t.tx_amount,
-  t.tx_direction, t.tx_desc, t.balance_after, t.category_id, t.cat_status,
-  t.merchant, t.user_notes, t.suggestions, t.receipt_id,
-  t.foreign_amount, t.exchange_rate,
-  t.created_at, t.updated_at,
-  c.slug AS category_slug,
-  c.label AS category_label,
-  c.color AS category_color,
-  a.name AS account_name
-FROM transactions t
-LEFT JOIN categories c ON t.category_id = c.id
-JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
-  AND (
-        $2::timestamptz IS NULL
-        OR $3::bigint IS NULL
-        OR (t.tx_date, t.id) < ($2::timestamptz, $3::bigint)
-      )
-  AND ($4::timestamptz IS NULL OR t.tx_date >= $4::timestamptz)
-  AND ($5::timestamptz IS NULL OR t.tx_date <= $5::timestamptz)
-  AND ($6::numeric IS NULL OR (t.tx_amount->>'units')::bigint >= $6::numeric)
-  AND ($7::numeric IS NULL OR (t.tx_amount->>'units')::bigint <= $7::numeric)
-  AND ($8::smallint IS NULL OR t.tx_direction = $8::smallint)
-  AND ($9::bigint[] IS NULL OR t.account_id = ANY($9::bigint[]))
-  AND ($10::text[] IS NULL OR c.slug = ANY($10::text[]))
-  AND ($11::text IS NULL OR t.merchant ILIKE ('%' || $11::text || '%'))
-  AND ($12::text IS NULL OR t.tx_desc ILIKE ('%' || $12::text || '%'))
-  AND ($13::char(3) IS NULL OR t.tx_amount->>'currency_code' = $13::char(3))
-  AND ($14::time IS NULL OR t.tx_date::time >= $14::time)
-  AND ($15::time IS NULL OR t.tx_date::time <= $15::time)
-  AND ($16::boolean IS NULL OR ($16::boolean = true AND t.category_id IS NULL))
-ORDER BY t.tx_date DESC, t.id DESC
-LIMIT COALESCE($17::int, 100)
+select
+  t.id,
+  t.email_id,
+  t.account_id,
+  t.tx_date,
+  t.tx_amount,
+  t.tx_direction,
+  t.tx_desc,
+  t.balance_after,
+  t.category_id,
+  t.cat_status,
+  t.merchant,
+  t.user_notes,
+  t.suggestions,
+  t.receipt_id,
+  t.foreign_amount,
+  t.exchange_rate,
+  t.created_at,
+  t.updated_at,
+  c.slug as category_slug,
+  c.color as category_color,
+  a.name as account_name
+from
+  transactions t
+  left join categories c on t.category_id = c.id
+  join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+where
+  (
+    a.owner_id = $1::uuid
+    or au.user_id is not null
+  )
+  and (
+    $2::timestamptz is null
+    or $3::bigint is null
+    or (t.tx_date, t.id) < (
+      $2::timestamptz,
+      $3::bigint
+    )
+  )
+  and (
+    $4::timestamptz is null
+    or t.tx_date >= $4::timestamptz
+  )
+  and (
+    $5::timestamptz is null
+    or t.tx_date <= $5::timestamptz
+  )
+  and (
+    $6::numeric is null
+    or (t.tx_amount ->> 'units')::bigint >= $6::numeric
+  )
+  and (
+    $7::numeric is null
+    or (t.tx_amount ->> 'units')::bigint <= $7::numeric
+  )
+  and (
+    $8::smallint is null
+    or t.tx_direction = $8::smallint
+  )
+  and (
+    $9::bigint [] is null
+    or t.account_id = ANY($9::bigint [])
+  )
+  and (
+    $10::text [] is null
+    or c.slug = ANY($10::text [])
+  )
+  and (
+    $11::text is null
+    or t.merchant ILIKE ('%' || $11::text || '%')
+  )
+  and (
+    $12::text is null
+    or t.tx_desc ILIKE ('%' || $12::text || '%')
+  )
+  and (
+    $13::char(3) is null
+    or t.tx_amount ->> 'currency_code' = $13::char(3)
+  )
+  and (
+    $14::time is null
+    or t.tx_date::time >= $14::time
+  )
+  and (
+    $15::time is null
+    or t.tx_date::time <= $15::time
+  )
+  and (
+    $16::boolean is null
+    or (
+      $16::boolean = true
+      and t.category_id is null
+    )
+  )
+order by
+  t.tx_date desc,
+  t.id desc
+limit
+  COALESCE($17::int, 100)
 `
 
 type ListTransactionsParams struct {
@@ -522,7 +691,6 @@ type ListTransactionsRow struct {
 	CreatedAt     time.Time                  `json:"created_at"`
 	UpdatedAt     time.Time                  `json:"updated_at"`
 	CategorySlug  *string                    `json:"category_slug"`
-	CategoryLabel *string                    `json:"category_label"`
 	CategoryColor *string                    `json:"category_color"`
 	AccountName   string                     `json:"account_name"`
 }
@@ -574,7 +742,6 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CategorySlug,
-			&i.CategoryLabel,
 			&i.CategoryColor,
 			&i.AccountName,
 		); err != nil {
@@ -589,33 +756,77 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 }
 
 const recalculateBalancesAfterTransaction = `-- name: RecalculateBalancesAfterTransaction :exec
-WITH transaction_deltas AS (
-  SELECT id,
-         SUM(CASE WHEN tx_direction = 1 THEN (tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0 
-                  ELSE -((tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0) END)
-           OVER (PARTITION BY account_id ORDER BY tx_date, id) AS running_delta
-  FROM transactions
-  WHERE account_id = $1::bigint
-    AND (tx_date > $2::timestamptz OR (tx_date = $2::timestamptz AND id >= $3::bigint))
+with transaction_deltas as (
+  select
+    id,
+    SUM(
+      case
+        when tx_direction = 1 then (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
+        else -(
+          (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
+        )
+      end
+    ) OVER (
+      partition BY account_id
+      order by
+        tx_date,
+        id
+    ) as running_delta
+  from
+    transactions
+  where
+    account_id = $1::bigint
+    and (
+      tx_date > $2::timestamptz
+      or (
+        tx_date = $2::timestamptz
+        and id >= $3::bigint
+      )
+    )
 ),
-anchor_point AS (
-  SELECT a.anchor_balance,
-         COALESCE(SUM(CASE WHEN t.tx_direction = 1 THEN (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 
-                           ELSE -((t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0) END), 0.0) AS delta_at_anchor
-  FROM accounts a
-  LEFT JOIN transactions t ON t.account_id = a.id AND t.tx_date < a.anchor_date
-  WHERE a.id = $1::bigint
-  GROUP BY a.id, a.anchor_balance
+anchor_point as (
+  select
+    a.anchor_balance,
+    COALESCE(
+      SUM(
+        case
+          when t.tx_direction = 1 then (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
+          else -(
+            (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
+          )
+        end
+      ),
+      0.0
+    ) as delta_at_anchor
+  from
+    accounts a
+    left join transactions t on t.account_id = a.id
+    and t.tx_date < a.anchor_date
+  where
+    a.id = $1::bigint
+  group by
+    a.id,
+    a.anchor_balance
 )
-UPDATE transactions
-SET balance_after = jsonb_build_object(
-  'currency_code', tx_amount->>'currency_code',
-  'units', ((ap.anchor_balance->>'units')::bigint + td.running_delta - ap.delta_at_anchor)::bigint,
-  'nanos', 0
-)
-FROM transaction_deltas td, anchor_point ap
-WHERE transactions.id = td.id
-  AND transactions.account_id = $1::bigint
+update
+  transactions
+set
+  balance_after = jsonb_build_object(
+    'currency_code',
+    tx_amount ->> 'currency_code',
+    'units',
+    (
+      (ap.anchor_balance ->> 'units')::bigint + td.running_delta - ap.delta_at_anchor
+    )::bigint,
+    'nanos',
+    0
+  )
+from
+  transaction_deltas td,
+  anchor_point ap
+where
+  transactions.id = td.id
+  and transactions.account_id = $1::bigint
 `
 
 type RecalculateBalancesAfterTransactionParams struct {
@@ -631,9 +842,13 @@ func (q *Queries) RecalculateBalancesAfterTransaction(ctx context.Context, arg R
 }
 
 const setTransactionReceipt = `-- name: SetTransactionReceipt :execrows
-UPDATE transactions
-SET receipt_id = $1::bigint
-WHERE id = $2::bigint AND receipt_id IS NULL
+update
+  transactions
+set
+  receipt_id = $1::bigint
+where
+  id = $2::bigint
+  and receipt_id is null
 `
 
 type SetTransactionReceiptParams struct {
@@ -650,32 +865,70 @@ func (q *Queries) SetTransactionReceipt(ctx context.Context, arg SetTransactionR
 }
 
 const syncAccountBalances = `-- name: SyncAccountBalances :exec
-WITH transaction_deltas AS (
-  SELECT id,
-         SUM(CASE WHEN tx_direction = 1 THEN (tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0 
-                  ELSE -((tx_amount->>'units')::bigint + (tx_amount->>'nanos')::bigint/1000000000.0) END)
-           OVER (PARTITION BY account_id ORDER BY tx_date, id) AS running_delta
-  FROM transactions
-  WHERE account_id = $1::bigint
+with transaction_deltas as (
+  select
+    id,
+    SUM(
+      case
+        when tx_direction = 1 then (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
+        else -(
+          (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
+        )
+      end
+    ) OVER (
+      partition BY account_id
+      order by
+        tx_date,
+        id
+    ) as running_delta
+  from
+    transactions
+  where
+    account_id = $1::bigint
 ),
-anchor_point AS (
-  SELECT a.anchor_balance,
-         COALESCE(SUM(CASE WHEN t.tx_direction = 1 THEN (t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0 
-                           ELSE -((t.tx_amount->>'units')::bigint + (t.tx_amount->>'nanos')::bigint/1000000000.0) END), 0.0) AS delta_at_anchor
-  FROM accounts a
-  LEFT JOIN transactions t ON t.account_id = a.id AND t.tx_date < a.anchor_date
-  WHERE a.id = $1::bigint
-  GROUP BY a.id, a.anchor_balance
+anchor_point as (
+  select
+    a.anchor_balance,
+    COALESCE(
+      SUM(
+        case
+          when t.tx_direction = 1 then (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
+          else -(
+            (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
+          )
+        end
+      ),
+      0.0
+    ) as delta_at_anchor
+  from
+    accounts a
+    left join transactions t on t.account_id = a.id
+    and t.tx_date < a.anchor_date
+  where
+    a.id = $1::bigint
+  group by
+    a.id,
+    a.anchor_balance
 )
-UPDATE transactions
-SET balance_after = jsonb_build_object(
-  'currency_code', tx_amount->>'currency_code',
-  'units', ((ap.anchor_balance->>'units')::bigint + td.running_delta - ap.delta_at_anchor)::bigint,
-  'nanos', 0
-)
-FROM transaction_deltas td, anchor_point ap
-WHERE transactions.id = td.id
-  AND transactions.account_id = $1::bigint
+update
+  transactions
+set
+  balance_after = jsonb_build_object(
+    'currency_code',
+    tx_amount ->> 'currency_code',
+    'units',
+    (
+      (ap.anchor_balance ->> 'units')::bigint + td.running_delta - ap.delta_at_anchor
+    )::bigint,
+    'nanos',
+    0
+  )
+from
+  transaction_deltas td,
+  anchor_point ap
+where
+  transactions.id = td.id
+  and transactions.account_id = $1::bigint
 `
 
 func (q *Queries) SyncAccountBalances(ctx context.Context, accountID int64) error {
@@ -684,27 +937,46 @@ func (q *Queries) SyncAccountBalances(ctx context.Context, accountID int64) erro
 }
 
 const updateTransaction = `-- name: UpdateTransaction :one
-UPDATE transactions
-SET email_id = COALESCE($1::text, email_id),
-    tx_date = COALESCE($2::timestamptz, tx_date),
-    tx_amount = COALESCE($3::jsonb, tx_amount),
-    tx_direction = COALESCE($4::smallint, tx_direction),
-    tx_desc = COALESCE($5::text, tx_desc),
-    category_id = COALESCE($6::bigint, category_id),
-    merchant = COALESCE($7::text, merchant),
-    user_notes = COALESCE($8::text, user_notes),
-    foreign_amount = COALESCE($9::jsonb, foreign_amount),
-    exchange_rate = COALESCE($10::numeric, exchange_rate),
-    suggestions = COALESCE($11::text[], suggestions),
-    receipt_id = COALESCE($12::bigint, receipt_id),
-    cat_status = COALESCE($13::smallint, cat_status)
-WHERE id = $14::bigint
-  AND account_id IN (
-    SELECT a.id FROM accounts a
-    LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $15::uuid
-    WHERE a.owner_id = $15::uuid OR au.user_id IS NOT NULL
+update
+  transactions
+set
+  email_id = COALESCE($1::text, email_id),
+  tx_date = COALESCE($2::timestamptz, tx_date),
+  tx_amount = COALESCE($3::jsonb, tx_amount),
+  tx_direction = COALESCE(
+    $4::smallint,
+    tx_direction
+  ),
+  tx_desc = COALESCE($5::text, tx_desc),
+  category_id = COALESCE($6::bigint, category_id),
+  merchant = COALESCE($7::text, merchant),
+  user_notes = COALESCE($8::text, user_notes),
+  foreign_amount = COALESCE(
+    $9::jsonb,
+    foreign_amount
+  ),
+  exchange_rate = COALESCE(
+    $10::numeric,
+    exchange_rate
+  ),
+  suggestions = COALESCE($11::text [], suggestions),
+  receipt_id = COALESCE($12::bigint, receipt_id),
+  cat_status = COALESCE($13::smallint, cat_status)
+where
+  id = $14::bigint
+  and account_id in (
+    select
+      a.id
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $15::uuid
+    where
+      a.owner_id = $15::uuid
+      or au.user_id is not null
   )
-RETURNING account_id
+returning
+  account_id
 `
 
 type UpdateTransactionParams struct {

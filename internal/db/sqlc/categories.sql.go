@@ -7,44 +7,37 @@ package sqlc
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-type BulkCreateCategoriesParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Slug   string    `json:"slug"`
-	Label  string    `json:"label"`
-	Color  string    `json:"color"`
-}
-
 const createCategory = `-- name: CreateCategory :one
-INSERT INTO categories (user_id, slug, label, color)
-VALUES ($1::uuid, $2::text, $3::text, $4::text)
-RETURNING id, user_id, slug, label, color, created_at, updated_at
+insert into
+  categories (user_id, slug, color)
+values
+  ($1::uuid, $2::text, $3::text)
+returning
+  id,
+  user_id,
+  slug,
+  color,
+  created_at,
+  updated_at
 `
 
 type CreateCategoryParams struct {
 	UserID uuid.UUID `json:"user_id"`
 	Slug   string    `json:"slug"`
-	Label  string    `json:"label"`
 	Color  string    `json:"color"`
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
-	row := q.db.QueryRow(ctx, createCategory,
-		arg.UserID,
-		arg.Slug,
-		arg.Label,
-		arg.Color,
-	)
+	row := q.db.QueryRow(ctx, createCategory, arg.UserID, arg.Slug, arg.Color)
 	var i Category
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.Slug,
-		&i.Label,
 		&i.Color,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -52,36 +45,58 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 	return i, err
 }
 
-const deleteCategory = `-- name: DeleteCategory :execrows
-DELETE FROM categories
-WHERE id = $1::bigint AND user_id = $2::uuid
+const createCategoryIfNotExists = `-- name: CreateCategoryIfNotExists :one
+insert into
+  categories (user_id, slug, color)
+values
+  ($1::uuid, $2::text, $3::text) on CONFLICT (user_id, slug) do NOTHING
+returning
+  id,
+  user_id,
+  slug,
+  color,
+  created_at,
+  updated_at
 `
 
-type DeleteCategoryParams struct {
-	ID     int64     `json:"id"`
+type CreateCategoryIfNotExistsParams struct {
 	UserID uuid.UUID `json:"user_id"`
+	Slug   string    `json:"slug"`
+	Color  string    `json:"color"`
 }
 
-func (q *Queries) DeleteCategory(ctx context.Context, arg DeleteCategoryParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteCategory, arg.ID, arg.UserID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) CreateCategoryIfNotExists(ctx context.Context, arg CreateCategoryIfNotExistsParams) (Category, error) {
+	row := q.db.QueryRow(ctx, createCategoryIfNotExists, arg.UserID, arg.Slug, arg.Color)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Slug,
+		&i.Color,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
-const deleteUnusedCategories = `-- name: DeleteUnusedCategories :execrows
-DELETE FROM categories
-WHERE user_id = $1::uuid
-  AND id NOT IN (
-    SELECT DISTINCT category_id 
-    FROM transactions 
-    WHERE category_id IS NOT NULL
+const deleteCategoriesBySlugPrefix = `-- name: DeleteCategoriesBySlugPrefix :execrows
+delete from
+  categories
+where
+  user_id = $1::uuid
+  and (
+    slug = $2::text
+    or slug like $2::text || '.%'
   )
 `
 
-func (q *Queries) DeleteUnusedCategories(ctx context.Context, userID uuid.UUID) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteUnusedCategories, userID)
+type DeleteCategoriesBySlugPrefixParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Slug   string    `json:"slug"`
+}
+
+func (q *Queries) DeleteCategoriesBySlugPrefix(ctx context.Context, arg DeleteCategoriesBySlugPrefixParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteCategoriesBySlugPrefix, arg.UserID, arg.Slug)
 	if err != nil {
 		return 0, err
 	}
@@ -89,9 +104,18 @@ func (q *Queries) DeleteUnusedCategories(ctx context.Context, userID uuid.UUID) 
 }
 
 const getCategory = `-- name: GetCategory :one
-SELECT id, user_id, slug, label, color, created_at, updated_at
-FROM categories
-WHERE id = $1::bigint AND user_id = $2::uuid
+select
+  id,
+  user_id,
+  slug,
+  color,
+  created_at,
+  updated_at
+from
+  categories
+where
+  id = $1::bigint
+  and user_id = $2::uuid
 `
 
 type GetCategoryParams struct {
@@ -106,7 +130,6 @@ func (q *Queries) GetCategory(ctx context.Context, arg GetCategoryParams) (Categ
 		&i.ID,
 		&i.UserID,
 		&i.Slug,
-		&i.Label,
 		&i.Color,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -115,9 +138,18 @@ func (q *Queries) GetCategory(ctx context.Context, arg GetCategoryParams) (Categ
 }
 
 const getCategoryBySlug = `-- name: GetCategoryBySlug :one
-SELECT id, user_id, slug, label, color, created_at, updated_at
-FROM categories
-WHERE slug = $1::text AND user_id = $2::uuid
+select
+  id,
+  user_id,
+  slug,
+  color,
+  created_at,
+  updated_at
+from
+  categories
+where
+  slug = $1::text
+  and user_id = $2::uuid
 `
 
 type GetCategoryBySlugParams struct {
@@ -132,193 +164,27 @@ func (q *Queries) GetCategoryBySlug(ctx context.Context, arg GetCategoryBySlugPa
 		&i.ID,
 		&i.UserID,
 		&i.Slug,
-		&i.Label,
 		&i.Color,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
-}
-
-const getCategoryWithStats = `-- name: GetCategoryWithStats :one
-SELECT 
-  c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at,
-  COUNT(t.id) AS usage_count,
-  COALESCE(SUM(t.tx_amount), 0) AS total_amount,
-  COALESCE(AVG(t.tx_amount), 0) AS avg_amount,
-  MIN(t.tx_date) AS first_used,
-  MAX(t.tx_date) AS last_used
-FROM categories c
-LEFT JOIN transactions t ON c.id = t.category_id
-LEFT JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE c.id = $2::bigint AND c.user_id = $1::uuid
-  AND ($1::uuid IS NULL OR (a.owner_id = $1::uuid OR au.user_id IS NOT NULL))
-  AND ($3::timestamptz IS NULL OR t.tx_date >= $3::timestamptz)
-  AND ($4::timestamptz IS NULL OR t.tx_date <= $4::timestamptz)
-GROUP BY c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at
-`
-
-type GetCategoryWithStatsParams struct {
-	UserID    uuid.UUID  `json:"user_id"`
-	ID        int64      `json:"id"`
-	StartDate *time.Time `json:"start_date"`
-	EndDate   *time.Time `json:"end_date"`
-}
-
-type GetCategoryWithStatsRow struct {
-	ID          int64       `json:"id"`
-	UserID      uuid.UUID   `json:"user_id"`
-	Slug        string      `json:"slug"`
-	Label       string      `json:"label"`
-	Color       string      `json:"color"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	UsageCount  int64       `json:"usage_count"`
-	TotalAmount interface{} `json:"total_amount"`
-	AvgAmount   interface{} `json:"avg_amount"`
-	FirstUsed   interface{} `json:"first_used"`
-	LastUsed    interface{} `json:"last_used"`
-}
-
-func (q *Queries) GetCategoryWithStats(ctx context.Context, arg GetCategoryWithStatsParams) (GetCategoryWithStatsRow, error) {
-	row := q.db.QueryRow(ctx, getCategoryWithStats,
-		arg.UserID,
-		arg.ID,
-		arg.StartDate,
-		arg.EndDate,
-	)
-	var i GetCategoryWithStatsRow
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.Slug,
-		&i.Label,
-		&i.Color,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.UsageCount,
-		&i.TotalAmount,
-		&i.AvgAmount,
-		&i.FirstUsed,
-		&i.LastUsed,
-	)
-	return i, err
-}
-
-const getMostUsedCategories = `-- name: GetMostUsedCategories :many
-SELECT 
-  c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at,
-  COUNT(t.id) AS usage_count,
-  SUM(t.tx_amount) AS total_amount
-FROM categories c
-JOIN transactions t ON c.id = t.category_id
-JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE c.user_id = $1::uuid
-  AND (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
-  AND ($2::timestamptz IS NULL OR t.tx_date >= $2::timestamptz)
-  AND ($3::timestamptz IS NULL OR t.tx_date <= $3::timestamptz)
-GROUP BY c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at
-ORDER BY usage_count DESC
-LIMIT COALESCE($4::int, 10)
-`
-
-type GetMostUsedCategoriesParams struct {
-	UserID uuid.UUID  `json:"user_id"`
-	Start  *time.Time `json:"start"`
-	End    *time.Time `json:"end"`
-	Limit  *int32     `json:"limit"`
-}
-
-type GetMostUsedCategoriesRow struct {
-	ID          int64     `json:"id"`
-	UserID      uuid.UUID `json:"user_id"`
-	Slug        string    `json:"slug"`
-	Label       string    `json:"label"`
-	Color       string    `json:"color"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UsageCount  int64     `json:"usage_count"`
-	TotalAmount int64     `json:"total_amount"`
-}
-
-func (q *Queries) GetMostUsedCategories(ctx context.Context, arg GetMostUsedCategoriesParams) ([]GetMostUsedCategoriesRow, error) {
-	rows, err := q.db.Query(ctx, getMostUsedCategories,
-		arg.UserID,
-		arg.Start,
-		arg.End,
-		arg.Limit,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetMostUsedCategoriesRow
-	for rows.Next() {
-		var i GetMostUsedCategoriesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Slug,
-			&i.Label,
-			&i.Color,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.UsageCount,
-			&i.TotalAmount,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUnusedCategories = `-- name: GetUnusedCategories :many
-SELECT c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at
-FROM categories c
-LEFT JOIN transactions t ON c.id = t.category_id
-WHERE c.user_id = $1::uuid AND t.id IS NULL
-ORDER BY c.created_at DESC
-`
-
-func (q *Queries) GetUnusedCategories(ctx context.Context, userID uuid.UUID) ([]Category, error) {
-	rows, err := q.db.Query(ctx, getUnusedCategories, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Category
-	for rows.Next() {
-		var i Category
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Slug,
-			&i.Label,
-			&i.Color,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, user_id, slug, label, color, created_at, updated_at
-FROM categories
-WHERE user_id = $1::uuid
-ORDER BY slug
+select
+  id,
+  user_id,
+  slug,
+  color,
+  created_at,
+  updated_at
+from
+  categories
+where
+  user_id = $1::uuid
+order by
+  slug
 `
 
 func (q *Queries) ListCategories(ctx context.Context, userID uuid.UUID) ([]Category, error) {
@@ -334,150 +200,6 @@ func (q *Queries) ListCategories(ctx context.Context, userID uuid.UUID) ([]Categ
 			&i.ID,
 			&i.UserID,
 			&i.Slug,
-			&i.Label,
-			&i.Color,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listCategoriesWithUsage = `-- name: ListCategoriesWithUsage :many
-SELECT 
-  c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at,
-  COUNT(t.id) AS usage_count,
-  COALESCE(SUM(t.tx_amount), 0) AS total_amount
-FROM categories c
-LEFT JOIN transactions t ON c.id = t.category_id
-LEFT JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE c.user_id = $1::uuid
-  AND ($1::uuid IS NULL OR (a.owner_id = $1::uuid OR au.user_id IS NOT NULL))
-  AND ($2::timestamptz IS NULL OR t.tx_date >= $2::timestamptz)
-  AND ($3::timestamptz IS NULL OR t.tx_date <= $3::timestamptz)
-GROUP BY c.id, c.user_id, c.slug, c.label, c.color, c.created_at, c.updated_at
-ORDER BY usage_count DESC, c.slug
-LIMIT COALESCE($4::int, 100)
-`
-
-type ListCategoriesWithUsageParams struct {
-	UserID    uuid.UUID  `json:"user_id"`
-	StartDate *time.Time `json:"start_date"`
-	EndDate   *time.Time `json:"end_date"`
-	Limit     *int32     `json:"limit"`
-}
-
-type ListCategoriesWithUsageRow struct {
-	ID          int64       `json:"id"`
-	UserID      uuid.UUID   `json:"user_id"`
-	Slug        string      `json:"slug"`
-	Label       string      `json:"label"`
-	Color       string      `json:"color"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	UsageCount  int64       `json:"usage_count"`
-	TotalAmount interface{} `json:"total_amount"`
-}
-
-func (q *Queries) ListCategoriesWithUsage(ctx context.Context, arg ListCategoriesWithUsageParams) ([]ListCategoriesWithUsageRow, error) {
-	rows, err := q.db.Query(ctx, listCategoriesWithUsage,
-		arg.UserID,
-		arg.StartDate,
-		arg.EndDate,
-		arg.Limit,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListCategoriesWithUsageRow
-	for rows.Next() {
-		var i ListCategoriesWithUsageRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Slug,
-			&i.Label,
-			&i.Color,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.UsageCount,
-			&i.TotalAmount,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listCategorySlugs = `-- name: ListCategorySlugs :many
-SELECT slug
-FROM categories
-WHERE user_id = $1::uuid
-ORDER BY slug
-`
-
-func (q *Queries) ListCategorySlugs(ctx context.Context, userID uuid.UUID) ([]string, error) {
-	rows, err := q.db.Query(ctx, listCategorySlugs, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []string
-	for rows.Next() {
-		var slug string
-		if err := rows.Scan(&slug); err != nil {
-			return nil, err
-		}
-		items = append(items, slug)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const searchCategories = `-- name: SearchCategories :many
-SELECT id, user_id, slug, label, color, created_at, updated_at
-FROM categories
-WHERE user_id = $1::uuid
-  AND (slug ILIKE ('%' || $2::text || '%') 
-       OR label ILIKE ('%' || $2::text || '%'))
-ORDER BY 
-  CASE WHEN slug ILIKE ($2::text || '%') THEN 1 ELSE 2 END,
-  slug
-`
-
-type SearchCategoriesParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Query  string    `json:"query"`
-}
-
-func (q *Queries) SearchCategories(ctx context.Context, arg SearchCategoriesParams) ([]Category, error) {
-	rows, err := q.db.Query(ctx, searchCategories, arg.UserID, arg.Query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Category
-	for rows.Next() {
-		var i Category
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Slug,
-			&i.Label,
 			&i.Color,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -493,17 +215,25 @@ func (q *Queries) SearchCategories(ctx context.Context, arg SearchCategoriesPara
 }
 
 const updateCategory = `-- name: UpdateCategory :one
-UPDATE categories
-SET slug = COALESCE($1::text, slug),
-    label = COALESCE($2::text, label),
-    color = COALESCE($3::text, color)
-WHERE id = $4::bigint AND user_id = $5::uuid
-RETURNING id, user_id, slug, label, color, created_at, updated_at
+update
+  categories
+set
+  slug = COALESCE($1::text, slug),
+  color = COALESCE($2::text, color)
+where
+  id = $3::bigint
+  and user_id = $4::uuid
+returning
+  id,
+  user_id,
+  slug,
+  color,
+  created_at,
+  updated_at
 `
 
 type UpdateCategoryParams struct {
 	Slug   *string   `json:"slug"`
-	Label  *string   `json:"label"`
 	Color  *string   `json:"color"`
 	ID     int64     `json:"id"`
 	UserID uuid.UUID `json:"user_id"`
@@ -512,7 +242,6 @@ type UpdateCategoryParams struct {
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
 	row := q.db.QueryRow(ctx, updateCategory,
 		arg.Slug,
-		arg.Label,
 		arg.Color,
 		arg.ID,
 		arg.UserID,
@@ -522,7 +251,6 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		&i.ID,
 		&i.UserID,
 		&i.Slug,
-		&i.Label,
 		&i.Color,
 		&i.CreatedAt,
 		&i.UpdatedAt,

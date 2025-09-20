@@ -396,9 +396,13 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 		if provider, err := s.aiMgr.GetProvider(defaultAIProvider, defaultAIModel); err == nil {
 			s.log.Info("falling back to AI for categorization", "txID", tx.ID)
 
-			slugs, err := s.catSvc.ListSlugs(ctx, userID)
+			categories, err := s.catSvc.List(ctx, userID)
 			if err != nil {
-				return nil, wrapErr("determineCategory.ListSlugs", err)
+				return nil, wrapErr("determineCategory.List", err)
+			}
+			slugs := make([]string, len(categories))
+			for i, cat := range categories {
+				slugs[i] = cat.Slug
 			}
 			categorySlug, _, suggestions, err := provider.CategorizeTransaction(ctx, *tx, slugs)
 			if err != nil {

@@ -422,12 +422,9 @@ func toProtoCategory(c *sqlc.Category) *pb.Category {
 	}
 
 	return &pb.Category{
-		Id:        c.ID,
-		Slug:      c.Slug,
-		Label:     c.Label,
-		Color:     c.Color,
-		CreatedAt: toProtoTimestamp(&c.CreatedAt),
-		UpdatedAt: toProtoTimestamp(&c.UpdatedAt),
+		Id:    c.ID,
+		Slug:  c.Slug,
+		Color: c.Color,
 	}
 }
 
@@ -978,7 +975,6 @@ func toProtoTopCategory(cat *sqlc.GetTopCategoriesRow) *pb.TopCategory {
 
 	return &pb.TopCategory{
 		Slug:             cat.Slug,
-		Label:            cat.Label,
 		Color:            cat.Color,
 		TransactionCount: cat.TransactionCount,
 		TotalAmount:      decimalToMoney(decimal.NewFromInt(cat.TotalAmount), "CAD"),

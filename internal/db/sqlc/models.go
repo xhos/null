@@ -39,7 +39,6 @@ type Category struct {
 	ID        int64     `json:"id"`
 	UserID    uuid.UUID `json:"user_id"`
 	Slug      string    `json:"slug"`
-	Label     string    `json:"label"`
 	Color     string    `json:"color"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

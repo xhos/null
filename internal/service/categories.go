@@ -3,10 +3,10 @@ package service
 import (
 	"ariand/internal/db/sqlc"
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"errors"
-	"regexp"
-	"sync"
+	"strings"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -19,17 +19,6 @@ type CategoryService interface {
 	Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error)
 	Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error)
 	BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sqlc.Category, error)
-	ListSlugs(ctx context.Context, userID uuid.UUID) ([]string, error)
-}
-
-var (
-	slugCache   map[uuid.UUID][]string
-	slugCacheMu sync.RWMutex
-	slugRegex   = regexp.MustCompile(`^[a-z0-9]+(\.[a-z0-9]+)*$`)
-)
-
-func init() {
-	slugCache = make(map[uuid.UUID][]string)
 }
 
 type catSvc struct {
@@ -64,9 +53,9 @@ func (s *catSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Cat
 }
 
 func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error) {
-	isValidSlug := slugRegex.MatchString(params.Slug)
-	if !isValidSlug {
-		return nil, wrapErr("CategoryService.Create", ErrValidation)
+	// Create parent categories if they don't exist
+	if err := s.ensureParentCategories(ctx, params.UserID, params.Slug); err != nil {
+		return nil, wrapErr("CategoryService.Create", err)
 	}
 
 	category, err := s.queries.CreateCategory(ctx, params)
@@ -74,19 +63,10 @@ func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (
 		return nil, wrapErr("CategoryService.Create", err)
 	}
 
-	s.invalidateSlugCache(params.UserID)
-
 	return &category, nil
 }
 
 func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
-	if params.Slug != nil {
-		isValidSlug := slugRegex.MatchString(*params.Slug)
-		if !isValidSlug {
-			return nil, wrapErr("CategoryService.Update", ErrValidation)
-		}
-	}
-
 	category, err := s.queries.UpdateCategory(ctx, params)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("CategoryService.Update", ErrNotFound)
@@ -95,21 +75,30 @@ func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (
 		return nil, wrapErr("CategoryService.Update", err)
 	}
 
-	s.invalidateSlugCache(params.UserID)
-
 	return &category, nil
 }
 
 func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error) {
-	affected, err := s.queries.DeleteCategory(ctx, sqlc.DeleteCategoryParams{
+	// First get the category to find its slug
+	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
 		ID:     id,
 		UserID: userID,
 	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, wrapErr("CategoryService.Delete", ErrNotFound)
+	}
 	if err != nil {
 		return 0, wrapErr("CategoryService.Delete", err)
 	}
 
-	s.invalidateSlugCache(userID)
+	// Delete this category and all children (cascading delete)
+	affected, err := s.queries.DeleteCategoriesBySlugPrefix(ctx, sqlc.DeleteCategoriesBySlugPrefixParams{
+		UserID: userID,
+		Slug:   category.Slug,
+	})
+	if err != nil {
+		return 0, wrapErr("CategoryService.Delete", err)
+	}
 
 	return affected, nil
 }
@@ -128,41 +117,60 @@ func (s *catSvc) BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sq
 	return &category, nil
 }
 
-func (s *catSvc) ListSlugs(ctx context.Context, userID uuid.UUID) ([]string, error) {
-	slugCacheMu.RLock()
-	cached, exists := slugCache[userID]
-	if exists {
-		result := make([]string, len(cached))
-		copy(result, cached)
-		slugCacheMu.RUnlock()
-		return result, nil
-	}
-	slugCacheMu.RUnlock()
-
-	slugCacheMu.Lock()
-	defer slugCacheMu.Unlock()
-
-	// Double-check after acquiring write lock
-	cached, exists = slugCache[userID]
-	if exists {
-		result := make([]string, len(cached))
-		copy(result, cached)
-		return result, nil
+// ensureParentCategories creates all parent categories if they don't exist
+func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, slug string) error {
+	parts := strings.Split(slug, ".")
+	if len(parts) <= 1 {
+		return nil // No parents needed
 	}
 
-	slugs, err := s.queries.ListCategorySlugs(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("CategoryService.ListSlugs", err)
+	// Create each parent category if it doesn't exist
+	for i := 1; i < len(parts); i++ {
+		parentSlug := strings.Join(parts[:i], ".")
+
+		// Check if parent exists
+		_, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
+			Slug:   parentSlug,
+			UserID: userID,
+		})
+
+		if err == nil {
+			continue // Parent exists
+		}
+
+		if !errors.Is(err, sql.ErrNoRows) {
+			return err // Other error
+		}
+
+		// Parent doesn't exist, create it with a generated color
+		color := generateNiceHexColor()
+		_, err = s.queries.CreateCategoryIfNotExists(ctx, sqlc.CreateCategoryIfNotExistsParams{
+			UserID: userID,
+			Slug:   parentSlug,
+			Color:  color,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
-	slugCache[userID] = slugs
-	result := make([]string, len(slugs))
-	copy(result, slugs)
-	return result, nil
+	return nil
 }
 
-func (s *catSvc) invalidateSlugCache(userID uuid.UUID) {
-	slugCacheMu.Lock()
-	delete(slugCache, userID)
-	slugCacheMu.Unlock()
+// generateNiceHexColor generates a nice muted hex color
+func generateNiceHexColor() string {
+	niceHexChars := "56789ab"
+	color := "#"
+
+	b := make([]byte, 6)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback if crypto/rand fails
+		return "#888888"
+	}
+
+	for i := 0; i < 6; i++ {
+		color += string(niceHexChars[int(b[i])%7])
+	}
+
+	return color
 }

@@ -26,35 +26,64 @@ type BulkCreateReceiptItemsParams struct {
 }
 
 const createReceipt = `-- name: CreateReceipt :one
-INSERT INTO receipts (
-  engine, parse_status, link_status, match_ids,
-  merchant, purchase_date, total_amount, tax_amount,
-  raw_payload, canonical_data, image_url, image_sha256,
-  lat, lon, location_source, location_label
-) VALUES (
-  $1::smallint,
-  COALESCE($2::smallint, 1),
-  COALESCE($3::smallint, 1),
-  $4::bigint[],
-  $5::text,
-  $6::date,
-  $7::jsonb,
-  $8::jsonb,
-  $9::jsonb,
-  $10::jsonb,
-  $11::text,
-  $12::bytea,
-  $13::double precision,
-  $14::double precision,
-  $15::text,
-  $16::text
-)
-RETURNING
-  id, engine, parse_status, link_status, match_ids,
-  merchant, purchase_date, total_amount, tax_amount,
-  raw_payload, canonical_data, image_url, image_sha256,
-  lat, lon, location_source, location_label,
-  created_at, updated_at
+insert into
+  receipts (
+    engine,
+    parse_status,
+    link_status,
+    match_ids,
+    merchant,
+    purchase_date,
+    total_amount,
+    tax_amount,
+    raw_payload,
+    canonical_data,
+    image_url,
+    image_sha256,
+    lat,
+    lon,
+    location_source,
+    location_label
+  )
+values
+  (
+    $1::smallint,
+    COALESCE($2::smallint, 1),
+    COALESCE($3::smallint, 1),
+    $4::bigint [],
+    $5::text,
+    $6::date,
+    $7::jsonb,
+    $8::jsonb,
+    $9::jsonb,
+    $10::jsonb,
+    $11::text,
+    $12::bytea,
+    $13::double precision,
+    $14::double precision,
+    $15::text,
+    $16::text
+  )
+returning
+  id,
+  engine,
+  parse_status,
+  link_status,
+  match_ids,
+  merchant,
+  purchase_date,
+  total_amount,
+  tax_amount,
+  raw_payload,
+  canonical_data,
+  image_url,
+  image_sha256,
+  lat,
+  lon,
+  location_source,
+  location_label,
+  created_at,
+  updated_at
 `
 
 type CreateReceiptParams struct {
@@ -121,20 +150,40 @@ func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) (R
 }
 
 const createReceiptItem = `-- name: CreateReceiptItem :one
-INSERT INTO receipt_items (
-  receipt_id, line_no, name, qty, unit_price, line_total, sku, category_hint
-) VALUES (
-  $1::bigint,
-  $2::int,
-  $3::text,
-  COALESCE($4::numeric, 1),
-  $5::jsonb,
-  $6::jsonb,
-  $7::text,
-  $8::text
-)
-RETURNING id, receipt_id, line_no, name, qty, unit_price, line_total, sku, category_hint,
-          created_at, updated_at
+insert into
+  receipt_items (
+    receipt_id,
+    line_no,
+    name,
+    qty,
+    unit_price,
+    line_total,
+    sku,
+    category_hint
+  )
+values
+  (
+    $1::bigint,
+    $2::int,
+    $3::text,
+    COALESCE($4::numeric, 1),
+    $5::jsonb,
+    $6::jsonb,
+    $7::text,
+    $8::text
+  )
+returning
+  id,
+  receipt_id,
+  line_no,
+  name,
+  qty,
+  unit_price,
+  line_total,
+  sku,
+  category_hint,
+  created_at,
+  updated_at
 `
 
 type CreateReceiptItemParams struct {
@@ -177,14 +226,24 @@ func (q *Queries) CreateReceiptItem(ctx context.Context, arg CreateReceiptItemPa
 }
 
 const deleteReceipt = `-- name: DeleteReceipt :execrows
-DELETE FROM receipts 
-WHERE id = $1::bigint
-  AND EXISTS (
-    SELECT 1 FROM transactions t
-    JOIN accounts a ON t.account_id = a.id
-    LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $2::uuid
-    WHERE t.receipt_id = receipts.id
-      AND (a.owner_id = $2::uuid OR au.user_id IS NOT NULL)
+delete from
+  receipts
+where
+  id = $1::bigint
+  and exists (
+    select
+      1
+    from
+      transactions t
+      join accounts a on t.account_id = a.id
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $2::uuid
+    where
+      t.receipt_id = receipts.id
+      and (
+        a.owner_id = $2::uuid
+        or au.user_id is not null
+      )
   )
 `
 
@@ -202,7 +261,10 @@ func (q *Queries) DeleteReceipt(ctx context.Context, arg DeleteReceiptParams) (i
 }
 
 const deleteReceiptItem = `-- name: DeleteReceiptItem :execrows
-DELETE FROM receipt_items WHERE id = $1::bigint
+delete from
+  receipt_items
+where
+  id = $1::bigint
 `
 
 func (q *Queries) DeleteReceiptItem(ctx context.Context, id int64) (int64, error) {
@@ -214,7 +276,10 @@ func (q *Queries) DeleteReceiptItem(ctx context.Context, id int64) (int64, error
 }
 
 const deleteReceiptItemsByReceipt = `-- name: DeleteReceiptItemsByReceipt :execrows
-DELETE FROM receipt_items WHERE receipt_id = $1::bigint
+delete from
+  receipt_items
+where
+  receipt_id = $1::bigint
 `
 
 func (q *Queries) DeleteReceiptItemsByReceipt(ctx context.Context, receiptID int64) (int64, error) {
@@ -226,18 +291,38 @@ func (q *Queries) DeleteReceiptItemsByReceipt(ctx context.Context, receiptID int
 }
 
 const getReceipt = `-- name: GetReceipt :one
-SELECT DISTINCT
-  r.id, r.engine, r.parse_status, r.link_status, r.match_ids,
-  r.merchant, r.purchase_date, r.total_amount, r.tax_amount,
-  r.raw_payload, r.canonical_data, r.image_url, r.image_sha256,
-  r.lat, r.lon, r.location_source, r.location_label,
-  r.created_at, r.updated_at
-FROM receipts r
-LEFT JOIN transactions t ON r.id = t.receipt_id
-LEFT JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE r.id = $2::bigint
-  AND (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
+select
+  distinct r.id,
+  r.engine,
+  r.parse_status,
+  r.link_status,
+  r.match_ids,
+  r.merchant,
+  r.purchase_date,
+  r.total_amount,
+  r.tax_amount,
+  r.raw_payload,
+  r.canonical_data,
+  r.image_url,
+  r.image_sha256,
+  r.lat,
+  r.lon,
+  r.location_source,
+  r.location_label,
+  r.created_at,
+  r.updated_at
+from
+  receipts r
+  left join transactions t on r.id = t.receipt_id
+  left join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+where
+  r.id = $2::bigint
+  and (
+    a.owner_id = $1::uuid
+    or au.user_id is not null
+  )
 `
 
 type GetReceiptParams struct {
@@ -273,11 +358,22 @@ func (q *Queries) GetReceipt(ctx context.Context, arg GetReceiptParams) (Receipt
 }
 
 const getReceiptItem = `-- name: GetReceiptItem :one
-SELECT
-  id, receipt_id, line_no, name, qty, unit_price, line_total, sku, category_hint,
-  created_at, updated_at
-FROM receipt_items
-WHERE id = $1::bigint
+select
+  id,
+  receipt_id,
+  line_no,
+  name,
+  qty,
+  unit_price,
+  line_total,
+  sku,
+  category_hint,
+  created_at,
+  updated_at
+from
+  receipt_items
+where
+  id = $1::bigint
 `
 
 func (q *Queries) GetReceiptItem(ctx context.Context, id int64) (ReceiptItem, error) {
@@ -300,13 +396,24 @@ func (q *Queries) GetReceiptItem(ctx context.Context, id int64) (ReceiptItem, er
 }
 
 const getReceiptMatchCandidates = `-- name: GetReceiptMatchCandidates :many
-SELECT r.id, r.merchant, r.purchase_date, r.total_amount,
-       COUNT(t.id) AS potential_matches
-FROM receipts r
-LEFT JOIN transactions t ON t.id = ANY(r.match_ids)
-WHERE r.link_status = 3  -- needs verification
-GROUP BY r.id, r.merchant, r.purchase_date, r.total_amount
-ORDER BY r.created_at DESC
+select
+  r.id,
+  r.merchant,
+  r.purchase_date,
+  r.total_amount,
+  COUNT(t.id) as potential_matches
+from
+  receipts r
+  left join transactions t on t.id = ANY(r.match_ids)
+where
+  r.link_status = 3 -- needs verification
+group by
+  r.id,
+  r.merchant,
+  r.purchase_date,
+  r.total_amount
+order by
+  r.created_at desc
 `
 
 type GetReceiptMatchCandidatesRow struct {
@@ -344,11 +451,20 @@ func (q *Queries) GetReceiptMatchCandidates(ctx context.Context) ([]GetReceiptMa
 }
 
 const getUnlinkedReceipts = `-- name: GetUnlinkedReceipts :many
-SELECT id, merchant, purchase_date, total_amount, created_at
-FROM receipts
-WHERE link_status = 1  -- unlinked
-ORDER BY created_at DESC
-LIMIT COALESCE($1::int, 50)
+select
+  id,
+  merchant,
+  purchase_date,
+  total_amount,
+  created_at
+from
+  receipts
+where
+  link_status = 1 -- unlinked
+order by
+  created_at desc
+limit
+  COALESCE($1::int, 50)
 `
 
 type GetUnlinkedReceiptsRow struct {
@@ -387,10 +503,13 @@ func (q *Queries) GetUnlinkedReceipts(ctx context.Context, limit *int32) ([]GetU
 }
 
 const linkTransactionToReceipt = `-- name: LinkTransactionToReceipt :exec
-UPDATE transactions 
-SET receipt_id = $1::bigint
-WHERE id = $2::bigint
-  AND receipt_id IS NULL
+update
+  transactions
+set
+  receipt_id = $1::bigint
+where
+  id = $2::bigint
+  and receipt_id is null
 `
 
 type LinkTransactionToReceiptParams struct {
@@ -404,12 +523,25 @@ func (q *Queries) LinkTransactionToReceipt(ctx context.Context, arg LinkTransact
 }
 
 const listReceiptItemsForReceipt = `-- name: ListReceiptItemsForReceipt :many
-SELECT
-  id, receipt_id, line_no, name, qty, unit_price, line_total, sku, category_hint,
-  created_at, updated_at
-FROM receipt_items
-WHERE receipt_id = $1::bigint
-ORDER BY line_no NULLS LAST, id
+select
+  id,
+  receipt_id,
+  line_no,
+  name,
+  qty,
+  unit_price,
+  line_total,
+  sku,
+  category_hint,
+  created_at,
+  updated_at
+from
+  receipt_items
+where
+  receipt_id = $1::bigint
+order by
+  line_no NULLS LAST,
+  id
 `
 
 // Receipt Items CRUD
@@ -446,18 +578,37 @@ func (q *Queries) ListReceiptItemsForReceipt(ctx context.Context, receiptID int6
 }
 
 const listReceipts = `-- name: ListReceipts :many
-SELECT DISTINCT
-  r.id, r.engine, r.parse_status, r.link_status, r.match_ids,
-  r.merchant, r.purchase_date, r.total_amount, r.tax_amount,
-  r.raw_payload, r.canonical_data, r.image_url, r.image_sha256,
-  r.lat, r.lon, r.location_source, r.location_label,
-  r.created_at, r.updated_at
-FROM receipts r
-LEFT JOIN transactions t ON r.id = t.receipt_id
-LEFT JOIN accounts a ON t.account_id = a.id
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE a.owner_id = $1::uuid OR au.user_id IS NOT NULL
-ORDER BY r.created_at DESC
+select
+  distinct r.id,
+  r.engine,
+  r.parse_status,
+  r.link_status,
+  r.match_ids,
+  r.merchant,
+  r.purchase_date,
+  r.total_amount,
+  r.tax_amount,
+  r.raw_payload,
+  r.canonical_data,
+  r.image_url,
+  r.image_sha256,
+  r.lat,
+  r.lon,
+  r.location_source,
+  r.location_label,
+  r.created_at,
+  r.updated_at
+from
+  receipts r
+  left join transactions t on r.id = t.receipt_id
+  left join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+where
+  a.owner_id = $1::uuid
+  or au.user_id is not null
+order by
+  r.created_at desc
 `
 
 func (q *Queries) ListReceipts(ctx context.Context, userID uuid.UUID) ([]Receipt, error) {
@@ -501,24 +652,39 @@ func (q *Queries) ListReceipts(ctx context.Context, userID uuid.UUID) ([]Receipt
 }
 
 const updateReceipt = `-- name: UpdateReceipt :execrows
-UPDATE receipts
-SET engine = COALESCE($1::smallint, engine),
-    parse_status = COALESCE($2::smallint, parse_status),
-    link_status = COALESCE($3::smallint, link_status),
-    match_ids = COALESCE($4::bigint[], match_ids),
-    merchant = COALESCE($5::text, merchant),
-    purchase_date = COALESCE($6::date, purchase_date),
-    total_amount = COALESCE($7::jsonb, total_amount),
-    tax_amount = COALESCE($8::jsonb, tax_amount),
-    raw_payload = COALESCE($9::jsonb, raw_payload),
-    canonical_data = COALESCE($10::jsonb, canonical_data),
-    image_url = COALESCE($11::text, image_url),
-    image_sha256 = COALESCE($12::bytea, image_sha256),
-    lat = COALESCE($13::double precision, lat),
-    lon = COALESCE($14::double precision, lon),
-    location_source = COALESCE($15::text, location_source),
-    location_label = COALESCE($16::text, location_label)
-WHERE id = $17::bigint
+update
+  receipts
+set
+  engine = COALESCE($1::smallint, engine),
+  parse_status = COALESCE(
+    $2::smallint,
+    parse_status
+  ),
+  link_status = COALESCE($3::smallint, link_status),
+  match_ids = COALESCE($4::bigint [], match_ids),
+  merchant = COALESCE($5::text, merchant),
+  purchase_date = COALESCE($6::date, purchase_date),
+  total_amount = COALESCE($7::jsonb, total_amount),
+  tax_amount = COALESCE($8::jsonb, tax_amount),
+  raw_payload = COALESCE($9::jsonb, raw_payload),
+  canonical_data = COALESCE(
+    $10::jsonb,
+    canonical_data
+  ),
+  image_url = COALESCE($11::text, image_url),
+  image_sha256 = COALESCE($12::bytea, image_sha256),
+  lat = COALESCE($13::double precision, lat),
+  lon = COALESCE($14::double precision, lon),
+  location_source = COALESCE(
+    $15::text,
+    location_source
+  ),
+  location_label = COALESCE(
+    $16::text,
+    location_label
+  )
+where
+  id = $17::bigint
 `
 
 type UpdateReceiptParams struct {
@@ -568,17 +734,30 @@ func (q *Queries) UpdateReceipt(ctx context.Context, arg UpdateReceiptParams) (i
 }
 
 const updateReceiptItem = `-- name: UpdateReceiptItem :one
-UPDATE receipt_items
-SET line_no = COALESCE($1::int, line_no),
-    name = COALESCE($2::text, name),
-    qty = COALESCE($3::numeric, qty),
-    unit_price = COALESCE($4::jsonb, unit_price),
-    line_total = COALESCE($5::jsonb, line_total),
-    sku = COALESCE($6::text, sku),
-    category_hint = COALESCE($7::text, category_hint)
-WHERE id = $8::bigint
-RETURNING id, receipt_id, line_no, name, qty, unit_price, line_total, sku, category_hint,
-          created_at, updated_at
+update
+  receipt_items
+set
+  line_no = COALESCE($1::int, line_no),
+  name = COALESCE($2::text, name),
+  qty = COALESCE($3::numeric, qty),
+  unit_price = COALESCE($4::jsonb, unit_price),
+  line_total = COALESCE($5::jsonb, line_total),
+  sku = COALESCE($6::text, sku),
+  category_hint = COALESCE($7::text, category_hint)
+where
+  id = $8::bigint
+returning
+  id,
+  receipt_id,
+  line_no,
+  name,
+  qty,
+  unit_price,
+  line_total,
+  sku,
+  category_hint,
+  created_at,
+  updated_at
 `
 
 type UpdateReceiptItemParams struct {

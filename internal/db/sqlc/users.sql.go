@@ -12,7 +12,15 @@ import (
 )
 
 const checkUserExists = `-- name: CheckUserExists :one
-SELECT EXISTS(SELECT 1 FROM users WHERE id = $1::uuid) AS exists
+select
+  exists(
+    select
+      1
+    from
+      users
+    where
+      id = $1::uuid
+  ) as exists
 `
 
 func (q *Queries) CheckUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
@@ -23,9 +31,21 @@ func (q *Queries) CheckUserExists(ctx context.Context, id uuid.UUID) (bool, erro
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, email, display_name)
-VALUES ($1::uuid, $2::text, $3::text)
-RETURNING id, email, display_name, default_account_id, created_at, updated_at
+insert into
+  users (id, email, display_name)
+values
+  (
+    $1::uuid,
+    $2::text,
+    $3::text
+  )
+returning
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
 `
 
 type CreateUserParams struct {
@@ -49,7 +69,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const deleteUser = `-- name: DeleteUser :execrows
-DELETE FROM users WHERE id = $1::uuid
+delete from
+  users
+where
+  id = $1::uuid
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
@@ -61,13 +84,18 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
 }
 
 const deleteUserWithCascade = `-- name: DeleteUserWithCascade :execrows
-WITH removed_from_accounts AS (
-    DELETE FROM account_users
-    WHERE user_id = $1::uuid
-    RETURNING user_id
+with removed_from_accounts as (
+  delete from
+    account_users
+  where
+    user_id = $1::uuid
+  returning
+    user_id
 )
-DELETE FROM users
-WHERE id = $1::uuid
+delete from
+  users
+where
+  id = $1::uuid
 `
 
 func (q *Queries) DeleteUserWithCascade(ctx context.Context, id uuid.UUID) (int64, error) {
@@ -79,9 +107,17 @@ func (q *Queries) DeleteUserWithCascade(ctx context.Context, id uuid.UUID) (int6
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, display_name, default_account_id, created_at, updated_at
-FROM users
-WHERE id = $1::uuid
+select
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
+from
+  users
+where
+  id = $1::uuid
 `
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -99,9 +135,17 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, default_account_id, created_at, updated_at
-FROM users
-WHERE lower(email) = lower($1::text)
+select
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
+from
+  users
+where
+  lower(email) = lower($1::text)
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -119,10 +163,16 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserFirstAccount = `-- name: GetUserFirstAccount :one
-SELECT id FROM accounts 
-WHERE owner_id = $1::uuid 
-ORDER BY created_at ASC 
-LIMIT 1
+select
+  id
+from
+  accounts
+where
+  owner_id = $1::uuid
+order by
+  created_at asc
+limit
+  1
 `
 
 func (q *Queries) GetUserFirstAccount(ctx context.Context, userID uuid.UUID) (int64, error) {
@@ -133,9 +183,17 @@ func (q *Queries) GetUserFirstAccount(ctx context.Context, userID uuid.UUID) (in
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, display_name, default_account_id, created_at, updated_at
-FROM users
-ORDER BY created_at DESC
+select
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
+from
+  users
+order by
+  created_at desc
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
@@ -166,10 +224,19 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 }
 
 const setUserDefaultAccount = `-- name: SetUserDefaultAccount :one
-UPDATE users
-SET default_account_id = $1::bigint
-WHERE id = $2::uuid
-RETURNING id, email, display_name, default_account_id, created_at, updated_at
+update
+  users
+set
+  default_account_id = $1::bigint
+where
+  id = $2::uuid
+returning
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
 `
 
 type SetUserDefaultAccountParams struct {
@@ -192,12 +259,24 @@ func (q *Queries) SetUserDefaultAccount(ctx context.Context, arg SetUserDefaultA
 }
 
 const updateUser = `-- name: UpdateUser :one
-UPDATE users
-SET email = COALESCE($1::text, email),
-    display_name = COALESCE($2::text, display_name),
-    default_account_id = COALESCE($3::bigint, default_account_id)
-WHERE id = $4::uuid
-RETURNING id, email, display_name, default_account_id, created_at, updated_at
+update
+  users
+set
+  email = COALESCE($1::text, email),
+  display_name = COALESCE($2::text, display_name),
+  default_account_id = COALESCE(
+    $3::bigint,
+    default_account_id
+  )
+where
+  id = $4::uuid
+returning
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
 `
 
 type UpdateUserParams struct {
@@ -227,10 +306,19 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 }
 
 const updateUserDisplayName = `-- name: UpdateUserDisplayName :one
-UPDATE users
-SET display_name = $1::text
-WHERE id = $2::uuid
-RETURNING id, email, display_name, default_account_id, created_at, updated_at
+update
+  users
+set
+  display_name = $1::text
+where
+  id = $2::uuid
+returning
+  id,
+  email,
+  display_name,
+  default_account_id,
+  created_at,
+  updated_at
 `
 
 type UpdateUserDisplayNameParams struct {

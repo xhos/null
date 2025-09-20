@@ -11,7 +11,6 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -115,8 +114,7 @@ func (x *GetCategoryResponse) GetCategory() *Category {
 type CreateCategoryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
-	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
-	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	Color         string                 `protobuf:"bytes,2,opt,name=color,proto3" json:"color,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,13 +152,6 @@ func (*CreateCategoryRequest) Descriptor() ([]byte, []int) {
 func (x *CreateCategoryRequest) GetSlug() string {
 	if x != nil {
 		return x.Slug
-	}
-	return ""
-}
-
-func (x *CreateCategoryRequest) GetLabel() string {
-	if x != nil {
-		return x.Label
 	}
 	return ""
 }
@@ -221,8 +212,7 @@ type UpdateCategoryRequest struct {
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	Slug          *string                `protobuf:"bytes,3,opt,name=slug,proto3,oneof" json:"slug,omitempty"`
-	Label         *string                `protobuf:"bytes,4,opt,name=label,proto3,oneof" json:"label,omitempty"`
-	Color         *string                `protobuf:"bytes,5,opt,name=color,proto3,oneof" json:"color,omitempty"`
+	Color         *string                `protobuf:"bytes,4,opt,name=color,proto3,oneof" json:"color,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -274,13 +264,6 @@ func (x *UpdateCategoryRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 func (x *UpdateCategoryRequest) GetSlug() string {
 	if x != nil && x.Slug != nil {
 		return *x.Slug
-	}
-	return ""
-}
-
-func (x *UpdateCategoryRequest) GetLabel() string {
-	if x != nil && x.Label != nil {
-		return *x.Label
 	}
 	return ""
 }
@@ -424,462 +407,6 @@ func (x *DeleteCategoryResponse) GetAffectedRows() int64 {
 	return 0
 }
 
-type GetCategoryUsageStatsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CategoryId    int64                  `protobuf:"varint,1,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	StartDate     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"`
-	EndDate       *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCategoryUsageStatsRequest) Reset() {
-	*x = GetCategoryUsageStatsRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCategoryUsageStatsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCategoryUsageStatsRequest) ProtoMessage() {}
-
-func (x *GetCategoryUsageStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCategoryUsageStatsRequest.ProtoReflect.Descriptor instead.
-func (*GetCategoryUsageStatsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetCategoryUsageStatsRequest) GetCategoryId() int64 {
-	if x != nil {
-		return x.CategoryId
-	}
-	return 0
-}
-
-func (x *GetCategoryUsageStatsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *GetCategoryUsageStatsRequest) GetStartDate() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StartDate
-	}
-	return nil
-}
-
-func (x *GetCategoryUsageStatsRequest) GetEndDate() *timestamppb.Timestamp {
-	if x != nil {
-		return x.EndDate
-	}
-	return nil
-}
-
-type GetCategoryUsageStatsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Category      *Category              `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCategoryUsageStatsResponse) Reset() {
-	*x = GetCategoryUsageStatsResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCategoryUsageStatsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCategoryUsageStatsResponse) ProtoMessage() {}
-
-func (x *GetCategoryUsageStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCategoryUsageStatsResponse.ProtoReflect.Descriptor instead.
-func (*GetCategoryUsageStatsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetCategoryUsageStatsResponse) GetCategory() *Category {
-	if x != nil {
-		return x.Category
-	}
-	return nil
-}
-
-type GetCategoriesWithStatsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	StartDate     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"`
-	EndDate       *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`
-	Limit         *int32                 `protobuf:"varint,4,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
-	Offset        *int32                 `protobuf:"varint,5,opt,name=offset,proto3,oneof" json:"offset,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCategoriesWithStatsRequest) Reset() {
-	*x = GetCategoriesWithStatsRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCategoriesWithStatsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCategoriesWithStatsRequest) ProtoMessage() {}
-
-func (x *GetCategoriesWithStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCategoriesWithStatsRequest.ProtoReflect.Descriptor instead.
-func (*GetCategoriesWithStatsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *GetCategoriesWithStatsRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *GetCategoriesWithStatsRequest) GetStartDate() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StartDate
-	}
-	return nil
-}
-
-func (x *GetCategoriesWithStatsRequest) GetEndDate() *timestamppb.Timestamp {
-	if x != nil {
-		return x.EndDate
-	}
-	return nil
-}
-
-func (x *GetCategoriesWithStatsRequest) GetLimit() int32 {
-	if x != nil && x.Limit != nil {
-		return *x.Limit
-	}
-	return 0
-}
-
-func (x *GetCategoriesWithStatsRequest) GetOffset() int32 {
-	if x != nil && x.Offset != nil {
-		return *x.Offset
-	}
-	return 0
-}
-
-type GetCategoriesWithStatsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Categories    []*Category            `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	TotalCount    int64                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCategoriesWithStatsResponse) Reset() {
-	*x = GetCategoriesWithStatsResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCategoriesWithStatsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCategoriesWithStatsResponse) ProtoMessage() {}
-
-func (x *GetCategoriesWithStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCategoriesWithStatsResponse.ProtoReflect.Descriptor instead.
-func (*GetCategoriesWithStatsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *GetCategoriesWithStatsResponse) GetCategories() []*Category {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
-func (x *GetCategoriesWithStatsResponse) GetTotalCount() int64 {
-	if x != nil {
-		return x.TotalCount
-	}
-	return 0
-}
-
-type SearchCategoriesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
-	Limit         *int32                 `protobuf:"varint,2,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
-	Offset        *int32                 `protobuf:"varint,3,opt,name=offset,proto3,oneof" json:"offset,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SearchCategoriesRequest) Reset() {
-	*x = SearchCategoriesRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SearchCategoriesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SearchCategoriesRequest) ProtoMessage() {}
-
-func (x *SearchCategoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SearchCategoriesRequest.ProtoReflect.Descriptor instead.
-func (*SearchCategoriesRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *SearchCategoriesRequest) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
-}
-
-func (x *SearchCategoriesRequest) GetLimit() int32 {
-	if x != nil && x.Limit != nil {
-		return *x.Limit
-	}
-	return 0
-}
-
-func (x *SearchCategoriesRequest) GetOffset() int32 {
-	if x != nil && x.Offset != nil {
-		return *x.Offset
-	}
-	return 0
-}
-
-type SearchCategoriesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Categories    []*Category            `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	TotalCount    int64                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SearchCategoriesResponse) Reset() {
-	*x = SearchCategoriesResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SearchCategoriesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SearchCategoriesResponse) ProtoMessage() {}
-
-func (x *SearchCategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SearchCategoriesResponse.ProtoReflect.Descriptor instead.
-func (*SearchCategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *SearchCategoriesResponse) GetCategories() []*Category {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
-func (x *SearchCategoriesResponse) GetTotalCount() int64 {
-	if x != nil {
-		return x.TotalCount
-	}
-	return 0
-}
-
-type ListCategoriesWithUsageRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         *int32                 `protobuf:"varint,1,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
-	Offset        *int32                 `protobuf:"varint,2,opt,name=offset,proto3,oneof" json:"offset,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListCategoriesWithUsageRequest) Reset() {
-	*x = ListCategoriesWithUsageRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListCategoriesWithUsageRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListCategoriesWithUsageRequest) ProtoMessage() {}
-
-func (x *ListCategoriesWithUsageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListCategoriesWithUsageRequest.ProtoReflect.Descriptor instead.
-func (*ListCategoriesWithUsageRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *ListCategoriesWithUsageRequest) GetLimit() int32 {
-	if x != nil && x.Limit != nil {
-		return *x.Limit
-	}
-	return 0
-}
-
-func (x *ListCategoriesWithUsageRequest) GetOffset() int32 {
-	if x != nil && x.Offset != nil {
-		return *x.Offset
-	}
-	return 0
-}
-
-type ListCategoriesWithUsageResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Categories    []*CategoryWithUsage   `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	TotalCount    int64                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListCategoriesWithUsageResponse) Reset() {
-	*x = ListCategoriesWithUsageResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListCategoriesWithUsageResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListCategoriesWithUsageResponse) ProtoMessage() {}
-
-func (x *ListCategoriesWithUsageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListCategoriesWithUsageResponse.ProtoReflect.Descriptor instead.
-func (*ListCategoriesWithUsageResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *ListCategoriesWithUsageResponse) GetCategories() []*CategoryWithUsage {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
-func (x *ListCategoriesWithUsageResponse) GetTotalCount() int64 {
-	if x != nil {
-		return x.TotalCount
-	}
-	return 0
-}
-
 type ListCategoriesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -891,7 +418,7 @@ type ListCategoriesRequest struct {
 
 func (x *ListCategoriesRequest) Reset() {
 	*x = ListCategoriesRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[16]
+	mi := &file_arian_v1_category_services_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +430,7 @@ func (x *ListCategoriesRequest) String() string {
 func (*ListCategoriesRequest) ProtoMessage() {}
 
 func (x *ListCategoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[16]
+	mi := &file_arian_v1_category_services_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +443,7 @@ func (x *ListCategoriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCategoriesRequest.ProtoReflect.Descriptor instead.
 func (*ListCategoriesRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{16}
+	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListCategoriesRequest) GetUserId() string {
@@ -950,7 +477,7 @@ type ListCategoriesResponse struct {
 
 func (x *ListCategoriesResponse) Reset() {
 	*x = ListCategoriesResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[17]
+	mi := &file_arian_v1_category_services_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -962,7 +489,7 @@ func (x *ListCategoriesResponse) String() string {
 func (*ListCategoriesResponse) ProtoMessage() {}
 
 func (x *ListCategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[17]
+	mi := &file_arian_v1_category_services_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -975,7 +502,7 @@ func (x *ListCategoriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCategoriesResponse.ProtoReflect.Descriptor instead.
 func (*ListCategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{17}
+	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListCategoriesResponse) GetCategories() []*Category {
@@ -1001,7 +528,7 @@ type GetCategoryBySlugRequest struct {
 
 func (x *GetCategoryBySlugRequest) Reset() {
 	*x = GetCategoryBySlugRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[18]
+	mi := &file_arian_v1_category_services_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +540,7 @@ func (x *GetCategoryBySlugRequest) String() string {
 func (*GetCategoryBySlugRequest) ProtoMessage() {}
 
 func (x *GetCategoryBySlugRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[18]
+	mi := &file_arian_v1_category_services_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +553,7 @@ func (x *GetCategoryBySlugRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCategoryBySlugRequest.ProtoReflect.Descriptor instead.
 func (*GetCategoryBySlugRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{18}
+	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetCategoryBySlugRequest) GetSlug() string {
@@ -1045,7 +572,7 @@ type GetCategoryBySlugResponse struct {
 
 func (x *GetCategoryBySlugResponse) Reset() {
 	*x = GetCategoryBySlugResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[19]
+	mi := &file_arian_v1_category_services_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1057,7 +584,7 @@ func (x *GetCategoryBySlugResponse) String() string {
 func (*GetCategoryBySlugResponse) ProtoMessage() {}
 
 func (x *GetCategoryBySlugResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[19]
+	mi := &file_arian_v1_category_services_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1070,7 +597,7 @@ func (x *GetCategoryBySlugResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCategoryBySlugResponse.ProtoReflect.Descriptor instead.
 func (*GetCategoryBySlugResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{19}
+	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetCategoryBySlugResponse) GetCategory() *Category {
@@ -1078,278 +605,6 @@ func (x *GetCategoryBySlugResponse) GetCategory() *Category {
 		return x.Category
 	}
 	return nil
-}
-
-type GetCategoryWithStatsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCategoryWithStatsRequest) Reset() {
-	*x = GetCategoryWithStatsRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[20]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCategoryWithStatsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCategoryWithStatsRequest) ProtoMessage() {}
-
-func (x *GetCategoryWithStatsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[20]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCategoryWithStatsRequest.ProtoReflect.Descriptor instead.
-func (*GetCategoryWithStatsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{20}
-}
-
-func (x *GetCategoryWithStatsRequest) GetId() int64 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-type GetCategoryWithStatsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Category      *Category              `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
-	Stats         *CategoryStats         `protobuf:"bytes,2,opt,name=stats,proto3" json:"stats,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCategoryWithStatsResponse) Reset() {
-	*x = GetCategoryWithStatsResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCategoryWithStatsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCategoryWithStatsResponse) ProtoMessage() {}
-
-func (x *GetCategoryWithStatsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCategoryWithStatsResponse.ProtoReflect.Descriptor instead.
-func (*GetCategoryWithStatsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *GetCategoryWithStatsResponse) GetCategory() *Category {
-	if x != nil {
-		return x.Category
-	}
-	return nil
-}
-
-func (x *GetCategoryWithStatsResponse) GetStats() *CategoryStats {
-	if x != nil {
-		return x.Stats
-	}
-	return nil
-}
-
-type BulkCreateCategoriesRequest struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Categories    []*CreateCategoryRequest `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BulkCreateCategoriesRequest) Reset() {
-	*x = BulkCreateCategoriesRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BulkCreateCategoriesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BulkCreateCategoriesRequest) ProtoMessage() {}
-
-func (x *BulkCreateCategoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BulkCreateCategoriesRequest.ProtoReflect.Descriptor instead.
-func (*BulkCreateCategoriesRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{22}
-}
-
-func (x *BulkCreateCategoriesRequest) GetCategories() []*CreateCategoryRequest {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
-type BulkCreateCategoriesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Categories    []*Category            `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	AffectedRows  int64                  `protobuf:"varint,2,opt,name=affected_rows,json=affectedRows,proto3" json:"affected_rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BulkCreateCategoriesResponse) Reset() {
-	*x = BulkCreateCategoriesResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BulkCreateCategoriesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BulkCreateCategoriesResponse) ProtoMessage() {}
-
-func (x *BulkCreateCategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BulkCreateCategoriesResponse.ProtoReflect.Descriptor instead.
-func (*BulkCreateCategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *BulkCreateCategoriesResponse) GetCategories() []*Category {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
-func (x *BulkCreateCategoriesResponse) GetAffectedRows() int64 {
-	if x != nil {
-		return x.AffectedRows
-	}
-	return 0
-}
-
-type DeleteUnusedCategoriesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteUnusedCategoriesRequest) Reset() {
-	*x = DeleteUnusedCategoriesRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteUnusedCategoriesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteUnusedCategoriesRequest) ProtoMessage() {}
-
-func (x *DeleteUnusedCategoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteUnusedCategoriesRequest.ProtoReflect.Descriptor instead.
-func (*DeleteUnusedCategoriesRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{24}
-}
-
-type DeleteUnusedCategoriesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AffectedRows  int64                  `protobuf:"varint,1,opt,name=affected_rows,json=affectedRows,proto3" json:"affected_rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteUnusedCategoriesResponse) Reset() {
-	*x = DeleteUnusedCategoriesResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteUnusedCategoriesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteUnusedCategoriesResponse) ProtoMessage() {}
-
-func (x *DeleteUnusedCategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteUnusedCategoriesResponse.ProtoReflect.Descriptor instead.
-func (*DeleteUnusedCategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *DeleteUnusedCategoriesResponse) GetAffectedRows() int64 {
-	if x != nil {
-		return x.AffectedRows
-	}
-	return 0
 }
 
 type ListCategorySlugsRequest struct {
@@ -1360,7 +615,7 @@ type ListCategorySlugsRequest struct {
 
 func (x *ListCategorySlugsRequest) Reset() {
 	*x = ListCategorySlugsRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[26]
+	mi := &file_arian_v1_category_services_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1372,7 +627,7 @@ func (x *ListCategorySlugsRequest) String() string {
 func (*ListCategorySlugsRequest) ProtoMessage() {}
 
 func (x *ListCategorySlugsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[26]
+	mi := &file_arian_v1_category_services_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1385,7 +640,7 @@ func (x *ListCategorySlugsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCategorySlugsRequest.ProtoReflect.Descriptor instead.
 func (*ListCategorySlugsRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{26}
+	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{12}
 }
 
 type ListCategorySlugsResponse struct {
@@ -1397,7 +652,7 @@ type ListCategorySlugsResponse struct {
 
 func (x *ListCategorySlugsResponse) Reset() {
 	*x = ListCategorySlugsResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[27]
+	mi := &file_arian_v1_category_services_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +664,7 @@ func (x *ListCategorySlugsResponse) String() string {
 func (*ListCategorySlugsResponse) ProtoMessage() {}
 
 func (x *ListCategorySlugsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[27]
+	mi := &file_arian_v1_category_services_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +677,7 @@ func (x *ListCategorySlugsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCategorySlugsResponse.ProtoReflect.Descriptor instead.
 func (*ListCategorySlugsResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{27}
+	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListCategorySlugsResponse) GetSlugs() []string {
@@ -1432,280 +687,34 @@ func (x *ListCategorySlugsResponse) GetSlugs() []string {
 	return nil
 }
 
-type GetMostUsedCategoriesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	StartDate     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"`
-	EndDate       *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`
-	Limit         *int32                 `protobuf:"varint,4,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetMostUsedCategoriesRequest) Reset() {
-	*x = GetMostUsedCategoriesRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetMostUsedCategoriesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetMostUsedCategoriesRequest) ProtoMessage() {}
-
-func (x *GetMostUsedCategoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetMostUsedCategoriesRequest.ProtoReflect.Descriptor instead.
-func (*GetMostUsedCategoriesRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *GetMostUsedCategoriesRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *GetMostUsedCategoriesRequest) GetStartDate() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StartDate
-	}
-	return nil
-}
-
-func (x *GetMostUsedCategoriesRequest) GetEndDate() *timestamppb.Timestamp {
-	if x != nil {
-		return x.EndDate
-	}
-	return nil
-}
-
-func (x *GetMostUsedCategoriesRequest) GetLimit() int32 {
-	if x != nil && x.Limit != nil {
-		return *x.Limit
-	}
-	return 0
-}
-
-type GetMostUsedCategoriesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Categories    []*CategoryWithUsage   `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetMostUsedCategoriesResponse) Reset() {
-	*x = GetMostUsedCategoriesResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetMostUsedCategoriesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetMostUsedCategoriesResponse) ProtoMessage() {}
-
-func (x *GetMostUsedCategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetMostUsedCategoriesResponse.ProtoReflect.Descriptor instead.
-func (*GetMostUsedCategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *GetMostUsedCategoriesResponse) GetCategories() []*CategoryWithUsage {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
-type GetUnusedCategoriesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUnusedCategoriesRequest) Reset() {
-	*x = GetUnusedCategoriesRequest{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[30]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUnusedCategoriesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUnusedCategoriesRequest) ProtoMessage() {}
-
-func (x *GetUnusedCategoriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[30]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUnusedCategoriesRequest.ProtoReflect.Descriptor instead.
-func (*GetUnusedCategoriesRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{30}
-}
-
-type GetUnusedCategoriesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Categories    []*Category            `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUnusedCategoriesResponse) Reset() {
-	*x = GetUnusedCategoriesResponse{}
-	mi := &file_arian_v1_category_services_proto_msgTypes[31]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUnusedCategoriesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUnusedCategoriesResponse) ProtoMessage() {}
-
-func (x *GetUnusedCategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_category_services_proto_msgTypes[31]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUnusedCategoriesResponse.ProtoReflect.Descriptor instead.
-func (*GetUnusedCategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_category_services_proto_rawDescGZIP(), []int{31}
-}
-
-func (x *GetUnusedCategoriesResponse) GetCategories() []*Category {
-	if x != nil {
-		return x.Categories
-	}
-	return nil
-}
-
 var File_arian_v1_category_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_category_services_proto_rawDesc = "" +
 	"\n" +
-	" arian/v1/category_services.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n" +
+	" arian/v1/category_services.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\"-\n" +
 	"\x12GetCategoryRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"E\n" +
 	"\x13GetCategoryResponse\x12.\n" +
-	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"\xb7\x01\n" +
-	"\x15CreateCategoryRequest\x128\n" +
-	"\x04slug\x18\x01 \x01(\tB$\xbaH!r\x1f\x10\x01\x1822\x19^[a-z0-9]+(\\.[a-z0-9]+)*$R\x04slug\x12\x1f\n" +
-	"\x05label\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x05label\x12C\n" +
-	"\x05color\x18\x03 \x01(\tB-\xbaH*r(\x10\x04\x18\a2\"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$R\x05color\"H\n" +
+	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"A\n" +
+	"\x15CreateCategoryRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x14\n" +
+	"\x05color\x18\x02 \x01(\tR\x05color\"H\n" +
 	"\x16CreateCategoryResponse\x12.\n" +
-	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"\xb9\x02\n" +
+	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"\xb4\x01\n" +
 	"\x15UpdateCategoryRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\x12=\n" +
-	"\x04slug\x18\x03 \x01(\tB$\xbaH!r\x1f\x10\x01\x1822\x19^[a-z0-9]+(\\.[a-z0-9]+)*$H\x00R\x04slug\x88\x01\x01\x12$\n" +
-	"\x05label\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dH\x01R\x05label\x88\x01\x01\x12H\n" +
-	"\x05color\x18\x05 \x01(\tB-\xbaH*r(\x10\x04\x18\a2\"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$H\x02R\x05color\x88\x01\x01B\a\n" +
+	"updateMask\x12\x17\n" +
+	"\x04slug\x18\x03 \x01(\tH\x00R\x04slug\x88\x01\x01\x12\x19\n" +
+	"\x05color\x18\x04 \x01(\tH\x01R\x05color\x88\x01\x01B\a\n" +
 	"\x05_slugB\b\n" +
-	"\x06_labelB\b\n" +
 	"\x06_color\"H\n" +
 	"\x16UpdateCategoryResponse\x12.\n" +
 	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"0\n" +
 	"\x15DeleteCategoryRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"=\n" +
 	"\x16DeleteCategoryResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\x83\x02\n" +
-	"\x1cGetCategoryUsageStatsRequest\x12(\n" +
-	"\vcategory_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\n" +
-	"categoryId\x12!\n" +
-	"\auser_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12>\n" +
-	"\n" +
-	"start_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartDate\x88\x01\x01\x12:\n" +
-	"\bend_date\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\aendDate\x88\x01\x01B\r\n" +
-	"\v_start_dateB\v\n" +
-	"\t_end_date\"O\n" +
-	"\x1dGetCategoryUsageStatsResponse\x12.\n" +
-	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"\xbb\x02\n" +
-	"\x1dGetCategoriesWithStatsRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12>\n" +
-	"\n" +
-	"start_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartDate\x88\x01\x01\x12:\n" +
-	"\bend_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\aendDate\x88\x01\x01\x12$\n" +
-	"\x05limit\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x02R\x05limit\x88\x01\x01\x12$\n" +
-	"\x06offset\x18\x05 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x03R\x06offset\x88\x01\x01B\r\n" +
-	"\v_start_dateB\v\n" +
-	"\t_end_dateB\b\n" +
-	"\x06_limitB\t\n" +
-	"\a_offset\"u\n" +
-	"\x1eGetCategoriesWithStatsResponse\x122\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x12.arian.v1.CategoryR\n" +
-	"categories\x12\x1f\n" +
-	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\x9b\x01\n" +
-	"\x17SearchCategoriesRequest\x12\x1f\n" +
-	"\x05query\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x05query\x12$\n" +
-	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
-	"\x06offset\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x01R\x06offset\x88\x01\x01B\b\n" +
-	"\x06_limitB\t\n" +
-	"\a_offset\"o\n" +
-	"\x18SearchCategoriesResponse\x122\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x12.arian.v1.CategoryR\n" +
-	"categories\x12\x1f\n" +
-	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\x81\x01\n" +
-	"\x1eListCategoriesWithUsageRequest\x12$\n" +
-	"\x05limit\x18\x01 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
-	"\x06offset\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00H\x01R\x06offset\x88\x01\x01B\b\n" +
-	"\x06_limitB\t\n" +
-	"\a_offset\"\x7f\n" +
-	"\x1fListCategoriesWithUsageResponse\x12;\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x1b.arian.v1.CategoryWithUsageR\n" +
-	"categories\x12\x1f\n" +
-	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\x9b\x01\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\x9b\x01\n" +
 	"\x15ListCategoriesRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12$\n" +
 	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x00R\x05limit\x88\x01\x01\x12$\n" +
@@ -1717,67 +726,22 @@ const file_arian_v1_category_services_proto_rawDesc = "" +
 	"categories\x18\x01 \x03(\v2\x12.arian.v1.CategoryR\n" +
 	"categories\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"T\n" +
-	"\x18GetCategoryBySlugRequest\x128\n" +
-	"\x04slug\x18\x01 \x01(\tB$\xbaH!r\x1f\x10\x01\x1822\x19^[a-z0-9]+(\\.[a-z0-9]+)*$R\x04slug\"K\n" +
+	"totalCount\".\n" +
+	"\x18GetCategoryBySlugRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\"K\n" +
 	"\x19GetCategoryBySlugResponse\x12.\n" +
-	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"6\n" +
-	"\x1bGetCategoryWithStatsRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"}\n" +
-	"\x1cGetCategoryWithStatsResponse\x12.\n" +
-	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\x12-\n" +
-	"\x05stats\x18\x02 \x01(\v2\x17.arian.v1.CategoryStatsR\x05stats\"j\n" +
-	"\x1bBulkCreateCategoriesRequest\x12K\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x1f.arian.v1.CreateCategoryRequestB\n" +
-	"\xbaH\a\x92\x01\x04\b\x01\x102R\n" +
-	"categories\"w\n" +
-	"\x1cBulkCreateCategoriesResponse\x122\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x12.arian.v1.CategoryR\n" +
-	"categories\x12#\n" +
-	"\raffected_rows\x18\x02 \x01(\x03R\faffectedRows\"\x1f\n" +
-	"\x1dDeleteUnusedCategoriesRequest\"E\n" +
-	"\x1eDeleteUnusedCategoriesResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"\x1a\n" +
+	"\bcategory\x18\x01 \x01(\v2\x12.arian.v1.CategoryR\bcategory\"\x1a\n" +
 	"\x18ListCategorySlugsRequest\"1\n" +
 	"\x19ListCategorySlugsResponse\x12\x14\n" +
-	"\x05slugs\x18\x01 \x03(\tR\x05slugs\"\x89\x02\n" +
-	"\x1cGetMostUsedCategoriesRequest\x12!\n" +
-	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12>\n" +
-	"\n" +
-	"start_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tstartDate\x88\x01\x01\x12:\n" +
-	"\bend_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\aendDate\x88\x01\x01\x12$\n" +
-	"\x05limit\x18\x04 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x01H\x02R\x05limit\x88\x01\x01B\r\n" +
-	"\v_start_dateB\v\n" +
-	"\t_end_dateB\b\n" +
-	"\x06_limit\"\\\n" +
-	"\x1dGetMostUsedCategoriesResponse\x12;\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x1b.arian.v1.CategoryWithUsageR\n" +
-	"categories\"\x1c\n" +
-	"\x1aGetUnusedCategoriesRequest\"Q\n" +
-	"\x1bGetUnusedCategoriesResponse\x122\n" +
-	"\n" +
-	"categories\x18\x01 \x03(\v2\x12.arian.v1.CategoryR\n" +
-	"categories2\x98\f\n" +
-	"\x0fCategoryService\x12n\n" +
-	"\x17ListCategoriesWithUsage\x12(.arian.v1.ListCategoriesWithUsageRequest\x1a).arian.v1.ListCategoriesWithUsageResponse\x12S\n" +
+	"\x05slugs\x18\x01 \x03(\tR\x05slugs2\xed\x04\n" +
+	"\x0fCategoryService\x12S\n" +
 	"\x0eListCategories\x12\x1f.arian.v1.ListCategoriesRequest\x1a .arian.v1.ListCategoriesResponse\x12J\n" +
 	"\vGetCategory\x12\x1c.arian.v1.GetCategoryRequest\x1a\x1d.arian.v1.GetCategoryResponse\x12\\\n" +
-	"\x11GetCategoryBySlug\x12\".arian.v1.GetCategoryBySlugRequest\x1a#.arian.v1.GetCategoryBySlugResponse\x12e\n" +
-	"\x14GetCategoryWithStats\x12%.arian.v1.GetCategoryWithStatsRequest\x1a&.arian.v1.GetCategoryWithStatsResponse\x12S\n" +
-	"\x0eCreateCategory\x12\x1f.arian.v1.CreateCategoryRequest\x1a .arian.v1.CreateCategoryResponse\x12e\n" +
-	"\x14BulkCreateCategories\x12%.arian.v1.BulkCreateCategoriesRequest\x1a&.arian.v1.BulkCreateCategoriesResponse\x12S\n" +
+	"\x11GetCategoryBySlug\x12\".arian.v1.GetCategoryBySlugRequest\x1a#.arian.v1.GetCategoryBySlugResponse\x12S\n" +
+	"\x0eCreateCategory\x12\x1f.arian.v1.CreateCategoryRequest\x1a .arian.v1.CreateCategoryResponse\x12S\n" +
 	"\x0eUpdateCategory\x12\x1f.arian.v1.UpdateCategoryRequest\x1a .arian.v1.UpdateCategoryResponse\x12S\n" +
-	"\x0eDeleteCategory\x12\x1f.arian.v1.DeleteCategoryRequest\x1a .arian.v1.DeleteCategoryResponse\x12k\n" +
-	"\x16DeleteUnusedCategories\x12'.arian.v1.DeleteUnusedCategoriesRequest\x1a(.arian.v1.DeleteUnusedCategoriesResponse\x12h\n" +
-	"\x15GetCategoryUsageStats\x12&.arian.v1.GetCategoryUsageStatsRequest\x1a'.arian.v1.GetCategoryUsageStatsResponse\x12k\n" +
-	"\x16GetCategoriesWithStats\x12'.arian.v1.GetCategoriesWithStatsRequest\x1a(.arian.v1.GetCategoriesWithStatsResponse\x12Y\n" +
-	"\x10SearchCategories\x12!.arian.v1.SearchCategoriesRequest\x1a\".arian.v1.SearchCategoriesResponse\x12\\\n" +
-	"\x11ListCategorySlugs\x12\".arian.v1.ListCategorySlugsRequest\x1a#.arian.v1.ListCategorySlugsResponse\x12h\n" +
-	"\x15GetMostUsedCategories\x12&.arian.v1.GetMostUsedCategoriesRequest\x1a'.arian.v1.GetMostUsedCategoriesResponse\x12b\n" +
-	"\x13GetUnusedCategories\x12$.arian.v1.GetUnusedCategoriesRequest\x1a%.arian.v1.GetUnusedCategoriesResponseB\x8c\x01\n" +
+	"\x0eDeleteCategory\x12\x1f.arian.v1.DeleteCategoryRequest\x1a .arian.v1.DeleteCategoryResponse\x12\\\n" +
+	"\x11ListCategorySlugs\x12\".arian.v1.ListCategorySlugsRequest\x1a#.arian.v1.ListCategorySlugsResponseB\x8c\x01\n" +
 	"\fcom.arian.v1B\x15CategoryServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
@@ -1792,106 +756,51 @@ func file_arian_v1_category_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_category_services_proto_rawDescData
 }
 
-var file_arian_v1_category_services_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_arian_v1_category_services_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_arian_v1_category_services_proto_goTypes = []any{
-	(*GetCategoryRequest)(nil),              // 0: arian.v1.GetCategoryRequest
-	(*GetCategoryResponse)(nil),             // 1: arian.v1.GetCategoryResponse
-	(*CreateCategoryRequest)(nil),           // 2: arian.v1.CreateCategoryRequest
-	(*CreateCategoryResponse)(nil),          // 3: arian.v1.CreateCategoryResponse
-	(*UpdateCategoryRequest)(nil),           // 4: arian.v1.UpdateCategoryRequest
-	(*UpdateCategoryResponse)(nil),          // 5: arian.v1.UpdateCategoryResponse
-	(*DeleteCategoryRequest)(nil),           // 6: arian.v1.DeleteCategoryRequest
-	(*DeleteCategoryResponse)(nil),          // 7: arian.v1.DeleteCategoryResponse
-	(*GetCategoryUsageStatsRequest)(nil),    // 8: arian.v1.GetCategoryUsageStatsRequest
-	(*GetCategoryUsageStatsResponse)(nil),   // 9: arian.v1.GetCategoryUsageStatsResponse
-	(*GetCategoriesWithStatsRequest)(nil),   // 10: arian.v1.GetCategoriesWithStatsRequest
-	(*GetCategoriesWithStatsResponse)(nil),  // 11: arian.v1.GetCategoriesWithStatsResponse
-	(*SearchCategoriesRequest)(nil),         // 12: arian.v1.SearchCategoriesRequest
-	(*SearchCategoriesResponse)(nil),        // 13: arian.v1.SearchCategoriesResponse
-	(*ListCategoriesWithUsageRequest)(nil),  // 14: arian.v1.ListCategoriesWithUsageRequest
-	(*ListCategoriesWithUsageResponse)(nil), // 15: arian.v1.ListCategoriesWithUsageResponse
-	(*ListCategoriesRequest)(nil),           // 16: arian.v1.ListCategoriesRequest
-	(*ListCategoriesResponse)(nil),          // 17: arian.v1.ListCategoriesResponse
-	(*GetCategoryBySlugRequest)(nil),        // 18: arian.v1.GetCategoryBySlugRequest
-	(*GetCategoryBySlugResponse)(nil),       // 19: arian.v1.GetCategoryBySlugResponse
-	(*GetCategoryWithStatsRequest)(nil),     // 20: arian.v1.GetCategoryWithStatsRequest
-	(*GetCategoryWithStatsResponse)(nil),    // 21: arian.v1.GetCategoryWithStatsResponse
-	(*BulkCreateCategoriesRequest)(nil),     // 22: arian.v1.BulkCreateCategoriesRequest
-	(*BulkCreateCategoriesResponse)(nil),    // 23: arian.v1.BulkCreateCategoriesResponse
-	(*DeleteUnusedCategoriesRequest)(nil),   // 24: arian.v1.DeleteUnusedCategoriesRequest
-	(*DeleteUnusedCategoriesResponse)(nil),  // 25: arian.v1.DeleteUnusedCategoriesResponse
-	(*ListCategorySlugsRequest)(nil),        // 26: arian.v1.ListCategorySlugsRequest
-	(*ListCategorySlugsResponse)(nil),       // 27: arian.v1.ListCategorySlugsResponse
-	(*GetMostUsedCategoriesRequest)(nil),    // 28: arian.v1.GetMostUsedCategoriesRequest
-	(*GetMostUsedCategoriesResponse)(nil),   // 29: arian.v1.GetMostUsedCategoriesResponse
-	(*GetUnusedCategoriesRequest)(nil),      // 30: arian.v1.GetUnusedCategoriesRequest
-	(*GetUnusedCategoriesResponse)(nil),     // 31: arian.v1.GetUnusedCategoriesResponse
-	(*Category)(nil),                        // 32: arian.v1.Category
-	(*fieldmaskpb.FieldMask)(nil),           // 33: google.protobuf.FieldMask
-	(*timestamppb.Timestamp)(nil),           // 34: google.protobuf.Timestamp
-	(*CategoryWithUsage)(nil),               // 35: arian.v1.CategoryWithUsage
-	(*CategoryStats)(nil),                   // 36: arian.v1.CategoryStats
+	(*GetCategoryRequest)(nil),        // 0: arian.v1.GetCategoryRequest
+	(*GetCategoryResponse)(nil),       // 1: arian.v1.GetCategoryResponse
+	(*CreateCategoryRequest)(nil),     // 2: arian.v1.CreateCategoryRequest
+	(*CreateCategoryResponse)(nil),    // 3: arian.v1.CreateCategoryResponse
+	(*UpdateCategoryRequest)(nil),     // 4: arian.v1.UpdateCategoryRequest
+	(*UpdateCategoryResponse)(nil),    // 5: arian.v1.UpdateCategoryResponse
+	(*DeleteCategoryRequest)(nil),     // 6: arian.v1.DeleteCategoryRequest
+	(*DeleteCategoryResponse)(nil),    // 7: arian.v1.DeleteCategoryResponse
+	(*ListCategoriesRequest)(nil),     // 8: arian.v1.ListCategoriesRequest
+	(*ListCategoriesResponse)(nil),    // 9: arian.v1.ListCategoriesResponse
+	(*GetCategoryBySlugRequest)(nil),  // 10: arian.v1.GetCategoryBySlugRequest
+	(*GetCategoryBySlugResponse)(nil), // 11: arian.v1.GetCategoryBySlugResponse
+	(*ListCategorySlugsRequest)(nil),  // 12: arian.v1.ListCategorySlugsRequest
+	(*ListCategorySlugsResponse)(nil), // 13: arian.v1.ListCategorySlugsResponse
+	(*Category)(nil),                  // 14: arian.v1.Category
+	(*fieldmaskpb.FieldMask)(nil),     // 15: google.protobuf.FieldMask
 }
 var file_arian_v1_category_services_proto_depIdxs = []int32{
-	32, // 0: arian.v1.GetCategoryResponse.category:type_name -> arian.v1.Category
-	32, // 1: arian.v1.CreateCategoryResponse.category:type_name -> arian.v1.Category
-	33, // 2: arian.v1.UpdateCategoryRequest.update_mask:type_name -> google.protobuf.FieldMask
-	32, // 3: arian.v1.UpdateCategoryResponse.category:type_name -> arian.v1.Category
-	34, // 4: arian.v1.GetCategoryUsageStatsRequest.start_date:type_name -> google.protobuf.Timestamp
-	34, // 5: arian.v1.GetCategoryUsageStatsRequest.end_date:type_name -> google.protobuf.Timestamp
-	32, // 6: arian.v1.GetCategoryUsageStatsResponse.category:type_name -> arian.v1.Category
-	34, // 7: arian.v1.GetCategoriesWithStatsRequest.start_date:type_name -> google.protobuf.Timestamp
-	34, // 8: arian.v1.GetCategoriesWithStatsRequest.end_date:type_name -> google.protobuf.Timestamp
-	32, // 9: arian.v1.GetCategoriesWithStatsResponse.categories:type_name -> arian.v1.Category
-	32, // 10: arian.v1.SearchCategoriesResponse.categories:type_name -> arian.v1.Category
-	35, // 11: arian.v1.ListCategoriesWithUsageResponse.categories:type_name -> arian.v1.CategoryWithUsage
-	32, // 12: arian.v1.ListCategoriesResponse.categories:type_name -> arian.v1.Category
-	32, // 13: arian.v1.GetCategoryBySlugResponse.category:type_name -> arian.v1.Category
-	32, // 14: arian.v1.GetCategoryWithStatsResponse.category:type_name -> arian.v1.Category
-	36, // 15: arian.v1.GetCategoryWithStatsResponse.stats:type_name -> arian.v1.CategoryStats
-	2,  // 16: arian.v1.BulkCreateCategoriesRequest.categories:type_name -> arian.v1.CreateCategoryRequest
-	32, // 17: arian.v1.BulkCreateCategoriesResponse.categories:type_name -> arian.v1.Category
-	34, // 18: arian.v1.GetMostUsedCategoriesRequest.start_date:type_name -> google.protobuf.Timestamp
-	34, // 19: arian.v1.GetMostUsedCategoriesRequest.end_date:type_name -> google.protobuf.Timestamp
-	35, // 20: arian.v1.GetMostUsedCategoriesResponse.categories:type_name -> arian.v1.CategoryWithUsage
-	32, // 21: arian.v1.GetUnusedCategoriesResponse.categories:type_name -> arian.v1.Category
-	14, // 22: arian.v1.CategoryService.ListCategoriesWithUsage:input_type -> arian.v1.ListCategoriesWithUsageRequest
-	16, // 23: arian.v1.CategoryService.ListCategories:input_type -> arian.v1.ListCategoriesRequest
-	0,  // 24: arian.v1.CategoryService.GetCategory:input_type -> arian.v1.GetCategoryRequest
-	18, // 25: arian.v1.CategoryService.GetCategoryBySlug:input_type -> arian.v1.GetCategoryBySlugRequest
-	20, // 26: arian.v1.CategoryService.GetCategoryWithStats:input_type -> arian.v1.GetCategoryWithStatsRequest
-	2,  // 27: arian.v1.CategoryService.CreateCategory:input_type -> arian.v1.CreateCategoryRequest
-	22, // 28: arian.v1.CategoryService.BulkCreateCategories:input_type -> arian.v1.BulkCreateCategoriesRequest
-	4,  // 29: arian.v1.CategoryService.UpdateCategory:input_type -> arian.v1.UpdateCategoryRequest
-	6,  // 30: arian.v1.CategoryService.DeleteCategory:input_type -> arian.v1.DeleteCategoryRequest
-	24, // 31: arian.v1.CategoryService.DeleteUnusedCategories:input_type -> arian.v1.DeleteUnusedCategoriesRequest
-	8,  // 32: arian.v1.CategoryService.GetCategoryUsageStats:input_type -> arian.v1.GetCategoryUsageStatsRequest
-	10, // 33: arian.v1.CategoryService.GetCategoriesWithStats:input_type -> arian.v1.GetCategoriesWithStatsRequest
-	12, // 34: arian.v1.CategoryService.SearchCategories:input_type -> arian.v1.SearchCategoriesRequest
-	26, // 35: arian.v1.CategoryService.ListCategorySlugs:input_type -> arian.v1.ListCategorySlugsRequest
-	28, // 36: arian.v1.CategoryService.GetMostUsedCategories:input_type -> arian.v1.GetMostUsedCategoriesRequest
-	30, // 37: arian.v1.CategoryService.GetUnusedCategories:input_type -> arian.v1.GetUnusedCategoriesRequest
-	15, // 38: arian.v1.CategoryService.ListCategoriesWithUsage:output_type -> arian.v1.ListCategoriesWithUsageResponse
-	17, // 39: arian.v1.CategoryService.ListCategories:output_type -> arian.v1.ListCategoriesResponse
-	1,  // 40: arian.v1.CategoryService.GetCategory:output_type -> arian.v1.GetCategoryResponse
-	19, // 41: arian.v1.CategoryService.GetCategoryBySlug:output_type -> arian.v1.GetCategoryBySlugResponse
-	21, // 42: arian.v1.CategoryService.GetCategoryWithStats:output_type -> arian.v1.GetCategoryWithStatsResponse
-	3,  // 43: arian.v1.CategoryService.CreateCategory:output_type -> arian.v1.CreateCategoryResponse
-	23, // 44: arian.v1.CategoryService.BulkCreateCategories:output_type -> arian.v1.BulkCreateCategoriesResponse
-	5,  // 45: arian.v1.CategoryService.UpdateCategory:output_type -> arian.v1.UpdateCategoryResponse
-	7,  // 46: arian.v1.CategoryService.DeleteCategory:output_type -> arian.v1.DeleteCategoryResponse
-	25, // 47: arian.v1.CategoryService.DeleteUnusedCategories:output_type -> arian.v1.DeleteUnusedCategoriesResponse
-	9,  // 48: arian.v1.CategoryService.GetCategoryUsageStats:output_type -> arian.v1.GetCategoryUsageStatsResponse
-	11, // 49: arian.v1.CategoryService.GetCategoriesWithStats:output_type -> arian.v1.GetCategoriesWithStatsResponse
-	13, // 50: arian.v1.CategoryService.SearchCategories:output_type -> arian.v1.SearchCategoriesResponse
-	27, // 51: arian.v1.CategoryService.ListCategorySlugs:output_type -> arian.v1.ListCategorySlugsResponse
-	29, // 52: arian.v1.CategoryService.GetMostUsedCategories:output_type -> arian.v1.GetMostUsedCategoriesResponse
-	31, // 53: arian.v1.CategoryService.GetUnusedCategories:output_type -> arian.v1.GetUnusedCategoriesResponse
-	38, // [38:54] is the sub-list for method output_type
-	22, // [22:38] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	14, // 0: arian.v1.GetCategoryResponse.category:type_name -> arian.v1.Category
+	14, // 1: arian.v1.CreateCategoryResponse.category:type_name -> arian.v1.Category
+	15, // 2: arian.v1.UpdateCategoryRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 3: arian.v1.UpdateCategoryResponse.category:type_name -> arian.v1.Category
+	14, // 4: arian.v1.ListCategoriesResponse.categories:type_name -> arian.v1.Category
+	14, // 5: arian.v1.GetCategoryBySlugResponse.category:type_name -> arian.v1.Category
+	8,  // 6: arian.v1.CategoryService.ListCategories:input_type -> arian.v1.ListCategoriesRequest
+	0,  // 7: arian.v1.CategoryService.GetCategory:input_type -> arian.v1.GetCategoryRequest
+	10, // 8: arian.v1.CategoryService.GetCategoryBySlug:input_type -> arian.v1.GetCategoryBySlugRequest
+	2,  // 9: arian.v1.CategoryService.CreateCategory:input_type -> arian.v1.CreateCategoryRequest
+	4,  // 10: arian.v1.CategoryService.UpdateCategory:input_type -> arian.v1.UpdateCategoryRequest
+	6,  // 11: arian.v1.CategoryService.DeleteCategory:input_type -> arian.v1.DeleteCategoryRequest
+	12, // 12: arian.v1.CategoryService.ListCategorySlugs:input_type -> arian.v1.ListCategorySlugsRequest
+	9,  // 13: arian.v1.CategoryService.ListCategories:output_type -> arian.v1.ListCategoriesResponse
+	1,  // 14: arian.v1.CategoryService.GetCategory:output_type -> arian.v1.GetCategoryResponse
+	11, // 15: arian.v1.CategoryService.GetCategoryBySlug:output_type -> arian.v1.GetCategoryBySlugResponse
+	3,  // 16: arian.v1.CategoryService.CreateCategory:output_type -> arian.v1.CreateCategoryResponse
+	5,  // 17: arian.v1.CategoryService.UpdateCategory:output_type -> arian.v1.UpdateCategoryResponse
+	7,  // 18: arian.v1.CategoryService.DeleteCategory:output_type -> arian.v1.DeleteCategoryResponse
+	13, // 19: arian.v1.CategoryService.ListCategorySlugs:output_type -> arian.v1.ListCategorySlugsResponse
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_category_services_proto_init() }
@@ -1902,18 +811,13 @@ func file_arian_v1_category_services_proto_init() {
 	file_arian_v1_category_proto_init()
 	file_arian_v1_category_services_proto_msgTypes[4].OneofWrappers = []any{}
 	file_arian_v1_category_services_proto_msgTypes[8].OneofWrappers = []any{}
-	file_arian_v1_category_services_proto_msgTypes[10].OneofWrappers = []any{}
-	file_arian_v1_category_services_proto_msgTypes[12].OneofWrappers = []any{}
-	file_arian_v1_category_services_proto_msgTypes[14].OneofWrappers = []any{}
-	file_arian_v1_category_services_proto_msgTypes[16].OneofWrappers = []any{}
-	file_arian_v1_category_services_proto_msgTypes[28].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_category_services_proto_rawDesc), len(file_arian_v1_category_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   32,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

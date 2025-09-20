@@ -13,14 +13,22 @@ import (
 )
 
 const addAccountCollaborator = `-- name: AddAccountCollaborator :one
-INSERT INTO account_users (account_id, user_id)
-SELECT $1::bigint, $2::uuid
-FROM accounts a
-WHERE a.id = $1::bigint 
-  AND a.owner_id = $3::uuid  -- only owners can add collaborators
-  AND $2::uuid != $3::uuid  -- can't add yourself
-ON CONFLICT DO NOTHING
-RETURNING account_id, user_id, added_at
+insert into
+  account_users (account_id, user_id)
+select
+  $1::bigint,
+  $2::uuid
+from
+  accounts a
+where
+  a.id = $1::bigint
+  and a.owner_id = $3::uuid -- only owners can add collaborators
+  and $2::uuid != $3::uuid -- can't add yourself
+  on CONFLICT do NOTHING
+returning
+  account_id,
+  user_id,
+  added_at
 `
 
 type AddAccountCollaboratorParams struct {
@@ -37,13 +45,18 @@ func (q *Queries) AddAccountCollaborator(ctx context.Context, arg AddAccountColl
 }
 
 const checkAccountCollaborator = `-- name: CheckAccountCollaborator :one
-SELECT EXISTS(
-  SELECT 1 FROM account_users au
-  JOIN accounts a ON au.account_id = a.id
-  WHERE au.account_id = $1::bigint
-    AND au.user_id = $2::uuid
-    OR a.owner_id = $2::uuid
-) AS is_collaborator
+select
+  exists(
+    select
+      1
+    from
+      account_users au
+      join accounts a on au.account_id = a.id
+    where
+      au.account_id = $1::bigint
+      and au.user_id = $2::uuid
+      or a.owner_id = $2::uuid
+  ) as is_collaborator
 `
 
 type CheckAccountCollaboratorParams struct {
@@ -59,9 +72,12 @@ func (q *Queries) CheckAccountCollaborator(ctx context.Context, arg CheckAccount
 }
 
 const getAccountCollaboratorCount = `-- name: GetAccountCollaboratorCount :one
-SELECT COUNT(*) AS collaborator_count
-FROM account_users
-WHERE account_id = $1::bigint
+select
+  COUNT(*) as collaborator_count
+from
+  account_users
+where
+  account_id = $1::bigint
 `
 
 func (q *Queries) GetAccountCollaboratorCount(ctx context.Context, accountID int64) (int64, error) {
@@ -72,9 +88,11 @@ func (q *Queries) GetAccountCollaboratorCount(ctx context.Context, accountID int
 }
 
 const leaveAccountCollaboration = `-- name: LeaveAccountCollaboration :execrows
-DELETE FROM account_users
-WHERE account_id = $1::bigint
-  AND user_id = $2::uuid
+delete from
+  account_users
+where
+  account_id = $1::bigint
+  and user_id = $2::uuid
 `
 
 type LeaveAccountCollaborationParams struct {
@@ -91,13 +109,23 @@ func (q *Queries) LeaveAccountCollaboration(ctx context.Context, arg LeaveAccoun
 }
 
 const listAccountCollaborators = `-- name: ListAccountCollaborators :many
-SELECT u.id, u.email, u.display_name, au.added_at
-FROM account_users au
-JOIN users u ON u.id = au.user_id
-JOIN accounts a ON a.id = au.account_id
-WHERE au.account_id = $1::bigint
-  AND (a.owner_id = $2::uuid OR au.user_id = $2::uuid)
-ORDER BY u.email
+select
+  u.id,
+  u.email,
+  u.display_name,
+  au.added_at
+from
+  account_users au
+  join users u on u.id = au.user_id
+  join accounts a on a.id = au.account_id
+where
+  au.account_id = $1::bigint
+  and (
+    a.owner_id = $2::uuid
+    or au.user_id = $2::uuid
+  )
+order by
+  u.email
 `
 
 type ListAccountCollaboratorsParams struct {
@@ -138,18 +166,21 @@ func (q *Queries) ListAccountCollaborators(ctx context.Context, arg ListAccountC
 }
 
 const listUserCollaborations = `-- name: ListUserCollaborations :many
-SELECT 
-  a.id AS account_id, 
-  a.name AS account_name, 
-  a.bank, 
+select
+  a.id as account_id,
+  a.name as account_name,
+  a.bank,
   au.added_at,
-  u.email AS owner_email,
-  u.display_name AS owner_name
-FROM account_users au
-JOIN accounts a ON au.account_id = a.id
-JOIN users u ON a.owner_id = u.id
-WHERE au.user_id = $1::uuid
-ORDER BY au.added_at DESC
+  u.email as owner_email,
+  u.display_name as owner_name
+from
+  account_users au
+  join accounts a on au.account_id = a.id
+  join users u on a.owner_id = u.id
+where
+  au.user_id = $1::uuid
+order by
+  au.added_at desc
 `
 
 type ListUserCollaborationsRow struct {
@@ -189,13 +220,19 @@ func (q *Queries) ListUserCollaborations(ctx context.Context, userID uuid.UUID) 
 }
 
 const removeAccountCollaborator = `-- name: RemoveAccountCollaborator :execrows
-DELETE FROM account_users
-WHERE account_id = $1::bigint
-  AND user_id = $2::uuid
-  AND EXISTS (
-    SELECT 1 FROM accounts a 
-    WHERE a.id = $1::bigint 
-      AND a.owner_id = $3::uuid
+delete from
+  account_users
+where
+  account_id = $1::bigint
+  and user_id = $2::uuid
+  and exists (
+    select
+      1
+    from
+      accounts a
+    where
+      a.id = $1::bigint
+      and a.owner_id = $3::uuid
   )
 `
 
@@ -214,8 +251,10 @@ func (q *Queries) RemoveAccountCollaborator(ctx context.Context, arg RemoveAccou
 }
 
 const removeUserFromAllAccounts = `-- name: RemoveUserFromAllAccounts :execrows
-DELETE FROM account_users
-WHERE user_id = $1::uuid
+delete from
+  account_users
+where
+  user_id = $1::uuid
 `
 
 func (q *Queries) RemoveUserFromAllAccounts(ctx context.Context, userID uuid.UUID) (int64, error) {
@@ -227,14 +266,21 @@ func (q *Queries) RemoveUserFromAllAccounts(ctx context.Context, userID uuid.UUI
 }
 
 const transferAccountOwnership = `-- name: TransferAccountOwnership :execrows
-UPDATE accounts
-SET owner_id = $1::uuid
-WHERE id = $2::bigint 
-  AND owner_id = $3::uuid
-  AND EXISTS (
-    SELECT 1 FROM account_users 
-    WHERE account_id = $2::bigint 
-      AND user_id = $1::uuid
+update
+  accounts
+set
+  owner_id = $1::uuid
+where
+  id = $2::bigint
+  and owner_id = $3::uuid
+  and exists (
+    select
+      1
+    from
+      account_users
+    where
+      account_id = $2::bigint
+      and user_id = $1::uuid
   )
 `
 

@@ -15,12 +15,21 @@ import (
 )
 
 const checkUserAccountAccess = `-- name: CheckUserAccountAccess :one
-SELECT EXISTS(
-  SELECT 1 FROM accounts a
-  LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-  WHERE a.id = $2::bigint 
-    AND (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
-) AS has_access
+select
+  exists(
+    select
+      1
+    from
+      accounts a
+      left join account_users au on a.id = au.account_id
+      and au.user_id = $1::uuid
+    where
+      a.id = $2::bigint
+      and (
+        a.owner_id = $1::uuid
+        or au.user_id is not null
+      )
+  ) as has_access
 `
 
 type CheckUserAccountAccessParams struct {
@@ -36,21 +45,32 @@ func (q *Queries) CheckUserAccountAccess(ctx context.Context, arg CheckUserAccou
 }
 
 const createAccount = `-- name: CreateAccount :one
-INSERT INTO accounts (
-  owner_id, name, bank, account_type, alias,
-  anchor_balance, balance, main_currency, colors
-) VALUES (
-  $1::uuid,
-  $2::text,
-  $3::text,
-  $4::smallint,
-  $5::text,
-  $6::jsonb,
-  $6::jsonb,
-  $7::text,
-  $8::text[]
-)
-RETURNING id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors, balance
+insert into
+  accounts (
+    owner_id,
+    name,
+    bank,
+    account_type,
+    alias,
+    anchor_balance,
+    balance,
+    main_currency,
+    colors
+  )
+values
+  (
+    $1::uuid,
+    $2::text,
+    $3::text,
+    $4::smallint,
+    $5::text,
+    $6::jsonb,
+    $6::jsonb,
+    $7::text,
+    $8::text []
+  )
+returning
+  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors, balance
 `
 
 type CreateAccountParams struct {
@@ -95,8 +115,11 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 }
 
 const deleteAccount = `-- name: DeleteAccount :execrows
-DELETE FROM accounts 
-WHERE id = $1::bigint AND owner_id = $2::uuid
+delete from
+  accounts
+where
+  id = $1::bigint
+  and owner_id = $2::uuid
 `
 
 type DeleteAccountParams struct {
@@ -113,14 +136,31 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) (i
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance, a.balance, a.main_currency, a.colors,
-       a.created_at, a.updated_at,
-       (a.owner_id = $1::uuid) AS is_owner
-FROM accounts a
-LEFT JOIN account_users au ON au.account_id = a.id AND au.user_id = $1::uuid
-WHERE a.id = $2::bigint
-  AND (a.owner_id = $1::uuid OR au.user_id IS NOT NULL)
+select
+  a.id,
+  a.owner_id,
+  a.name,
+  a.bank,
+  a.account_type,
+  a.alias,
+  a.anchor_date,
+  a.anchor_balance,
+  a.balance,
+  a.main_currency,
+  a.colors,
+  a.created_at,
+  a.updated_at,
+  (a.owner_id = $1::uuid) as is_owner
+from
+  accounts a
+  left join account_users au on au.account_id = a.id
+  and au.user_id = $1::uuid
+where
+  a.id = $2::bigint
+  and (
+    a.owner_id = $1::uuid
+    or au.user_id is not null
+  )
 `
 
 type GetAccountParams struct {
@@ -168,9 +208,12 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 }
 
 const getAccountAnchorBalance = `-- name: GetAccountAnchorBalance :one
-SELECT anchor_balance
-FROM accounts
-WHERE id = $1::bigint
+select
+  anchor_balance
+from
+  accounts
+where
+  id = $1::bigint
 `
 
 func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (*types.Money, error) {
@@ -181,11 +224,17 @@ func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (*types
 }
 
 const getAccountBalance = `-- name: GetAccountBalance :one
-SELECT balance_after
-FROM transactions
-WHERE account_id = $1::bigint
-ORDER BY tx_date DESC, id DESC
-LIMIT 1
+select
+  balance_after
+from
+  transactions
+where
+  account_id = $1::bigint
+order by
+  tx_date desc,
+  id desc
+limit
+  1
 `
 
 func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*types.Money, error) {
@@ -196,9 +245,12 @@ func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*type
 }
 
 const getAccountBalanceSimple = `-- name: GetAccountBalanceSimple :one
-SELECT balance
-FROM accounts
-WHERE id = $1::bigint
+select
+  balance
+from
+  accounts
+where
+  id = $1::bigint
 `
 
 func (q *Queries) GetAccountBalanceSimple(ctx context.Context, accountID int64) ([]byte, error) {
@@ -209,10 +261,15 @@ func (q *Queries) GetAccountBalanceSimple(ctx context.Context, accountID int64) 
 }
 
 const getUserAccountsCount = `-- name: GetUserAccountsCount :one
-SELECT COUNT(*) AS account_count
-FROM accounts a
-LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $1::uuid
-WHERE a.owner_id = $1::uuid OR au.user_id IS NOT NULL
+select
+  COUNT(*) as account_count
+from
+  accounts a
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+where
+  a.owner_id = $1::uuid
+  or au.user_id is not null
 `
 
 func (q *Queries) GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (int64, error) {
@@ -223,14 +280,31 @@ func (q *Queries) GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (i
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias,
-       a.anchor_date, a.anchor_balance, a.balance, a.main_currency, a.colors,
-       a.created_at, a.updated_at,
-       (a.owner_id = $1::uuid) AS is_owner
-FROM accounts a
-LEFT JOIN account_users au ON au.account_id = a.id AND au.user_id = $1::uuid
-WHERE a.owner_id = $1::uuid OR au.user_id IS NOT NULL
-ORDER BY is_owner DESC, a.created_at
+select
+  a.id,
+  a.owner_id,
+  a.name,
+  a.bank,
+  a.account_type,
+  a.alias,
+  a.anchor_date,
+  a.anchor_balance,
+  a.balance,
+  a.main_currency,
+  a.colors,
+  a.created_at,
+  a.updated_at,
+  (a.owner_id = $1::uuid) as is_owner
+from
+  accounts a
+  left join account_users au on au.account_id = a.id
+  and au.user_id = $1::uuid
+where
+  a.owner_id = $1::uuid
+  or au.user_id is not null
+order by
+  is_owner desc,
+  a.created_at
 `
 
 type ListAccountsRow struct {
@@ -286,10 +360,13 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 }
 
 const setAccountAnchor = `-- name: SetAccountAnchor :execrows
-UPDATE accounts
-SET anchor_date = NOW()::date,
-    anchor_balance = $1::jsonb
-WHERE id = $2::bigint
+update
+  accounts
+set
+  anchor_date = now()::date,
+  anchor_balance = $1::jsonb
+where
+  id = $2::bigint
 `
 
 type SetAccountAnchorParams struct {
@@ -306,18 +383,28 @@ func (q *Queries) SetAccountAnchor(ctx context.Context, arg SetAccountAnchorPara
 }
 
 const updateAccount = `-- name: UpdateAccount :one
-UPDATE accounts
-SET name = COALESCE($1::text, name),
-    bank = COALESCE($2::text, bank),
-    account_type = COALESCE($3::smallint, account_type),
-    alias = COALESCE($4::text, alias),
-    anchor_date = COALESCE($5::date, anchor_date),
-    anchor_balance = COALESCE($6::jsonb, anchor_balance),
-    balance = COALESCE($7::jsonb, balance),
-    main_currency = COALESCE($8::text, main_currency),
-    colors = COALESCE($9::text[], colors)
-WHERE id = $10::bigint
-RETURNING id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors, balance
+update
+  accounts
+set
+  name = COALESCE($1::text, name),
+  bank = COALESCE($2::text, bank),
+  account_type = COALESCE(
+    $3::smallint,
+    account_type
+  ),
+  alias = COALESCE($4::text, alias),
+  anchor_date = COALESCE($5::date, anchor_date),
+  anchor_balance = COALESCE(
+    $6::jsonb,
+    anchor_balance
+  ),
+  balance = COALESCE($7::jsonb, balance),
+  main_currency = COALESCE($8::text, main_currency),
+  colors = COALESCE($9::text [], colors)
+where
+  id = $10::bigint
+returning
+  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors, balance
 `
 
 type UpdateAccountParams struct {

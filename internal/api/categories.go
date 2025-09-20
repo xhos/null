@@ -4,7 +4,6 @@ import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
 	"context"
-	"errors"
 
 	"connectrpc.com/connect"
 )
@@ -62,7 +61,6 @@ func (s *Server) CreateCategory(ctx context.Context, req *connect.Request[pb.Cre
 	params := sqlc.CreateCategoryParams{
 		UserID: userID,
 		Slug:   req.Msg.GetSlug(),
-		Label:  req.Msg.GetLabel(),
 		Color:  req.Msg.GetColor(),
 	}
 
@@ -89,9 +87,6 @@ func (s *Server) UpdateCategory(ctx context.Context, req *connect.Request[pb.Upd
 
 	if req.Msg.Slug != nil {
 		params.Slug = req.Msg.Slug
-	}
-	if req.Msg.Label != nil {
-		params.Label = req.Msg.Label
 	}
 	if req.Msg.Color != nil {
 		params.Color = req.Msg.Color
@@ -143,77 +138,20 @@ func (s *Server) GetCategoryBySlug(ctx context.Context, req *connect.Request[pb.
 	}), nil
 }
 
-func (s *Server) BulkCreateCategories(ctx context.Context, req *connect.Request[pb.BulkCreateCategoriesRequest]) (*connect.Response[pb.BulkCreateCategoriesResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	categories := make([]*pb.Category, 0, len(req.Msg.Categories))
-
-	for _, catReq := range req.Msg.Categories {
-		params := sqlc.CreateCategoryParams{
-			UserID: userID,
-			Slug:   catReq.GetSlug(),
-			Label:  catReq.GetLabel(),
-			Color:  catReq.GetColor(),
-		}
-
-		cat, err := s.services.Categories.Create(ctx, params)
-		if err != nil {
-			return nil, handleError(err)
-		}
-
-		categories = append(categories, toProtoCategory(cat))
-	}
-
-	return connect.NewResponse(&pb.BulkCreateCategoriesResponse{
-		Categories:   categories,
-		AffectedRows: int64(len(categories)),
-	}), nil
-}
-
-func (s *Server) ListCategoriesWithUsage(ctx context.Context, req *connect.Request[pb.ListCategoriesWithUsageRequest]) (*connect.Response[pb.ListCategoriesWithUsageResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("ListCategoriesWithUsage not implemented"))
-}
-
-func (s *Server) GetCategoryWithStats(ctx context.Context, req *connect.Request[pb.GetCategoryWithStatsRequest]) (*connect.Response[pb.GetCategoryWithStatsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetCategoryWithStats not implemented"))
-}
-
-func (s *Server) DeleteUnusedCategories(ctx context.Context, req *connect.Request[pb.DeleteUnusedCategoriesRequest]) (*connect.Response[pb.DeleteUnusedCategoriesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("DeleteUnusedCategories not implemented"))
-}
-
-func (s *Server) GetCategoryUsageStats(ctx context.Context, req *connect.Request[pb.GetCategoryUsageStatsRequest]) (*connect.Response[pb.GetCategoryUsageStatsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetCategoryUsageStats not implemented"))
-}
-
-func (s *Server) GetCategoriesWithStats(ctx context.Context, req *connect.Request[pb.GetCategoriesWithStatsRequest]) (*connect.Response[pb.GetCategoriesWithStatsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetCategoriesWithStats not implemented"))
-}
-
-func (s *Server) SearchCategories(ctx context.Context, req *connect.Request[pb.SearchCategoriesRequest]) (*connect.Response[pb.SearchCategoriesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("SearchCategories not implemented"))
-}
-
-func (s *Server) GetMostUsedCategories(ctx context.Context, req *connect.Request[pb.GetMostUsedCategoriesRequest]) (*connect.Response[pb.GetMostUsedCategoriesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetMostUsedCategories not implemented"))
-}
-
-func (s *Server) GetUnusedCategories(ctx context.Context, req *connect.Request[pb.GetUnusedCategoriesRequest]) (*connect.Response[pb.GetUnusedCategoriesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GetUnusedCategories not implemented"))
-}
-
 func (s *Server) ListCategorySlugs(ctx context.Context, req *connect.Request[pb.ListCategorySlugsRequest]) (*connect.Response[pb.ListCategorySlugsResponse], error) {
 	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	slugs, err := s.services.Categories.ListSlugs(ctx, userID)
+	categories, err := s.services.Categories.List(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
+	}
+
+	slugs := make([]string, len(categories))
+	for i, cat := range categories {
+		slugs[i] = cat.Slug
 	}
 
 	return connect.NewResponse(&pb.ListCategorySlugsResponse{
