@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -243,24 +244,25 @@ var File_arian_v1_account_proto protoreflect.FileDescriptor
 
 const file_arian_v1_account_proto_rawDesc = "" +
 	"\n" +
-	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x85\x04\n" +
+	"\x16arian/v1/account.proto\x12\barian.v1\x1a\x14arian/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xf6\x04\n" +
 	"\aAccount\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
-	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04bank\x18\x04 \x01(\tR\x04bank\x12)\n" +
-	"\x04type\x18\x05 \x01(\x0e2\x15.arian.v1.AccountTypeR\x04type\x129\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
+	"\bowner_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\aownerId\x12\x1d\n" +
+	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12\x1d\n" +
+	"\x04bank\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04bank\x123\n" +
+	"\x04type\x18\x05 \x01(\x0e2\x15.arian.v1.AccountTypeB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04type\x129\n" +
 	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x12;\n" +
 	"\vanchor_date\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"anchorDate\x129\n" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x19\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12$\n" +
 	"\x05alias\x18\n" +
-	" \x01(\tH\x00R\x05alias\x88\x01\x01\x12#\n" +
-	"\rmain_currency\x18\v \x01(\tR\fmainCurrency\x12\x16\n" +
-	"\x06colors\x18\f \x03(\tR\x06colors\x12,\n" +
+	" \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x00R\x05alias\x88\x01\x01\x129\n" +
+	"\rmain_currency\x18\v \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03R\fmainCurrency\x12<\n" +
+	"\x06colors\x18\f \x03(\tB$\xbaH!\x92\x01\x1e\b\x03\x10\x03\"\x18r\x162\x11^#[0-9a-fA-F]{6}$\x98\x01\aR\x06colors\x12,\n" +
 	"\abalance\x18\r \x01(\v2\x12.google.type.MoneyR\abalanceB\b\n" +
 	"\x06_alias\"\xc7\x01\n" +
 	"\x0eAccountBalance\x12\x0e\n" +

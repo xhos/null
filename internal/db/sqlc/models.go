@@ -101,6 +101,21 @@ type Transaction struct {
 	UpdatedAt     time.Time                  `json:"updated_at"`
 }
 
+type TransactionRule struct {
+	RuleID        uuid.UUID  `json:"rule_id"`
+	UserID        uuid.UUID  `json:"user_id"`
+	RuleName      string     `json:"rule_name"`
+	CategoryID    int64      `json:"category_id"`
+	Conditions    []byte     `json:"conditions"`
+	IsActive      *bool      `json:"is_active"`
+	PriorityOrder int32      `json:"priority_order"`
+	RuleSource    string     `json:"rule_source"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	LastAppliedAt *time.Time `json:"last_applied_at"`
+	TimesApplied  *int32     `json:"times_applied"`
+}
+
 type User struct {
 	ID               uuid.UUID `json:"id"`
 	Email            string    `json:"email"`

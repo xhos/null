@@ -7,6 +7,7 @@
 package arianv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -343,7 +344,7 @@ var File_arian_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x1aarian/v1/transaction.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x14arian/v1/enums.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xd5\b\n" +
+	"\x1aarian/v1/transaction.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x14arian/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x9f\t\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
 	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
@@ -351,21 +352,21 @@ const file_arian_v1_transaction_proto_rawDesc = "" +
 	"\tdirection\x18\x04 \x01(\x0e2\x1e.arian.v1.TransactionDirectionR\tdirection\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x05 \x01(\x03R\taccountId\x12\x1e\n" +
-	"\bemail_id\x18\x06 \x01(\tH\x00R\aemailId\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01\x12$\n" +
-	"\vcategory_id\x18\t \x01(\x03H\x02R\n" +
-	"categoryId\x88\x01\x01\x12S\n" +
+	"\bemail_id\x18\x06 \x01(\tH\x00R\aemailId\x88\x01\x01\x12/\n" +
+	"\vdescription\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\x01R\vdescription\x88\x01\x01\x12-\n" +
+	"\vcategory_id\x18\t \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x02R\n" +
+	"categoryId\x88\x01\x01\x12]\n" +
 	"\x15categorization_status\x18\n" +
-	" \x01(\x0e2\x1e.arian.v1.CategorizationStatusR\x14categorizationStatus\x12\x1f\n" +
-	"\bmerchant\x18\v \x01(\tH\x03R\bmerchant\x88\x01\x01\x12\"\n" +
+	" \x01(\x0e2\x1e.arian.v1.CategorizationStatusB\b\xbaH\x05\x82\x01\x02\x10\x01R\x14categorizationStatus\x12)\n" +
+	"\bmerchant\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x03R\bmerchant\x88\x01\x01\x12,\n" +
 	"\n" +
-	"user_notes\x18\f \x01(\tH\x04R\tuserNotes\x88\x01\x01\x12<\n" +
+	"user_notes\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x04R\tuserNotes\x88\x01\x01\x12<\n" +
 	"\rbalance_after\x18\r \x01(\v2\x12.google.type.MoneyH\x05R\fbalanceAfter\x88\x01\x01\x12 \n" +
 	"\vsuggestions\x18\x0e \x03(\tR\vsuggestions\x12\"\n" +
 	"\n" +
 	"receipt_id\x18\x0f \x01(\x03H\x06R\treceiptId\x88\x01\x01\x12>\n" +
-	"\x0eforeign_amount\x18\x10 \x01(\v2\x12.google.type.MoneyH\aR\rforeignAmount\x88\x01\x01\x12(\n" +
-	"\rexchange_rate\x18\x11 \x01(\x01H\bR\fexchangeRate\x88\x01\x01\x129\n" +
+	"\x0eforeign_amount\x18\x10 \x01(\v2\x12.google.type.MoneyH\aR\rforeignAmount\x88\x01\x01\x12A\n" +
+	"\rexchange_rate\x18\x11 \x01(\x01B\x17\xbaH\x14\x12\x12\x11\x00\x00\x00\x00\x00@\x8f@!\x00\x00\x00\x00\x00\x00\x00\x00H\bR\fexchangeRate\x88\x01\x01\x129\n" +
 	"\n" +
 	"created_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +

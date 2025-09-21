@@ -15,6 +15,7 @@ import (
 type Services struct {
 	Transactions TransactionService
 	Categories   CategoryService
+	Rules        RuleService
 	Accounts     AccountService
 	Dashboard    DashboardService
 	Receipts     ReceiptService
@@ -46,6 +47,7 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager)
 	return &Services{
 		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, aiMgr),
 		Categories:   catSvc,
+		Rules:        newCatRuleSvc(queries, lg.WithPrefix("rules")),
 		Accounts:     newAcctSvc(queries, lg.WithPrefix("acct")),
 		Dashboard:    newDashSvc(queries),
 		Users:        newUserSvc(queries, lg.WithPrefix("user")),
