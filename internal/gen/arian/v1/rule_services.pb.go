@@ -7,15 +7,14 @@
 package arianv1
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -210,13 +209,15 @@ func (x *GetRuleResponse) GetRule() *Rule {
 }
 
 type CreateRuleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	RuleName      string                 `protobuf:"bytes,2,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"`
-	CategoryId    int64                  `protobuf:"varint,3,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
-	Conditions    *structpb.Struct       `protobuf:"bytes,4,opt,name=conditions,proto3" json:"conditions,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	RuleName        string                 `protobuf:"bytes,2,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"`
+	CategoryId      *int64                 `protobuf:"varint,3,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
+	Conditions      *structpb.Struct       `protobuf:"bytes,4,opt,name=conditions,proto3" json:"conditions,omitempty"`
+	ApplyToExisting *bool                  `protobuf:"varint,5,opt,name=apply_to_existing,json=applyToExisting,proto3,oneof" json:"apply_to_existing,omitempty"`
+	Merchant        *string                `protobuf:"bytes,6,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *CreateRuleRequest) Reset() {
@@ -264,8 +265,8 @@ func (x *CreateRuleRequest) GetRuleName() string {
 }
 
 func (x *CreateRuleRequest) GetCategoryId() int64 {
-	if x != nil {
-		return x.CategoryId
+	if x != nil && x.CategoryId != nil {
+		return *x.CategoryId
 	}
 	return 0
 }
@@ -275,6 +276,20 @@ func (x *CreateRuleRequest) GetConditions() *structpb.Struct {
 		return x.Conditions
 	}
 	return nil
+}
+
+func (x *CreateRuleRequest) GetApplyToExisting() bool {
+	if x != nil && x.ApplyToExisting != nil {
+		return *x.ApplyToExisting
+	}
+	return false
+}
+
+func (x *CreateRuleRequest) GetMerchant() string {
+	if x != nil && x.Merchant != nil {
+		return *x.Merchant
+	}
+	return ""
 }
 
 type CreateRuleResponse struct {
@@ -322,17 +337,19 @@ func (x *CreateRuleResponse) GetRule() *Rule {
 }
 
 type UpdateRuleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RuleId        string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	RuleName      *string                `protobuf:"bytes,4,opt,name=rule_name,json=ruleName,proto3,oneof" json:"rule_name,omitempty"`
-	CategoryId    *int64                 `protobuf:"varint,5,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
-	Conditions    *structpb.Struct       `protobuf:"bytes,6,opt,name=conditions,proto3,oneof" json:"conditions,omitempty"`
-	IsActive      *bool                  `protobuf:"varint,7,opt,name=is_active,json=isActive,proto3,oneof" json:"is_active,omitempty"`
-	PriorityOrder *int32                 `protobuf:"varint,8,opt,name=priority_order,json=priorityOrder,proto3,oneof" json:"priority_order,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	RuleId          string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	UserId          string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UpdateMask      *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	RuleName        *string                `protobuf:"bytes,4,opt,name=rule_name,json=ruleName,proto3,oneof" json:"rule_name,omitempty"`
+	CategoryId      *int64                 `protobuf:"varint,5,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
+	Conditions      *structpb.Struct       `protobuf:"bytes,6,opt,name=conditions,proto3,oneof" json:"conditions,omitempty"`
+	IsActive        *bool                  `protobuf:"varint,7,opt,name=is_active,json=isActive,proto3,oneof" json:"is_active,omitempty"`
+	PriorityOrder   *int32                 `protobuf:"varint,8,opt,name=priority_order,json=priorityOrder,proto3,oneof" json:"priority_order,omitempty"`
+	Merchant        *string                `protobuf:"bytes,9,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
+	ApplyToExisting *bool                  `protobuf:"varint,10,opt,name=apply_to_existing,json=applyToExisting,proto3,oneof" json:"apply_to_existing,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpdateRuleRequest) Reset() {
@@ -419,6 +436,20 @@ func (x *UpdateRuleRequest) GetPriorityOrder() int32 {
 		return *x.PriorityOrder
 	}
 	return 0
+}
+
+func (x *UpdateRuleRequest) GetMerchant() string {
+	if x != nil && x.Merchant != nil {
+		return *x.Merchant
+	}
+	return ""
+}
+
+func (x *UpdateRuleRequest) GetApplyToExisting() bool {
+	if x != nil && x.ApplyToExisting != nil {
+		return *x.ApplyToExisting
+	}
+	return false
 }
 
 type UpdateRuleResponse struct {
@@ -738,18 +769,23 @@ const file_arian_v1_rule_services_proto_rawDesc = "" +
 	"\arule_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06ruleId\x12!\n" +
 	"\auser_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"5\n" +
 	"\x0fGetRuleResponse\x12\"\n" +
-	"\x04rule\x18\x01 \x01(\v2\x0e.arian.v1.RuleR\x04rule\"\xc2\x01\n" +
+	"\x04rule\x18\x01 \x01(\v2\x0e.arian.v1.RuleR\x04rule\"\xc3\x02\n" +
 	"\x11CreateRuleRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12'\n" +
 	"\trule_name\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\bruleName\x12(\n" +
-	"\vcategory_id\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\n" +
-	"categoryId\x127\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\bruleName\x12$\n" +
+	"\vcategory_id\x18\x03 \x01(\x03H\x00R\n" +
+	"categoryId\x88\x01\x01\x127\n" +
 	"\n" +
 	"conditions\x18\x04 \x01(\v2\x17.google.protobuf.StructR\n" +
-	"conditions\"8\n" +
+	"conditions\x12/\n" +
+	"\x11apply_to_existing\x18\x05 \x01(\bH\x01R\x0fapplyToExisting\x88\x01\x01\x12\x1f\n" +
+	"\bmerchant\x18\x06 \x01(\tH\x02R\bmerchant\x88\x01\x01B\x0e\n" +
+	"\f_category_idB\x14\n" +
+	"\x12_apply_to_existingB\v\n" +
+	"\t_merchant\"8\n" +
 	"\x12CreateRuleResponse\x12\"\n" +
-	"\x04rule\x18\x01 \x01(\v2\x0e.arian.v1.RuleR\x04rule\"\xb8\x03\n" +
+	"\x04rule\x18\x01 \x01(\v2\x0e.arian.v1.RuleR\x04rule\"\xad\x04\n" +
 	"\x11UpdateRuleRequest\x12!\n" +
 	"\arule_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06ruleId\x12!\n" +
 	"\auser_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12;\n" +
@@ -762,14 +798,19 @@ const file_arian_v1_rule_services_proto_rawDesc = "" +
 	"conditions\x18\x06 \x01(\v2\x17.google.protobuf.StructH\x02R\n" +
 	"conditions\x88\x01\x01\x12 \n" +
 	"\tis_active\x18\a \x01(\bH\x03R\bisActive\x88\x01\x01\x12*\n" +
-	"\x0epriority_order\x18\b \x01(\x05H\x04R\rpriorityOrder\x88\x01\x01B\f\n" +
+	"\x0epriority_order\x18\b \x01(\x05H\x04R\rpriorityOrder\x88\x01\x01\x12\x1f\n" +
+	"\bmerchant\x18\t \x01(\tH\x05R\bmerchant\x88\x01\x01\x12/\n" +
+	"\x11apply_to_existing\x18\n" +
+	" \x01(\bH\x06R\x0fapplyToExisting\x88\x01\x01B\f\n" +
 	"\n" +
 	"_rule_nameB\x0e\n" +
 	"\f_category_idB\r\n" +
 	"\v_conditionsB\f\n" +
 	"\n" +
 	"_is_activeB\x11\n" +
-	"\x0f_priority_order\"8\n" +
+	"\x0f_priority_orderB\v\n" +
+	"\t_merchantB\x14\n" +
+	"\x12_apply_to_existing\"8\n" +
 	"\x12UpdateRuleResponse\x12\"\n" +
 	"\x04rule\x18\x01 \x01(\v2\x0e.arian.v1.RuleR\x04rule\"Y\n" +
 	"\x11DeleteRuleRequest\x12!\n" +
@@ -868,6 +909,7 @@ func file_arian_v1_rule_services_proto_init() {
 		return
 	}
 	file_arian_v1_rule_proto_init()
+	file_arian_v1_rule_services_proto_msgTypes[4].OneofWrappers = []any{}
 	file_arian_v1_rule_services_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

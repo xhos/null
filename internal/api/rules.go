@@ -58,7 +58,10 @@ func (s *Server) CreateRule(ctx context.Context, req *connect.Request[pb.CreateR
 		return nil, err
 	}
 
-	categoryID := req.Msg.GetCategoryId()
+	// validate that at least one action (category or merchant) is specified
+	if req.Msg.CategoryId == nil && req.Msg.Merchant == nil {
+		return nil, status.Error(codes.InvalidArgument, "At least one action (category_id or merchant) must be specified")
+	}
 
 	conditionsBytes, err := req.Msg.GetConditions().MarshalJSON()
 	if err != nil {
@@ -88,8 +91,15 @@ func (s *Server) CreateRule(ctx context.Context, req *connect.Request[pb.CreateR
 	params := sqlc.CreateRuleParams{
 		UserID:     userID,
 		RuleName:   req.Msg.GetRuleName(),
-		CategoryID: categoryID,
 		Conditions: conditionsBytes,
+	}
+
+	if req.Msg.CategoryId != nil {
+		params.CategoryID = *req.Msg.CategoryId
+	}
+
+	if req.Msg.Merchant != nil {
+		params.Merchant = *req.Msg.Merchant
 	}
 
 	rule, err := s.services.Rules.Create(ctx, params)
@@ -123,6 +133,9 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 	}
 	if req.Msg.CategoryId != nil {
 		params.CategoryID = req.Msg.CategoryId
+	}
+	if req.Msg.Merchant != nil {
+		params.Merchant = req.Msg.Merchant
 	}
 	if req.Msg.Conditions != nil {
 		conditionsBytes, err := req.Msg.Conditions.MarshalJSON()
@@ -227,6 +240,7 @@ func toProtoRule(r *sqlc.TransactionRule) *pb.Rule {
 		UpdatedAt:     toProtoTimestamp(&r.UpdatedAt),
 		LastAppliedAt: toProtoTimestamp(r.LastAppliedAt),
 		TimesApplied:  timesApplied,
+		Merchant:      r.Merchant,
 	}
 }
 

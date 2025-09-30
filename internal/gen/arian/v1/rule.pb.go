@@ -29,7 +29,7 @@ type Rule struct {
 	RuleId        string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	RuleName      string                 `protobuf:"bytes,3,opt,name=rule_name,json=ruleName,proto3" json:"rule_name,omitempty"`
-	CategoryId    int64                  `protobuf:"varint,4,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	CategoryId    *int64                 `protobuf:"varint,4,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
 	Conditions    *structpb.Struct       `protobuf:"bytes,5,opt,name=conditions,proto3" json:"conditions,omitempty"`
 	IsActive      bool                   `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	PriorityOrder int32                  `protobuf:"varint,7,opt,name=priority_order,json=priorityOrder,proto3" json:"priority_order,omitempty"`
@@ -38,6 +38,7 @@ type Rule struct {
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	LastAppliedAt *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=last_applied_at,json=lastAppliedAt,proto3,oneof" json:"last_applied_at,omitempty"`
 	TimesApplied  int32                  `protobuf:"varint,12,opt,name=times_applied,json=timesApplied,proto3" json:"times_applied,omitempty"`
+	Merchant      *string                `protobuf:"bytes,13,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -94,8 +95,8 @@ func (x *Rule) GetRuleName() string {
 }
 
 func (x *Rule) GetCategoryId() int64 {
-	if x != nil {
-		return x.CategoryId
+	if x != nil && x.CategoryId != nil {
+		return *x.CategoryId
 	}
 	return 0
 }
@@ -156,18 +157,25 @@ func (x *Rule) GetTimesApplied() int32 {
 	return 0
 }
 
+func (x *Rule) GetMerchant() string {
+	if x != nil && x.Merchant != nil {
+		return *x.Merchant
+	}
+	return ""
+}
+
 var File_arian_v1_rule_proto protoreflect.FileDescriptor
 
 const file_arian_v1_rule_proto_rawDesc = "" +
 	"\n" +
-	"\x13arian/v1/rule.proto\x12\barian.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\"\xc8\x04\n" +
+	"\x13arian/v1/rule.proto\x12\barian.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\"\x8b\x05\n" +
 	"\x04Rule\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12'\n" +
 	"\trule_name\x18\x03 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\bruleName\x12\x1f\n" +
-	"\vcategory_id\x18\x04 \x01(\x03R\n" +
-	"categoryId\x127\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\bruleName\x12$\n" +
+	"\vcategory_id\x18\x04 \x01(\x03H\x00R\n" +
+	"categoryId\x88\x01\x01\x127\n" +
 	"\n" +
 	"conditions\x18\x05 \x01(\v2\x17.google.protobuf.StructR\n" +
 	"conditions\x12\x1b\n" +
@@ -180,9 +188,12 @@ const file_arian_v1_rule_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12G\n" +
-	"\x0flast_applied_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampH\x00R\rlastAppliedAt\x88\x01\x01\x12#\n" +
-	"\rtimes_applied\x18\f \x01(\x05R\ftimesAppliedB\x12\n" +
-	"\x10_last_applied_atB\x80\x01\n" +
+	"\x0flast_applied_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampH\x01R\rlastAppliedAt\x88\x01\x01\x12#\n" +
+	"\rtimes_applied\x18\f \x01(\x05R\ftimesApplied\x12\x1f\n" +
+	"\bmerchant\x18\r \x01(\tH\x02R\bmerchant\x88\x01\x01B\x0e\n" +
+	"\f_category_idB\x12\n" +
+	"\x10_last_applied_atB\v\n" +
+	"\t_merchantB\x80\x01\n" +
 	"\fcom.arian.v1B\tRuleProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
