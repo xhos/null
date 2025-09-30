@@ -7,7 +7,7 @@ import (
 
 const (
 	Major    = 1
-	Minor    = 2
+	Minor    = 3
 	Patch    = 0
 	RepoName = "ariand"
 	RepoURL  = "https://github.com/xhos/ariand"

@@ -3,11 +3,17 @@ package api
 import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
+	"ariand/internal/rules"
 	"context"
+	"encoding/json"
 
 	"connectrpc.com/connect"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+// TODO: validation can be simplified
 
 func (s *Server) ListRules(ctx context.Context, req *connect.Request[pb.ListRulesRequest]) (*connect.Response[pb.ListRulesResponse], error) {
 	userID, err := getUserID(ctx)
@@ -56,8 +62,28 @@ func (s *Server) CreateRule(ctx context.Context, req *connect.Request[pb.CreateR
 
 	conditionsBytes, err := req.Msg.GetConditions().MarshalJSON()
 	if err != nil {
-		return nil, handleError(err)
+		return nil, status.Error(codes.InvalidArgument, "Invalid conditions JSON")
 	}
+
+	validationResult := rules.ValidateRuleJSONDetailed(conditionsBytes)
+	if !validationResult.Valid {
+		errorMsg := "Rule validation failed:"
+		for _, validationErr := range validationResult.Errors {
+			errorMsg += " " + validationErr.Error() + ";"
+		}
+		return nil, status.Error(codes.InvalidArgument, errorMsg)
+	}
+
+	normalizedRule, err := rules.NormalizeAndValidateRule(conditionsBytes)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "Rule normalization failed: "+err.Error())
+	}
+
+	normalizedBytes, err := json.Marshal(normalizedRule)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Failed to serialize normalized rule")
+	}
+	conditionsBytes = normalizedBytes
 
 	params := sqlc.CreateRuleParams{
 		UserID:     userID,
@@ -101,9 +127,28 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 	if req.Msg.Conditions != nil {
 		conditionsBytes, err := req.Msg.Conditions.MarshalJSON()
 		if err != nil {
-			return nil, handleError(err)
+			return nil, status.Error(codes.InvalidArgument, "Invalid conditions JSON")
 		}
-		params.Conditions = conditionsBytes
+
+		validationResult := rules.ValidateRuleJSONDetailed(conditionsBytes)
+		if !validationResult.Valid {
+			errorMsg := "Rule validation failed:"
+			for _, validationErr := range validationResult.Errors {
+				errorMsg += " " + validationErr.Error() + ";"
+			}
+			return nil, status.Error(codes.InvalidArgument, errorMsg)
+		}
+
+		normalizedRule, err := rules.NormalizeAndValidateRule(conditionsBytes)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "Rule normalization failed: "+err.Error())
+		}
+
+		normalizedBytes, err := json.Marshal(normalizedRule)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "Failed to serialize normalized rule")
+		}
+		params.Conditions = normalizedBytes
 	}
 	if req.Msg.IsActive != nil {
 		params.IsActive = req.Msg.IsActive
@@ -183,4 +228,48 @@ func toProtoRule(r *sqlc.TransactionRule) *pb.Rule {
 		LastAppliedAt: toProtoTimestamp(r.LastAppliedAt),
 		TimesApplied:  timesApplied,
 	}
+}
+
+func (s *Server) ValidateRule(ctx context.Context, req *connect.Request[pb.ValidateRuleRequest]) (*connect.Response[pb.ValidateRuleResponse], error) {
+	conditionsBytes, err := req.Msg.GetConditions().MarshalJSON()
+	if err != nil {
+		return connect.NewResponse(&pb.ValidateRuleResponse{
+			Valid: false,
+			Errors: []*pb.ValidationError{{
+				Field:   "conditions",
+				Message: "Invalid JSON: " + err.Error(),
+				Code:    "INVALID_JSON",
+			}},
+		}), nil
+	}
+
+	validationResult := rules.ValidateRuleJSONDetailed(conditionsBytes)
+
+	response := &pb.ValidateRuleResponse{
+		Valid:  validationResult.Valid,
+		Errors: make([]*pb.ValidationError, len(validationResult.Errors)),
+	}
+
+	for i, validationErr := range validationResult.Errors {
+		response.Errors[i] = &pb.ValidationError{
+			Field:   validationErr.Field,
+			Message: validationErr.Message,
+			Code:    validationErr.Code,
+		}
+	}
+
+	if validationResult.Valid {
+		normalizedRule, err := rules.NormalizeAndValidateRule(conditionsBytes)
+		if err == nil {
+			normalizedBytes, err := json.Marshal(normalizedRule)
+			if err == nil {
+				var normalizedStruct structpb.Struct
+				if err := normalizedStruct.UnmarshalJSON(normalizedBytes); err == nil {
+					response.NormalizedConditions = &normalizedStruct
+				}
+			}
+		}
+	}
+
+	return connect.NewResponse(response), nil
 }

@@ -7,14 +7,15 @@
 package arianv1
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -560,6 +561,170 @@ func (x *DeleteRuleResponse) GetAffectedRows() int64 {
 	return 0
 }
 
+type ValidateRuleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Conditions    *structpb.Struct       `protobuf:"bytes,1,opt,name=conditions,proto3" json:"conditions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateRuleRequest) Reset() {
+	*x = ValidateRuleRequest{}
+	mi := &file_arian_v1_rule_services_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateRuleRequest) ProtoMessage() {}
+
+func (x *ValidateRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_rule_services_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateRuleRequest.ProtoReflect.Descriptor instead.
+func (*ValidateRuleRequest) Descriptor() ([]byte, []int) {
+	return file_arian_v1_rule_services_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ValidateRuleRequest) GetConditions() *structpb.Struct {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
+}
+
+type ValidationError struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         string                 `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidationError) Reset() {
+	*x = ValidationError{}
+	mi := &file_arian_v1_rule_services_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidationError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidationError) ProtoMessage() {}
+
+func (x *ValidationError) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_rule_services_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidationError.ProtoReflect.Descriptor instead.
+func (*ValidationError) Descriptor() ([]byte, []int) {
+	return file_arian_v1_rule_services_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ValidationError) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	return ""
+}
+
+func (x *ValidationError) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ValidationError) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type ValidateRuleResponse struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Valid                bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
+	Errors               []*ValidationError     `protobuf:"bytes,2,rep,name=errors,proto3" json:"errors,omitempty"`
+	NormalizedConditions *structpb.Struct       `protobuf:"bytes,3,opt,name=normalized_conditions,json=normalizedConditions,proto3" json:"normalized_conditions,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ValidateRuleResponse) Reset() {
+	*x = ValidateRuleResponse{}
+	mi := &file_arian_v1_rule_services_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateRuleResponse) ProtoMessage() {}
+
+func (x *ValidateRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_rule_services_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateRuleResponse.ProtoReflect.Descriptor instead.
+func (*ValidateRuleResponse) Descriptor() ([]byte, []int) {
+	return file_arian_v1_rule_services_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ValidateRuleResponse) GetValid() bool {
+	if x != nil {
+		return x.Valid
+	}
+	return false
+}
+
+func (x *ValidateRuleResponse) GetErrors() []*ValidationError {
+	if x != nil {
+		return x.Errors
+	}
+	return nil
+}
+
+func (x *ValidateRuleResponse) GetNormalizedConditions() *structpb.Struct {
+	if x != nil {
+		return x.NormalizedConditions
+	}
+	return nil
+}
+
 var File_arian_v1_rule_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_rule_services_proto_rawDesc = "" +
@@ -611,7 +776,19 @@ const file_arian_v1_rule_services_proto_rawDesc = "" +
 	"\arule_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06ruleId\x12!\n" +
 	"\auser_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"9\n" +
 	"\x12DeleteRuleResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows2\xee\x02\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"N\n" +
+	"\x13ValidateRuleRequest\x127\n" +
+	"\n" +
+	"conditions\x18\x01 \x01(\v2\x17.google.protobuf.StructR\n" +
+	"conditions\"U\n" +
+	"\x0fValidationError\x12\x14\n" +
+	"\x05field\x18\x01 \x01(\tR\x05field\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\"\xad\x01\n" +
+	"\x14ValidateRuleResponse\x12\x14\n" +
+	"\x05valid\x18\x01 \x01(\bR\x05valid\x121\n" +
+	"\x06errors\x18\x02 \x03(\v2\x19.arian.v1.ValidationErrorR\x06errors\x12L\n" +
+	"\x15normalized_conditions\x18\x03 \x01(\v2\x17.google.protobuf.StructR\x14normalizedConditions2\xbd\x03\n" +
 	"\vRuleService\x12D\n" +
 	"\tListRules\x12\x1a.arian.v1.ListRulesRequest\x1a\x1b.arian.v1.ListRulesResponse\x12>\n" +
 	"\aGetRule\x12\x18.arian.v1.GetRuleRequest\x1a\x19.arian.v1.GetRuleResponse\x12G\n" +
@@ -620,7 +797,8 @@ const file_arian_v1_rule_services_proto_rawDesc = "" +
 	"\n" +
 	"UpdateRule\x12\x1b.arian.v1.UpdateRuleRequest\x1a\x1c.arian.v1.UpdateRuleResponse\x12G\n" +
 	"\n" +
-	"DeleteRule\x12\x1b.arian.v1.DeleteRuleRequest\x1a\x1c.arian.v1.DeleteRuleResponseB\x88\x01\n" +
+	"DeleteRule\x12\x1b.arian.v1.DeleteRuleRequest\x1a\x1c.arian.v1.DeleteRuleResponse\x12M\n" +
+	"\fValidateRule\x12\x1d.arian.v1.ValidateRuleRequest\x1a\x1e.arian.v1.ValidateRuleResponseB\x88\x01\n" +
 	"\fcom.arian.v1B\x11RuleServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
@@ -635,7 +813,7 @@ func file_arian_v1_rule_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_rule_services_proto_rawDescData
 }
 
-var file_arian_v1_rule_services_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_arian_v1_rule_services_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_arian_v1_rule_services_proto_goTypes = []any{
 	(*ListRulesRequest)(nil),      // 0: arian.v1.ListRulesRequest
 	(*ListRulesResponse)(nil),     // 1: arian.v1.ListRulesResponse
@@ -647,33 +825,41 @@ var file_arian_v1_rule_services_proto_goTypes = []any{
 	(*UpdateRuleResponse)(nil),    // 7: arian.v1.UpdateRuleResponse
 	(*DeleteRuleRequest)(nil),     // 8: arian.v1.DeleteRuleRequest
 	(*DeleteRuleResponse)(nil),    // 9: arian.v1.DeleteRuleResponse
-	(*Rule)(nil),                  // 10: arian.v1.Rule
-	(*structpb.Struct)(nil),       // 11: google.protobuf.Struct
-	(*fieldmaskpb.FieldMask)(nil), // 12: google.protobuf.FieldMask
+	(*ValidateRuleRequest)(nil),   // 10: arian.v1.ValidateRuleRequest
+	(*ValidationError)(nil),       // 11: arian.v1.ValidationError
+	(*ValidateRuleResponse)(nil),  // 12: arian.v1.ValidateRuleResponse
+	(*Rule)(nil),                  // 13: arian.v1.Rule
+	(*structpb.Struct)(nil),       // 14: google.protobuf.Struct
+	(*fieldmaskpb.FieldMask)(nil), // 15: google.protobuf.FieldMask
 }
 var file_arian_v1_rule_services_proto_depIdxs = []int32{
-	10, // 0: arian.v1.ListRulesResponse.rules:type_name -> arian.v1.Rule
-	10, // 1: arian.v1.GetRuleResponse.rule:type_name -> arian.v1.Rule
-	11, // 2: arian.v1.CreateRuleRequest.conditions:type_name -> google.protobuf.Struct
-	10, // 3: arian.v1.CreateRuleResponse.rule:type_name -> arian.v1.Rule
-	12, // 4: arian.v1.UpdateRuleRequest.update_mask:type_name -> google.protobuf.FieldMask
-	11, // 5: arian.v1.UpdateRuleRequest.conditions:type_name -> google.protobuf.Struct
-	10, // 6: arian.v1.UpdateRuleResponse.rule:type_name -> arian.v1.Rule
-	0,  // 7: arian.v1.RuleService.ListRules:input_type -> arian.v1.ListRulesRequest
-	2,  // 8: arian.v1.RuleService.GetRule:input_type -> arian.v1.GetRuleRequest
-	4,  // 9: arian.v1.RuleService.CreateRule:input_type -> arian.v1.CreateRuleRequest
-	6,  // 10: arian.v1.RuleService.UpdateRule:input_type -> arian.v1.UpdateRuleRequest
-	8,  // 11: arian.v1.RuleService.DeleteRule:input_type -> arian.v1.DeleteRuleRequest
-	1,  // 12: arian.v1.RuleService.ListRules:output_type -> arian.v1.ListRulesResponse
-	3,  // 13: arian.v1.RuleService.GetRule:output_type -> arian.v1.GetRuleResponse
-	5,  // 14: arian.v1.RuleService.CreateRule:output_type -> arian.v1.CreateRuleResponse
-	7,  // 15: arian.v1.RuleService.UpdateRule:output_type -> arian.v1.UpdateRuleResponse
-	9,  // 16: arian.v1.RuleService.DeleteRule:output_type -> arian.v1.DeleteRuleResponse
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	13, // 0: arian.v1.ListRulesResponse.rules:type_name -> arian.v1.Rule
+	13, // 1: arian.v1.GetRuleResponse.rule:type_name -> arian.v1.Rule
+	14, // 2: arian.v1.CreateRuleRequest.conditions:type_name -> google.protobuf.Struct
+	13, // 3: arian.v1.CreateRuleResponse.rule:type_name -> arian.v1.Rule
+	15, // 4: arian.v1.UpdateRuleRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 5: arian.v1.UpdateRuleRequest.conditions:type_name -> google.protobuf.Struct
+	13, // 6: arian.v1.UpdateRuleResponse.rule:type_name -> arian.v1.Rule
+	14, // 7: arian.v1.ValidateRuleRequest.conditions:type_name -> google.protobuf.Struct
+	11, // 8: arian.v1.ValidateRuleResponse.errors:type_name -> arian.v1.ValidationError
+	14, // 9: arian.v1.ValidateRuleResponse.normalized_conditions:type_name -> google.protobuf.Struct
+	0,  // 10: arian.v1.RuleService.ListRules:input_type -> arian.v1.ListRulesRequest
+	2,  // 11: arian.v1.RuleService.GetRule:input_type -> arian.v1.GetRuleRequest
+	4,  // 12: arian.v1.RuleService.CreateRule:input_type -> arian.v1.CreateRuleRequest
+	6,  // 13: arian.v1.RuleService.UpdateRule:input_type -> arian.v1.UpdateRuleRequest
+	8,  // 14: arian.v1.RuleService.DeleteRule:input_type -> arian.v1.DeleteRuleRequest
+	10, // 15: arian.v1.RuleService.ValidateRule:input_type -> arian.v1.ValidateRuleRequest
+	1,  // 16: arian.v1.RuleService.ListRules:output_type -> arian.v1.ListRulesResponse
+	3,  // 17: arian.v1.RuleService.GetRule:output_type -> arian.v1.GetRuleResponse
+	5,  // 18: arian.v1.RuleService.CreateRule:output_type -> arian.v1.CreateRuleResponse
+	7,  // 19: arian.v1.RuleService.UpdateRule:output_type -> arian.v1.UpdateRuleResponse
+	9,  // 20: arian.v1.RuleService.DeleteRule:output_type -> arian.v1.DeleteRuleResponse
+	12, // 21: arian.v1.RuleService.ValidateRule:output_type -> arian.v1.ValidateRuleResponse
+	16, // [16:22] is the sub-list for method output_type
+	10, // [10:16] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_rule_services_proto_init() }
@@ -689,7 +875,7 @@ func file_arian_v1_rule_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_rule_services_proto_rawDesc), len(file_arian_v1_rule_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
