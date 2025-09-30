@@ -9,8 +9,9 @@ select
   t.tx_desc,
   t.balance_after,
   t.category_id,
-  t.cat_status,
+  t.category_manually_set,
   t.merchant,
+  t.merchant_manually_set,
   t.user_notes,
   t.suggestions,
   t.receipt_id,
@@ -112,8 +113,9 @@ select
   t.tx_desc,
   t.balance_after,
   t.category_id,
-  t.cat_status,
+  t.category_manually_set,
   t.merchant,
+  t.merchant_manually_set,
   t.user_notes,
   t.suggestions,
   t.receipt_id,
@@ -208,7 +210,8 @@ set
   ),
   suggestions = COALESCE(sqlc.narg('suggestions')::text [], suggestions),
   receipt_id = COALESCE(sqlc.narg('receipt_id')::bigint, receipt_id),
-  cat_status = COALESCE(sqlc.narg('cat_status')::smallint, cat_status)
+  category_manually_set = COALESCE(sqlc.narg('category_manually_set')::boolean, category_manually_set),
+  merchant_manually_set = COALESCE(sqlc.narg('merchant_manually_set')::boolean, merchant_manually_set)
 where
   id = sqlc.arg(id)::bigint
   and account_id in (
@@ -258,11 +261,11 @@ update
   transactions
 set
   category_id = sqlc.narg('category_id')::bigint,
-  cat_status = sqlc.arg(cat_status)::smallint,
+  category_manually_set = sqlc.arg(category_manually_set)::boolean,
   suggestions = sqlc.arg(suggestions)::text []
 where
   id = sqlc.arg(id)::bigint
-  and cat_status = 0 -- Only update if still uncategorized
+  and category_manually_set = false -- Only update if not manually set
   and account_id in (
     select
       a.id
@@ -276,14 +279,14 @@ where
   )
 returning
   id,
-  cat_status;
+  category_manually_set;
 
 -- name: BulkCategorizeTransactions :execrows
 update
   transactions
 set
   category_id = sqlc.arg(category_id)::bigint,
-  cat_status = 3 -- manual categorization
+  category_manually_set = true -- manual categorization
 where
   id = ANY(sqlc.arg(transaction_ids)::bigint [])
   and account_id in (
@@ -485,8 +488,9 @@ select
   t.tx_desc,
   t.balance_after,
   t.category_id,
-  t.cat_status,
+  t.category_manually_set,
   t.merchant,
+  t.merchant_manually_set,
   t.user_notes,
   t.suggestions,
   t.receipt_id,

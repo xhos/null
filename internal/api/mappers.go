@@ -590,19 +590,20 @@ func buildNextCursor(transactions []sqlc.ListTransactionsRow, limit *int32) *pb.
 
 // transaction field extractor - extracts common transaction fields using reflection
 type transactionFields struct {
-	ID          int64
-	EmailID     *string
-	AccountID   int64
-	TxDate      time.Time
-	TxAmount    *money.Money
-	TxDirection pb.TransactionDirection
-	TxDesc      *string
-	CategoryID  *int64
-	CatStatus   pb.CategorizationStatus
-	Merchant    *string
-	UserNotes   *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID                  int64
+	EmailID             *string
+	AccountID           int64
+	TxDate              time.Time
+	TxAmount            *money.Money
+	TxDirection         pb.TransactionDirection
+	TxDesc              *string
+	CategoryID          *int64
+	CategoryManuallySet bool
+	Merchant            *string
+	MerchantManuallySet bool
+	UserNotes           *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 // extract fields from any transaction row type
@@ -617,21 +618,24 @@ func extractTransactionFields(row interface{}) *transactionFields {
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
 			TxAmount: unwrapMoney(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
-			CategoryID: t.CategoryID, CatStatus: t.CatStatus, Merchant: t.Merchant,
+			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
+			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		}
 	case *sqlc.ListTransactionsRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
 			TxAmount: unwrapMoney(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
-			CategoryID: t.CategoryID, CatStatus: t.CatStatus, Merchant: t.Merchant,
+			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
+			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		}
 	case *sqlc.FindCandidateTransactionsRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
 			TxAmount: unwrapMoney(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
-			CategoryID: t.CategoryID, CatStatus: t.CatStatus, Merchant: t.Merchant,
+			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
+			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		}
 	default:
@@ -647,19 +651,20 @@ func convertTransactionToProto(row interface{}) *pb.Transaction {
 	}
 
 	return &pb.Transaction{
-		Id:                   fields.ID,
-		TxDate:               toProtoTimestamp(&fields.TxDate),
-		TxAmount:             fields.TxAmount,
-		Direction:            fields.TxDirection,
-		AccountId:            fields.AccountID,
-		EmailId:              fields.EmailID,
-		Description:          fields.TxDesc,
-		CategoryId:           fields.CategoryID,
-		CategorizationStatus: fields.CatStatus,
-		Merchant:             fields.Merchant,
-		UserNotes:            fields.UserNotes,
-		CreatedAt:            toProtoTimestamp(&fields.CreatedAt),
-		UpdatedAt:            toProtoTimestamp(&fields.UpdatedAt),
+		Id:                  fields.ID,
+		TxDate:              toProtoTimestamp(&fields.TxDate),
+		TxAmount:            fields.TxAmount,
+		Direction:           fields.TxDirection,
+		AccountId:           fields.AccountID,
+		EmailId:             fields.EmailID,
+		Description:         fields.TxDesc,
+		CategoryId:          fields.CategoryID,
+		CategoryManuallySet: fields.CategoryManuallySet,
+		Merchant:            fields.Merchant,
+		MerchantManuallySet: fields.MerchantManuallySet,
+		UserNotes:           fields.UserNotes,
+		CreatedAt:           toProtoTimestamp(&fields.CreatedAt),
+		UpdatedAt:           toProtoTimestamp(&fields.UpdatedAt),
 	}
 }
 

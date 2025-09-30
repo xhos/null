@@ -258,21 +258,22 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 	// todo: this is bad
 	// Convert GetTransactionRow to Transaction for determineCategory
 	txForCategory := &sqlc.Transaction{
-		ID:           tx.ID,
-		AccountID:    tx.AccountID,
-		EmailID:      tx.EmailID,
-		TxDate:       tx.TxDate,
-		TxAmount:     tx.TxAmount,
-		TxDirection:  tx.TxDirection,
-		TxDesc:       tx.TxDesc,
-		BalanceAfter: tx.BalanceAfter,
-		Merchant:     tx.Merchant,
-		CategoryID:   tx.CategoryID,
-		CatStatus:    tx.CatStatus,
-		Suggestions:  tx.Suggestions,
-		UserNotes:    tx.UserNotes,
-		CreatedAt:    tx.CreatedAt,
-		UpdatedAt:    tx.UpdatedAt,
+		ID:                  tx.ID,
+		AccountID:           tx.AccountID,
+		EmailID:             tx.EmailID,
+		TxDate:              tx.TxDate,
+		TxAmount:            tx.TxAmount,
+		TxDirection:         tx.TxDirection,
+		TxDesc:              tx.TxDesc,
+		BalanceAfter:        tx.BalanceAfter,
+		Merchant:            tx.Merchant,
+		CategoryID:          tx.CategoryID,
+		CategoryManuallySet: tx.CategoryManuallySet,
+		MerchantManuallySet: tx.MerchantManuallySet,
+		Suggestions:         tx.Suggestions,
+		UserNotes:           tx.UserNotes,
+		CreatedAt:           tx.CreatedAt,
+		UpdatedAt:           tx.UpdatedAt,
 	}
 
 	result, err := s.determineCategory(ctx, userID, txForCategory)
@@ -289,18 +290,18 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 		categoryID = &category.ID
 	}
 
-	// use atomic update - only succeeds if cat_status is still 0 (uncategorized)
+	// use atomic update - only succeeds if category_manually_set is false
 	params := sqlc.CategorizeTransactionAtomicParams{
-		ID:          txID,
-		UserID:      userID,
-		CategoryID:  categoryID,
-		CatStatus:   2, // AI categorization status
-		Suggestions: result.Suggestions,
+		ID:                  txID,
+		UserID:              userID,
+		CategoryID:          categoryID,
+		CategoryManuallySet: false, // AI categorization is not manual
+		Suggestions:         result.Suggestions,
 	}
 
 	updated, err := s.queries.CategorizeTransactionAtomic(ctx, params)
 	if errors.Is(err, sql.ErrNoRows) {
-		// transaction was already categorized by another request - that's OK
+		// transaction was already categorized manually - that's OK
 		s.log.Info("Transaction already categorized", "tx", txID)
 		return nil
 	}
@@ -308,7 +309,7 @@ func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, tx
 		return wrapErr("CategorizeTransaction.AtomicUpdate", err)
 	}
 
-	s.log.Info("Transaction categorized", "tx", updated.ID, "status", updated.CatStatus)
+	s.log.Info("Transaction categorized", "tx", updated.ID, "manually_set", updated.CategoryManuallySet)
 	return nil
 }
 

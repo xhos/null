@@ -7,9 +7,48 @@ package sqlc
 
 import (
 	"context"
+	"time"
 
+	arian "ariand/internal/gen/arian/v1"
+	"ariand/internal/types"
 	"github.com/google/uuid"
 )
+
+const bulkApplyRuleToTransactions = `-- name: BulkApplyRuleToTransactions :execrows
+update transactions
+set
+  category_id = coalesce($1::bigint, category_id),
+  merchant = coalesce($2::text, merchant)
+where id = ANY($3::bigint[])
+  and account_id in (
+    select a.id
+    from accounts a
+    left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
+    where a.owner_id = $4::uuid or au.user_id is not null
+  )
+  and category_manually_set = false
+  and merchant_manually_set = false
+`
+
+type BulkApplyRuleToTransactionsParams struct {
+	CategoryID     int64     `json:"category_id"`
+	Merchant       string    `json:"merchant"`
+	TransactionIds []int64   `json:"transaction_ids"`
+	UserID         uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) BulkApplyRuleToTransactions(ctx context.Context, arg BulkApplyRuleToTransactionsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, bulkApplyRuleToTransactions,
+		arg.CategoryID,
+		arg.Merchant,
+		arg.TransactionIds,
+		arg.UserID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
 
 const createRule = `-- name: CreateRule :one
 insert into transaction_rules (user_id, rule_name, category_id, conditions, merchant)
@@ -71,6 +110,48 @@ func (q *Queries) DeleteRule(ctx context.Context, arg DeleteRuleParams) (int64, 
 	return result.RowsAffected(), nil
 }
 
+const getActiveRules = `-- name: GetActiveRules :many
+select rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
+from transaction_rules
+where user_id = $1::uuid
+  and (is_active is null or is_active = true)
+order by priority_order, created_at
+`
+
+func (q *Queries) GetActiveRules(ctx context.Context, userID uuid.UUID) ([]TransactionRule, error) {
+	rows, err := q.db.Query(ctx, getActiveRules, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TransactionRule
+	for rows.Next() {
+		var i TransactionRule
+		if err := rows.Scan(
+			&i.RuleID,
+			&i.UserID,
+			&i.RuleName,
+			&i.CategoryID,
+			&i.Conditions,
+			&i.IsActive,
+			&i.PriorityOrder,
+			&i.RuleSource,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.LastAppliedAt,
+			&i.TimesApplied,
+			&i.Merchant,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRule = `-- name: GetRule :one
 select rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
 from transaction_rules
@@ -102,6 +183,85 @@ func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRu
 		&i.Merchant,
 	)
 	return i, err
+}
+
+const getTransactionsForRuleApplication = `-- name: GetTransactionsForRuleApplication :many
+select
+  t.id,
+  t.account_id,
+  t.tx_date,
+  t.tx_amount,
+  t.tx_direction,
+  t.tx_desc,
+  t.merchant,
+  t.category_id,
+  t.category_manually_set,
+  t.merchant_manually_set,
+  a.account_type,
+  a.bank,
+  a.name as account_name
+from transactions t
+join accounts a on t.account_id = a.id
+left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
+where (a.owner_id = $1::uuid or au.user_id is not null)
+  and ($2::bigint[] is null or t.id = ANY($2::bigint[]))
+  and ($3::boolean = true or (t.category_manually_set = false and t.merchant_manually_set = false))
+`
+
+type GetTransactionsForRuleApplicationParams struct {
+	UserID             uuid.UUID `json:"user_id"`
+	TransactionIds     []int64   `json:"transaction_ids"`
+	IncludeManuallySet *bool     `json:"include_manually_set"`
+}
+
+type GetTransactionsForRuleApplicationRow struct {
+	ID                  int64                      `json:"id"`
+	AccountID           int64                      `json:"account_id"`
+	TxDate              time.Time                  `json:"tx_date"`
+	TxAmount            *types.Money               `json:"tx_amount"`
+	TxDirection         arian.TransactionDirection `json:"tx_direction"`
+	TxDesc              *string                    `json:"tx_desc"`
+	Merchant            *string                    `json:"merchant"`
+	CategoryID          *int64                     `json:"category_id"`
+	CategoryManuallySet bool                       `json:"category_manually_set"`
+	MerchantManuallySet bool                       `json:"merchant_manually_set"`
+	AccountType         arian.AccountType          `json:"account_type"`
+	Bank                string                     `json:"bank"`
+	AccountName         string                     `json:"account_name"`
+}
+
+func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg GetTransactionsForRuleApplicationParams) ([]GetTransactionsForRuleApplicationRow, error) {
+	rows, err := q.db.Query(ctx, getTransactionsForRuleApplication, arg.UserID, arg.TransactionIds, arg.IncludeManuallySet)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTransactionsForRuleApplicationRow
+	for rows.Next() {
+		var i GetTransactionsForRuleApplicationRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.TxDate,
+			&i.TxAmount,
+			&i.TxDirection,
+			&i.TxDesc,
+			&i.Merchant,
+			&i.CategoryID,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
+			&i.AccountType,
+			&i.Bank,
+			&i.AccountName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listRules = `-- name: ListRules :many

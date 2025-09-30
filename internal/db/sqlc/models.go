@@ -81,24 +81,25 @@ type ReceiptItem struct {
 }
 
 type Transaction struct {
-	ID            int64                      `json:"id"`
-	AccountID     int64                      `json:"account_id"`
-	EmailID       *string                    `json:"email_id"`
-	TxDate        time.Time                  `json:"tx_date"`
-	TxAmount      *types.Money               `json:"tx_amount"`
-	TxDirection   arian.TransactionDirection `json:"tx_direction"`
-	TxDesc        *string                    `json:"tx_desc"`
-	BalanceAfter  *types.Money               `json:"balance_after"`
-	Merchant      *string                    `json:"merchant"`
-	CategoryID    *int64                     `json:"category_id"`
-	CatStatus     arian.CategorizationStatus `json:"cat_status"`
-	Suggestions   []string                   `json:"suggestions"`
-	UserNotes     *string                    `json:"user_notes"`
-	ForeignAmount *types.Money               `json:"foreign_amount"`
-	ExchangeRate  *decimal.Decimal           `json:"exchange_rate"`
-	ReceiptID     *int64                     `json:"receipt_id"`
-	CreatedAt     time.Time                  `json:"created_at"`
-	UpdatedAt     time.Time                  `json:"updated_at"`
+	ID                  int64                      `json:"id"`
+	AccountID           int64                      `json:"account_id"`
+	EmailID             *string                    `json:"email_id"`
+	TxDate              time.Time                  `json:"tx_date"`
+	TxAmount            *types.Money               `json:"tx_amount"`
+	TxDirection         arian.TransactionDirection `json:"tx_direction"`
+	TxDesc              *string                    `json:"tx_desc"`
+	BalanceAfter        *types.Money               `json:"balance_after"`
+	Merchant            *string                    `json:"merchant"`
+	CategoryID          *int64                     `json:"category_id"`
+	Suggestions         []string                   `json:"suggestions"`
+	UserNotes           *string                    `json:"user_notes"`
+	ForeignAmount       *types.Money               `json:"foreign_amount"`
+	ExchangeRate        *decimal.Decimal           `json:"exchange_rate"`
+	ReceiptID           *int64                     `json:"receipt_id"`
+	CreatedAt           time.Time                  `json:"created_at"`
+	UpdatedAt           time.Time                  `json:"updated_at"`
+	CategoryManuallySet bool                       `json:"category_manually_set"`
+	MerchantManuallySet bool                       `json:"merchant_manually_set"`
 }
 
 type TransactionRule struct {

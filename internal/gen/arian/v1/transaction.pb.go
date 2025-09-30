@@ -35,11 +35,12 @@ type Transaction struct {
 	EmailId     *string `protobuf:"bytes,6,opt,name=email_id,json=emailId,proto3,oneof" json:"email_id,omitempty"`
 	Description *string `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	// categorization
-	CategoryId           *int64               `protobuf:"varint,9,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
-	CategorizationStatus CategorizationStatus `protobuf:"varint,10,opt,name=categorization_status,json=categorizationStatus,proto3,enum=arian.v1.CategorizationStatus" json:"categorization_status,omitempty"`
+	CategoryId          *int64 `protobuf:"varint,8,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
+	CategoryManuallySet bool   `protobuf:"varint,9,opt,name=category_manually_set,json=categoryManuallySet,proto3" json:"category_manually_set,omitempty"`
 	// merchant & notes
-	Merchant  *string `protobuf:"bytes,11,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
-	UserNotes *string `protobuf:"bytes,12,opt,name=user_notes,json=userNotes,proto3,oneof" json:"user_notes,omitempty"`
+	Merchant            *string `protobuf:"bytes,10,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
+	MerchantManuallySet bool    `protobuf:"varint,11,opt,name=merchant_manually_set,json=merchantManuallySet,proto3" json:"merchant_manually_set,omitempty"`
+	UserNotes           *string `protobuf:"bytes,12,opt,name=user_notes,json=userNotes,proto3,oneof" json:"user_notes,omitempty"`
 	// balance after this tx
 	BalanceAfter *money.Money `protobuf:"bytes,13,opt,name=balance_after,json=balanceAfter,proto3,oneof" json:"balance_after,omitempty"`
 	// AI suggestions
@@ -144,11 +145,11 @@ func (x *Transaction) GetCategoryId() int64 {
 	return 0
 }
 
-func (x *Transaction) GetCategorizationStatus() CategorizationStatus {
+func (x *Transaction) GetCategoryManuallySet() bool {
 	if x != nil {
-		return x.CategorizationStatus
+		return x.CategoryManuallySet
 	}
-	return CategorizationStatus_CATEGORIZATION_UNSPECIFIED
+	return false
 }
 
 func (x *Transaction) GetMerchant() string {
@@ -156,6 +157,13 @@ func (x *Transaction) GetMerchant() string {
 		return *x.Merchant
 	}
 	return ""
+}
+
+func (x *Transaction) GetMerchantManuallySet() bool {
+	if x != nil {
+		return x.MerchantManuallySet
+	}
+	return false
 }
 
 func (x *Transaction) GetUserNotes() string {
@@ -344,7 +352,7 @@ var File_arian_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x1aarian/v1/transaction.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x14arian/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x9f\t\n" +
+	"\x1aarian/v1/transaction.proto\x12\barian.v1\x1a\x17arian/v1/category.proto\x1a\x14arian/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xa8\t\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
 	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
@@ -354,11 +362,12 @@ const file_arian_v1_transaction_proto_rawDesc = "" +
 	"account_id\x18\x05 \x01(\x03R\taccountId\x12\x1e\n" +
 	"\bemail_id\x18\x06 \x01(\tH\x00R\aemailId\x88\x01\x01\x12/\n" +
 	"\vdescription\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\x01R\vdescription\x88\x01\x01\x12-\n" +
-	"\vcategory_id\x18\t \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x02R\n" +
-	"categoryId\x88\x01\x01\x12]\n" +
-	"\x15categorization_status\x18\n" +
-	" \x01(\x0e2\x1e.arian.v1.CategorizationStatusB\b\xbaH\x05\x82\x01\x02\x10\x01R\x14categorizationStatus\x12)\n" +
-	"\bmerchant\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x03R\bmerchant\x88\x01\x01\x12,\n" +
+	"\vcategory_id\x18\b \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x02R\n" +
+	"categoryId\x88\x01\x01\x122\n" +
+	"\x15category_manually_set\x18\t \x01(\bR\x13categoryManuallySet\x12)\n" +
+	"\bmerchant\x18\n" +
+	" \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x03R\bmerchant\x88\x01\x01\x122\n" +
+	"\x15merchant_manually_set\x18\v \x01(\bR\x13merchantManuallySet\x12,\n" +
 	"\n" +
 	"user_notes\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x04R\tuserNotes\x88\x01\x01\x12<\n" +
 	"\rbalance_after\x18\r \x01(\v2\x12.google.type.MoneyH\x05R\fbalanceAfter\x88\x01\x01\x12 \n" +
@@ -415,25 +424,23 @@ var file_arian_v1_transaction_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),     // 3: google.protobuf.Timestamp
 	(*money.Money)(nil),               // 4: google.type.Money
 	(TransactionDirection)(0),         // 5: arian.v1.TransactionDirection
-	(CategorizationStatus)(0),         // 6: arian.v1.CategorizationStatus
-	(*Category)(nil),                  // 7: arian.v1.Category
+	(*Category)(nil),                  // 6: arian.v1.Category
 }
 var file_arian_v1_transaction_proto_depIdxs = []int32{
-	3,  // 0: arian.v1.Transaction.tx_date:type_name -> google.protobuf.Timestamp
-	4,  // 1: arian.v1.Transaction.tx_amount:type_name -> google.type.Money
-	5,  // 2: arian.v1.Transaction.direction:type_name -> arian.v1.TransactionDirection
-	6,  // 3: arian.v1.Transaction.categorization_status:type_name -> arian.v1.CategorizationStatus
-	4,  // 4: arian.v1.Transaction.balance_after:type_name -> google.type.Money
-	4,  // 5: arian.v1.Transaction.foreign_amount:type_name -> google.type.Money
-	3,  // 6: arian.v1.Transaction.created_at:type_name -> google.protobuf.Timestamp
-	3,  // 7: arian.v1.Transaction.updated_at:type_name -> google.protobuf.Timestamp
-	7,  // 8: arian.v1.Transaction.category:type_name -> arian.v1.Category
-	0,  // 9: arian.v1.TransactionWithScore.transaction:type_name -> arian.v1.Transaction
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	3, // 0: arian.v1.Transaction.tx_date:type_name -> google.protobuf.Timestamp
+	4, // 1: arian.v1.Transaction.tx_amount:type_name -> google.type.Money
+	5, // 2: arian.v1.Transaction.direction:type_name -> arian.v1.TransactionDirection
+	4, // 3: arian.v1.Transaction.balance_after:type_name -> google.type.Money
+	4, // 4: arian.v1.Transaction.foreign_amount:type_name -> google.type.Money
+	3, // 5: arian.v1.Transaction.created_at:type_name -> google.protobuf.Timestamp
+	3, // 6: arian.v1.Transaction.updated_at:type_name -> google.protobuf.Timestamp
+	6, // 7: arian.v1.Transaction.category:type_name -> arian.v1.Category
+	0, // 8: arian.v1.TransactionWithScore.transaction:type_name -> arian.v1.Transaction
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_transaction_proto_init() }

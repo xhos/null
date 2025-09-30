@@ -8,6 +8,7 @@ require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250717165733-d22d418d82d8.1
 	connectrpc.com/connect v1.18.1
 	connectrpc.com/grpchealth v1.4.0
+	connectrpc.com/grpcreflect v1.3.0
 	github.com/charmbracelet/log v0.4.2
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
@@ -22,7 +23,6 @@ require (
 )
 
 require (
-	connectrpc.com/grpcreflect v1.3.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/colorprofile v0.2.3-0.20250311203215-f60798e515dc // indirect
 	github.com/charmbracelet/lipgloss v1.1.0 // indirect
