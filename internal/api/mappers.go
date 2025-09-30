@@ -504,8 +504,17 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 		UserNotes:   req.UserNotes,
 	}
 
+	// if user provides category_id, mark it as manually set
 	if req.CategoryId != nil {
 		params.CategoryID = req.CategoryId
+		manuallySet := true
+		params.CategoryManuallySet = &manuallySet
+	}
+
+	// if user provides merchant, mark it as manually set
+	if req.Merchant != nil {
+		manuallySet := true
+		params.MerchantManuallySet = &manuallySet
 	}
 
 	if req.ForeignAmount != nil {
@@ -551,12 +560,28 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 	}
 	if req.Merchant != nil {
 		params.Merchant = req.Merchant
+		// if setting merchant, mark as manually set; if clearing, mark as not manually set
+		if *req.Merchant != "" {
+			manuallySet := true
+			params.MerchantManuallySet = &manuallySet
+		} else {
+			manuallySet := false
+			params.MerchantManuallySet = &manuallySet
+		}
 	}
 	if req.UserNotes != nil {
 		params.UserNotes = req.UserNotes
 	}
 	if req.CategoryId != nil {
 		params.CategoryID = req.CategoryId
+		// if setting category, mark as manually set; if clearing, mark as not manually set
+		if *req.CategoryId > 0 {
+			manuallySet := true
+			params.CategoryManuallySet = &manuallySet
+		} else {
+			manuallySet := false
+			params.CategoryManuallySet = &manuallySet
+		}
 	}
 	if req.ForeignAmount != nil {
 		foreignAmountBytes, err := wrapMoneyToBytes(req.ForeignAmount)

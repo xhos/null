@@ -145,7 +145,9 @@ insert into
     tx_desc,
     balance_after,
     category_id,
+    category_manually_set,
     merchant,
+    merchant_manually_set,
     user_notes,
     foreign_amount,
     exchange_rate,
@@ -161,20 +163,22 @@ select
   $6::text,
   $7::jsonb,
   $8::bigint,
-  $9::text,
+  $9::boolean,
   $10::text,
-  $11::jsonb,
-  $12::numeric,
-  $13::text [],
-  $14::bigint
+  $11::boolean,
+  $12::text,
+  $13::jsonb,
+  $14::numeric,
+  $15::text [],
+  $16::bigint
 from
   accounts a
   left join account_users au on a.id = au.account_id
-  and au.user_id = $15::uuid
+  and au.user_id = $17::uuid
 where
   a.id = $2::bigint
   and (
-    a.owner_id = $15::uuid
+    a.owner_id = $17::uuid
     or au.user_id is not null
   )
 returning
@@ -182,21 +186,23 @@ returning
 `
 
 type CreateTransactionParams struct {
-	EmailID       *string          `json:"email_id"`
-	AccountID     int64            `json:"account_id"`
-	TxDate        time.Time        `json:"tx_date"`
-	TxAmount      []byte           `json:"tx_amount"`
-	TxDirection   int16            `json:"tx_direction"`
-	TxDesc        *string          `json:"tx_desc"`
-	BalanceAfter  []byte           `json:"balance_after"`
-	CategoryID    *int64           `json:"category_id"`
-	Merchant      *string          `json:"merchant"`
-	UserNotes     *string          `json:"user_notes"`
-	ForeignAmount []byte           `json:"foreign_amount"`
-	ExchangeRate  *decimal.Decimal `json:"exchange_rate"`
-	Suggestions   []string         `json:"suggestions"`
-	ReceiptID     *int64           `json:"receipt_id"`
-	UserID        uuid.UUID        `json:"user_id"`
+	EmailID             *string          `json:"email_id"`
+	AccountID           int64            `json:"account_id"`
+	TxDate              time.Time        `json:"tx_date"`
+	TxAmount            []byte           `json:"tx_amount"`
+	TxDirection         int16            `json:"tx_direction"`
+	TxDesc              *string          `json:"tx_desc"`
+	BalanceAfter        []byte           `json:"balance_after"`
+	CategoryID          *int64           `json:"category_id"`
+	CategoryManuallySet *bool            `json:"category_manually_set"`
+	Merchant            *string          `json:"merchant"`
+	MerchantManuallySet *bool            `json:"merchant_manually_set"`
+	UserNotes           *string          `json:"user_notes"`
+	ForeignAmount       []byte           `json:"foreign_amount"`
+	ExchangeRate        *decimal.Decimal `json:"exchange_rate"`
+	Suggestions         []string         `json:"suggestions"`
+	ReceiptID           *int64           `json:"receipt_id"`
+	UserID              uuid.UUID        `json:"user_id"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (int64, error) {
@@ -209,7 +215,9 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.TxDesc,
 		arg.BalanceAfter,
 		arg.CategoryID,
+		arg.CategoryManuallySet,
 		arg.Merchant,
+		arg.MerchantManuallySet,
 		arg.UserNotes,
 		arg.ForeignAmount,
 		arg.ExchangeRate,
