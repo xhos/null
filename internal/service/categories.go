@@ -43,17 +43,19 @@ func (s *catSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Cat
 		ID:     id,
 		UserID: userID,
 	})
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("CategoryService.Get", ErrNotFound)
 	}
 	if err != nil {
 		return nil, wrapErr("CategoryService.Get", err)
 	}
+
 	return &category, nil
 }
 
 func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error) {
-	// Create parent categories if they don't exist
+	// hierarchical slugs like "food.groceries" require parent "food" to exist first
 	if err := s.ensureParentCategories(ctx, params.UserID, params.Slug); err != nil {
 		return nil, wrapErr("CategoryService.Create", err)
 	}
@@ -67,7 +69,15 @@ func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (
 }
 
 func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
-	category, err := s.queries.UpdateCategory(ctx, params)
+	isSlugBeingUpdated := params.Slug != nil
+	if !isSlugBeingUpdated {
+		return s.updateCategoryDirectly(ctx, params)
+	}
+
+	oldCategory, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
+		ID:     params.ID,
+		UserID: params.UserID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("CategoryService.Update", ErrNotFound)
 	}
@@ -75,11 +85,40 @@ func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (
 		return nil, wrapErr("CategoryService.Update", err)
 	}
 
+	slugIsActuallyChanging := oldCategory.Slug != *params.Slug
+	if !slugIsActuallyChanging {
+		return s.updateCategoryDirectly(ctx, params)
+	}
+
+	// when slug changes, we need to update child category slugs to maintain hierarchy
+	if err := s.ensureParentCategories(ctx, params.UserID, *params.Slug); err != nil {
+		return nil, wrapErr("CategoryService.Update", err)
+	}
+
+	_, err = s.queries.UpdateChildCategorySlugs(ctx, sqlc.UpdateChildCategorySlugsParams{
+		UserID:        params.UserID,
+		OldSlugPrefix: oldCategory.Slug,
+		NewSlugPrefix: *params.Slug,
+	})
+	if err != nil {
+		return nil, wrapErr("CategoryService.Update", err)
+	}
+
+	return s.updateCategoryDirectly(ctx, params)
+}
+
+func (s *catSvc) updateCategoryDirectly(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
+	category, err := s.queries.UpdateCategory(ctx, params)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, wrapErr("CategoryService.Update", ErrNotFound)
+	}
+	if err != nil {
+		return nil, wrapErr("CategoryService.Update", err)
+	}
 	return &category, nil
 }
 
 func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error) {
-	// First get the category to find its slug
 	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
 		ID:     id,
 		UserID: userID,
@@ -91,7 +130,7 @@ func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64,
 		return 0, wrapErr("CategoryService.Delete", err)
 	}
 
-	// Delete this category and all children (cascading delete)
+	// deleting "food" should also delete "food.groceries", "food.dining", etc.
 	affected, err := s.queries.DeleteCategoriesBySlugPrefix(ctx, sqlc.DeleteCategoriesBySlugPrefixParams{
 		UserID: userID,
 		Slug:   category.Slug,
@@ -108,48 +147,37 @@ func (s *catSvc) BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sq
 		Slug:   slug,
 		UserID: userID,
 	})
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wrapErr("CategoryService.BySlug", ErrNotFound)
 	}
 	if err != nil {
 		return nil, wrapErr("CategoryService.BySlug", err)
 	}
+
 	return &category, nil
 }
 
-// ensureParentCategories creates all parent categories if they don't exist
 func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, slug string) error {
 	parts := strings.Split(slug, ".")
-	if len(parts) <= 1 {
-		return nil // No parents needed
+	hasNoParents := len(parts) <= 1
+	if hasNoParents {
+		return nil
 	}
 
-	// Create each parent category if it doesn't exist
+	// for "food.groceries.organic", create "food" then "food.groceries"
 	for i := 1; i < len(parts); i++ {
 		parentSlug := strings.Join(parts[:i], ".")
 
-		// Check if parent exists
-		_, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
-			Slug:   parentSlug,
-			UserID: userID,
-		})
-
-		if err == nil {
-			continue // Parent exists
-		}
-
-		if !errors.Is(err, sql.ErrNoRows) {
-			return err // Other error
-		}
-
-		// Parent doesn't exist, create it with a generated color
-		color := generateNiceHexColor()
-		_, err = s.queries.CreateCategoryIfNotExists(ctx, sqlc.CreateCategoryIfNotExistsParams{
-			UserID: userID,
-			Slug:   parentSlug,
-			Color:  color,
-		})
+		parentExists, err := s.checkCategoryExists(ctx, userID, parentSlug)
 		if err != nil {
+			return err
+		}
+		if parentExists {
+			continue
+		}
+
+		if err := s.createCategoryWithGeneratedColor(ctx, userID, parentSlug); err != nil {
 			return err
 		}
 	}
@@ -157,19 +185,46 @@ func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, s
 	return nil
 }
 
-// generateNiceHexColor generates a nice muted hex color
+func (s *catSvc) checkCategoryExists(ctx context.Context, userID uuid.UUID, slug string) (bool, error) {
+	_, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
+		Slug:   slug,
+		UserID: userID,
+	})
+
+	if err == nil {
+		return true, nil
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+
+	return false, err
+}
+
+func (s *catSvc) createCategoryWithGeneratedColor(ctx context.Context, userID uuid.UUID, slug string) error {
+	color := generateNiceHexColor()
+	_, err := s.queries.CreateCategoryIfNotExists(ctx, sqlc.CreateCategoryIfNotExistsParams{
+		UserID: userID,
+		Slug:   slug,
+		Color:  color,
+	})
+	return err
+}
+
 func generateNiceHexColor() string {
+	// using chars 5-b creates muted colors
 	niceHexChars := "56789ab"
 	color := "#"
 
-	b := make([]byte, 6)
-	if _, err := rand.Read(b); err != nil {
-		// Fallback if crypto/rand fails
+	randomBytes := make([]byte, 6)
+	if _, err := rand.Read(randomBytes); err != nil {
 		return "#888888"
 	}
 
-	for i := 0; i < 6; i++ {
-		color += string(niceHexChars[int(b[i])%7])
+	for i := range 6 {
+		charIndex := int(randomBytes[i]) % 7
+		color += string(niceHexChars[charIndex])
 	}
 
 	return color

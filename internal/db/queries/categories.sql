@@ -93,3 +93,12 @@ where
     slug = @slug::text
     or slug like @slug::text || '.%'
   );
+
+-- name: UpdateChildCategorySlugs :execrows
+update
+  categories
+set
+  slug = @new_slug_prefix::text || substring(slug from length(@old_slug_prefix::text) + 1)
+where
+  user_id = @user_id::uuid
+  and slug like @old_slug_prefix::text || '.%';

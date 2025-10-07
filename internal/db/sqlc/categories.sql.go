@@ -257,3 +257,27 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 	)
 	return i, err
 }
+
+const updateChildCategorySlugs = `-- name: UpdateChildCategorySlugs :execrows
+update
+  categories
+set
+  slug = $1::text || substring(slug from length($2::text) + 1)
+where
+  user_id = $3::uuid
+  and slug like $2::text || '.%'
+`
+
+type UpdateChildCategorySlugsParams struct {
+	NewSlugPrefix string    `json:"new_slug_prefix"`
+	OldSlugPrefix string    `json:"old_slug_prefix"`
+	UserID        uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) UpdateChildCategorySlugs(ctx context.Context, arg UpdateChildCategorySlugsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateChildCategorySlugs, arg.NewSlugPrefix, arg.OldSlugPrefix, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
