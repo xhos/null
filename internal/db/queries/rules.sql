@@ -43,19 +43,7 @@ order by priority_order, created_at;
 
 -- name: GetTransactionsForRuleApplication :many
 select
-  t.id,
-  t.account_id,
-  t.tx_date,
-  t.tx_amount,
-  t.tx_direction,
-  t.tx_desc,
-  t.merchant,
-  t.category_id,
-  t.category_manually_set,
-  t.merchant_manually_set,
-  a.account_type,
-  a.bank,
-  a.name as account_name
+  t.*
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid

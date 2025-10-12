@@ -1,27 +1,16 @@
 package rules
 
 import (
+	"ariand/internal/db/sqlc"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-// TransactionData represents the data available for rule evaluation
-type TransactionData struct {
-	Merchant    *string  `json:"merchant,omitempty"`
-	TxDesc      *string  `json:"tx_desc,omitempty"`
-	TxDirection *int16   `json:"tx_direction,omitempty"`
-	AccountType *string  `json:"account_type,omitempty"`
-	AccountName *string  `json:"account_name,omitempty"`
-	Bank        *string  `json:"bank,omitempty"`
-	Currency    *string  `json:"currency,omitempty"`
-	Amount      *float64 `json:"amount,omitempty"`
-}
-
-// EvaluateRule evaluates a rule against transaction data
-func EvaluateRule(rule *RuleConditions, data *TransactionData) (bool, error) {
-	if rule == nil || data == nil {
+// EvaluateRule evaluates a rule against transaction and account data
+func EvaluateRule(rule *RuleConditions, tx *sqlc.Transaction, account *sqlc.Account) (bool, error) {
+	if rule == nil || tx == nil {
 		return false, nil
 	}
 
@@ -29,7 +18,7 @@ func EvaluateRule(rule *RuleConditions, data *TransactionData) (bool, error) {
 	case LogicAND:
 		// All conditions must be true
 		for _, condition := range rule.Conditions {
-			matches, err := evaluateCondition(&condition, data)
+			matches, err := evaluateCondition(&condition, tx, account)
 			if err != nil {
 				return false, err
 			}
@@ -42,7 +31,7 @@ func EvaluateRule(rule *RuleConditions, data *TransactionData) (bool, error) {
 	case LogicOR:
 		// At least one condition must be true
 		for _, condition := range rule.Conditions {
-			matches, err := evaluateCondition(&condition, data)
+			matches, err := evaluateCondition(&condition, tx, account)
 			if err != nil {
 				return false, err
 			}
@@ -58,7 +47,7 @@ func EvaluateRule(rule *RuleConditions, data *TransactionData) (bool, error) {
 }
 
 // evaluateCondition evaluates a single condition against transaction data
-func evaluateCondition(condition *Condition, data *TransactionData) (bool, error) {
+func evaluateCondition(condition *Condition, tx *sqlc.Transaction, account *sqlc.Account) (bool, error) {
 	field := FieldType(condition.Field)
 	operator := OperatorType(condition.Operator)
 
@@ -68,24 +57,37 @@ func evaluateCondition(condition *Condition, data *TransactionData) (bool, error
 
 	switch field {
 	case FieldMerchant:
-		fieldValue = data.Merchant
+		fieldValue = tx.Merchant
 	case FieldTxDesc:
-		fieldValue = data.TxDesc
+		fieldValue = tx.TxDesc
 	case FieldAccountType:
-		fieldValue = data.AccountType
-	case FieldAccountName:
-		fieldValue = data.AccountName
-	case FieldBank:
-		fieldValue = data.Bank
-	case FieldCurrency:
-		fieldValue = data.Currency
-	case FieldAmount:
-		numericValue = data.Amount
-	case FieldTxDirection:
-		if data.TxDirection != nil {
-			val := float64(*data.TxDirection)
-			numericValue = &val
+		if account != nil {
+			accountType := account.AccountType.String()
+			fieldValue = &accountType
 		}
+	case FieldAccountName:
+		if account != nil {
+			fieldValue = &account.Name
+		}
+	case FieldBank:
+		if account != nil {
+			fieldValue = &account.Bank
+		}
+	case FieldCurrency:
+		if tx.TxAmount != nil {
+			fieldValue = &tx.TxAmount.CurrencyCode
+		}
+	case FieldAmount:
+		if tx.TxAmount != nil {
+			amount := float64(tx.TxAmount.Units)
+			if tx.TxAmount.Nanos != 0 {
+				amount += float64(tx.TxAmount.Nanos) / 1_000_000_000
+			}
+			numericValue = &amount
+		}
+	case FieldTxDirection:
+		val := float64(tx.TxDirection)
+		numericValue = &val
 	default:
 		return false, nil
 	}

@@ -18,7 +18,7 @@ type RuleService interface {
 	Update(ctx context.Context, params sqlc.UpdateRuleParams) (*sqlc.TransactionRule, error)
 	Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (int64, error)
 
-	ApplyToTransaction(ctx context.Context, userID uuid.UUID, txData *rules.TransactionData) (*RuleMatchResult, error)
+	ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.Account) (*RuleMatchResult, error)
 	ApplyToExisting(ctx context.Context, userID uuid.UUID, transactionIDs []int64) (int, error)
 }
 
@@ -88,11 +88,11 @@ func (s *catRuleSvc) Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.U
 	return affected, nil
 }
 
-func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, txData *rules.TransactionData) (*RuleMatchResult, error) {
+func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.Account) (*RuleMatchResult, error) {
 	s.log.Info("ApplyToTransaction called",
 		"user_id", userID,
-		"tx_desc", txData.TxDesc,
-		"merchant", txData.Merchant)
+		"tx_desc", tx.TxDesc,
+		"merchant", tx.Merchant)
 
 	activeRules, err := s.queries.GetActiveRules(ctx, userID)
 	if err != nil {
@@ -116,7 +116,7 @@ func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, t
 			continue
 		}
 
-		matches, err := rules.EvaluateRule(conditions, txData)
+		matches, err := rules.EvaluateRule(conditions, tx, account)
 		if err != nil {
 			s.log.Warn("failed to evaluate rule", "rule_id", rule.RuleID, "error", err)
 			continue
@@ -192,8 +192,17 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 	updateGroups := make(map[updateKey][]int64)
 
 	for _, tx := range transactions {
-		txData := buildTransactionData(&tx)
-		ruleResult := s.evaluateRulesForTransaction(activeRules, txData)
+		// fetch account for rule evaluation
+		account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
+			UserID: userID,
+			ID:     tx.AccountID,
+		})
+		if err != nil {
+			s.log.Warn("failed to fetch account for rule application", "account_id", tx.AccountID, "error", err)
+			continue
+		}
+
+		ruleResult := s.evaluateRulesForTransaction(activeRules, &tx, &account)
 
 		// skip if no rules matched
 		if ruleResult.CategoryID == nil && ruleResult.Merchant == nil {
@@ -246,7 +255,7 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 }
 
 // evaluateRulesForTransaction is the same logic as ApplyToTransaction but without ctx/queries
-func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, txData *rules.TransactionData) *RuleMatchResult {
+func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, tx *sqlc.Transaction, account *sqlc.Account) *RuleMatchResult {
 	result := &RuleMatchResult{}
 
 	for _, rule := range activeRules {
@@ -255,7 +264,7 @@ func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionR
 			continue
 		}
 
-		matches, err := rules.EvaluateRule(conditions, txData)
+		matches, err := rules.EvaluateRule(conditions, tx, account)
 		if err != nil || !matches {
 			continue
 		}
@@ -274,35 +283,4 @@ func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionR
 	}
 
 	return result
-}
-
-func buildTransactionData(tx *sqlc.GetTransactionsForRuleApplicationRow) *rules.TransactionData {
-	data := &rules.TransactionData{
-		Merchant:    tx.Merchant,
-		TxDesc:      tx.TxDesc,
-		AccountType: stringPtr(tx.AccountType.String()),
-		AccountName: &tx.AccountName,
-		Bank:        &tx.Bank,
-	}
-
-	if tx.TxDirection > 0 {
-		direction := int16(tx.TxDirection)
-		data.TxDirection = &direction
-	}
-
-	if tx.TxAmount != nil {
-		amount := float64(tx.TxAmount.Units)
-		if tx.TxAmount.Nanos != 0 {
-			amount += float64(tx.TxAmount.Nanos) / 1_000_000_000
-		}
-		data.Amount = &amount
-		currency := tx.TxAmount.CurrencyCode
-		data.Currency = &currency
-	}
-
-	return data
-}
-
-func stringPtr(s string) *string {
-	return &s
 }

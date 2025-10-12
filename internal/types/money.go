@@ -57,3 +57,50 @@ func (m *Money) Value() (driver.Value, error) {
 
 	return json.Marshal(data)
 }
+
+// Unwrap extracts *money.Money from *Money
+func Unwrap(m *Money) *money.Money {
+	if m == nil {
+		return nil
+	}
+	return &m.Money
+}
+
+// Wrap creates *Money from *money.Money
+func Wrap(m *money.Money) *Money {
+	if m == nil {
+		return nil
+	}
+	return &Money{
+		Money: money.Money{
+			CurrencyCode: m.CurrencyCode,
+			Units:        m.Units,
+			Nanos:        m.Nanos,
+		},
+	}
+}
+
+// FromBytes converts []byte (JSONB) to *Money
+func FromBytes(data []byte) *Money {
+	if data == nil {
+		return nil
+	}
+	var m Money
+	if err := m.Scan(data); err != nil {
+		return nil
+	}
+	return &m
+}
+
+// ToBytes converts *money.Money to []byte for database storage
+func ToBytes(m *money.Money) ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	wrapped := Wrap(m)
+	jsonBytes, err := wrapped.Value()
+	if err != nil {
+		return nil, err
+	}
+	return jsonBytes.([]byte), nil
+}

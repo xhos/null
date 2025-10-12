@@ -17,66 +17,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// ==================== MONEY UNWRAPPING ====================
-
-// unwrapMoney extracts *money.Money from *types.Money
-func unwrapMoney(m *types.Money) *money.Money {
-	if m == nil {
-		return nil
-	}
-	return &m.Money
-}
-
-// wrapMoney creates *types.Money from *money.Money
-func wrapMoney(m *money.Money) *types.Money {
-	if m == nil {
-		return nil
-	}
-	return &types.Money{
-		Money: money.Money{
-			CurrencyCode: m.CurrencyCode,
-			Units:        m.Units,
-			Nanos:        m.Nanos,
-		},
-	}
-}
-
-// bytesToMoney converts []byte (JSONB) to *types.Money
-func bytesToMoney(data []byte) *types.Money {
-	if data == nil {
-		return nil
-	}
-	var money types.Money
-	if err := money.Scan(data); err != nil {
-		return nil
-	}
-	return &money
-}
-
-// wrapMoneyToBytes converts *money.Money to []byte for sqlc parameters
-func wrapMoneyToBytes(m *money.Money) ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-
-	// Explicitly handle zero values that protobuf might omit
-	units := m.Units
-	nanos := m.Nanos
-
-	money := &types.Money{
-		Money: money.Money{
-			CurrencyCode: m.CurrencyCode,
-			Units:        units,
-			Nanos:        nanos,
-		},
-	}
-	jsonBytes, err := money.Value()
-	if err != nil {
-		return nil, err
-	}
-	return jsonBytes.([]byte), nil
-}
-
 // ==================== ERROR HANDLING ====================
 
 // Error handling helper
@@ -234,7 +174,7 @@ func buildUpdateAccountParams(req *pb.UpdateAccountRequest) sqlc.UpdateAccountPa
 		params.AnchorDate = &t
 	}
 	if req.AnchorBalance != nil {
-		balanceBytes, err := wrapMoneyToBytes(req.AnchorBalance)
+		balanceBytes, err := types.ToBytes(req.AnchorBalance)
 		if err != nil {
 			// This should be handled at the calling site, but for now we'll use zero bytes
 			balanceBytes = []byte{}
@@ -253,7 +193,7 @@ func buildUpdateAccountParams(req *pb.UpdateAccountRequest) sqlc.UpdateAccountPa
 
 // ==================== ACCOUNT MAPPINGS ====================
 
-func toProtoAccount(a *sqlc.ListAccountsRow) *pb.Account {
+func toProtoAccount(a *sqlc.Account) *pb.Account {
 	if a == nil {
 		return nil
 	}
@@ -265,50 +205,8 @@ func toProtoAccount(a *sqlc.ListAccountsRow) *pb.Account {
 		Type:          a.AccountType,
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: unwrapMoney(a.AnchorBalance),
-		Balance:       unwrapMoney(bytesToMoney(a.Balance)),
-		MainCurrency:  a.MainCurrency,
-		Colors:        a.Colors,
-		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
-		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
-	}
-}
-
-func toProtoAccountFromGetRow(a *sqlc.GetAccountRow) *pb.Account {
-	if a == nil {
-		return nil
-	}
-
-	return &pb.Account{
-		Id:            a.ID,
-		Name:          a.Name,
-		Bank:          a.Bank,
-		Type:          a.AccountType,
-		Alias:         a.Alias,
-		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: unwrapMoney(a.AnchorBalance),
-		Balance:       unwrapMoney(bytesToMoney(a.Balance)),
-		MainCurrency:  a.MainCurrency,
-		Colors:        a.Colors,
-		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
-		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
-	}
-}
-
-func toProtoAccountFromModel(a *sqlc.Account) *pb.Account {
-	if a == nil {
-		return nil
-	}
-
-	return &pb.Account{
-		Id:            a.ID,
-		Name:          a.Name,
-		Bank:          a.Bank,
-		Type:          a.AccountType,
-		Alias:         a.Alias,
-		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: unwrapMoney(a.AnchorBalance),
-		Balance:       unwrapMoney(bytesToMoney(a.Balance)),
+		AnchorBalance: types.Unwrap(a.AnchorBalance),
+		Balance:       types.Unwrap(types.FromBytes(a.Balance)),
 		MainCurrency:  a.MainCurrency,
 		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
@@ -322,7 +220,7 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 		return sqlc.CreateAccountParams{}, err
 	}
 
-	balanceBytes, err := wrapMoneyToBytes(req.GetAnchorBalance())
+	balanceBytes, err := types.ToBytes(req.GetAnchorBalance())
 	if err != nil {
 		return sqlc.CreateAccountParams{}, err
 	}
@@ -488,7 +386,7 @@ func buildListTransactionsParams(userID uuid.UUID, req *pb.ListTransactionsReque
 
 // buildCreateTransactionParams creates sqlc params from proto request
 func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionRequest) (sqlc.CreateTransactionParams, error) {
-	txAmountBytes, err := wrapMoneyToBytes(req.TxAmount)
+	txAmountBytes, err := types.ToBytes(req.TxAmount)
 	if err != nil {
 		return sqlc.CreateTransactionParams{}, err
 	}
@@ -523,7 +421,7 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 	}
 
 	if req.ForeignAmount != nil {
-		foreignAmountBytes, err := wrapMoneyToBytes(req.ForeignAmount)
+		foreignAmountBytes, err := types.ToBytes(req.ForeignAmount)
 		if err != nil {
 			return sqlc.CreateTransactionParams{}, err
 		}
@@ -550,7 +448,7 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 		params.TxDate = &txTime
 	}
 	if req.TxAmount != nil {
-		txAmountBytes, err := wrapMoneyToBytes(req.TxAmount)
+		txAmountBytes, err := types.ToBytes(req.TxAmount)
 		if err != nil {
 			return sqlc.UpdateTransactionParams{}, err
 		}
@@ -589,7 +487,7 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 		}
 	}
 	if req.ForeignAmount != nil {
-		foreignAmountBytes, err := wrapMoneyToBytes(req.ForeignAmount)
+		foreignAmountBytes, err := types.ToBytes(req.ForeignAmount)
 		if err != nil {
 			return sqlc.UpdateTransactionParams{}, err
 		}
@@ -604,7 +502,7 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 }
 
 // buildNextCursor creates pagination cursor from last transaction
-func buildNextCursor(transactions []sqlc.ListTransactionsRow, limit *int32) *pb.Cursor {
+func buildNextCursor(transactions []sqlc.Transaction, limit *int32) *pb.Cursor {
 	if len(transactions) == 0 || limit == nil || len(transactions) != int(*limit) {
 		return nil
 	}
@@ -644,18 +542,10 @@ func extractTransactionFields(row interface{}) *transactionFields {
 
 	// all transaction row types have identical field names and types
 	switch t := row.(type) {
-	case *sqlc.GetTransactionRow:
+	case *sqlc.Transaction:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: unwrapMoney(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
-			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
-			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
-			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
-		}
-	case *sqlc.ListTransactionsRow:
-		return &transactionFields{
-			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: unwrapMoney(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: types.Unwrap(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
 			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
@@ -663,7 +553,7 @@ func extractTransactionFields(row interface{}) *transactionFields {
 	case *sqlc.FindCandidateTransactionsRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: unwrapMoney(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: types.Unwrap(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
 			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
@@ -699,15 +589,7 @@ func convertTransactionToProto(row interface{}) *pb.Transaction {
 }
 
 // wrapper functions for type safety
-func toProtoTransactionFromGetRow(t *sqlc.GetTransactionRow) *pb.Transaction {
-	return convertTransactionToProto(t)
-}
-
-func toProtoTransactionFromListRow(t *sqlc.ListTransactionsRow) *pb.Transaction {
-	return convertTransactionToProto(t)
-}
-
-func toProtoTransactionFromFindRow(t *sqlc.FindCandidateTransactionsRow) *pb.Transaction {
+func toProtoTransaction(t *sqlc.Transaction) *pb.Transaction {
 	return convertTransactionToProto(t)
 }
 
@@ -736,12 +618,12 @@ func floatToMoney(f *float64) *money.Money {
 
 // buildReceiptItemParams creates sqlc params from proto receipt item request
 func buildReceiptItemParams(req *pb.CreateReceiptItemRequest) (sqlc.CreateReceiptItemParams, error) {
-	unitPriceBytes, err := wrapMoneyToBytes(floatToMoney(req.UnitPrice))
+	unitPriceBytes, err := types.ToBytes(floatToMoney(req.UnitPrice))
 	if err != nil {
 		return sqlc.CreateReceiptItemParams{}, err
 	}
 
-	lineTotalBytes, err := wrapMoneyToBytes(floatToMoney(req.LineTotal))
+	lineTotalBytes, err := types.ToBytes(floatToMoney(req.LineTotal))
 	if err != nil {
 		return sqlc.CreateReceiptItemParams{}, err
 	}
@@ -759,12 +641,12 @@ func buildReceiptItemParams(req *pb.CreateReceiptItemRequest) (sqlc.CreateReceip
 
 // buildUpdateReceiptItemParams creates sqlc params from proto update request
 func buildUpdateReceiptItemParams(req *pb.UpdateReceiptItemRequest) (sqlc.UpdateReceiptItemParams, error) {
-	unitPriceBytes, err := wrapMoneyToBytes(floatToMoney(req.UnitPrice))
+	unitPriceBytes, err := types.ToBytes(floatToMoney(req.UnitPrice))
 	if err != nil {
 		return sqlc.UpdateReceiptItemParams{}, err
 	}
 
-	lineTotalBytes, err := wrapMoneyToBytes(floatToMoney(req.LineTotal))
+	lineTotalBytes, err := types.ToBytes(floatToMoney(req.LineTotal))
 	if err != nil {
 		return sqlc.UpdateReceiptItemParams{}, err
 	}
@@ -789,8 +671,8 @@ func buildBulkCreateReceiptItemsParams(items []*pb.CreateReceiptItemRequest) []s
 			Name:      item.GetName(),
 			LineNo:    item.LineNo,
 			Qty:       floatToDecimal(item.Qty),
-			UnitPrice: wrapMoney(floatToMoney(item.UnitPrice)),
-			LineTotal: wrapMoney(floatToMoney(item.LineTotal)),
+			UnitPrice: types.Wrap(floatToMoney(item.UnitPrice)),
+			LineTotal: types.Wrap(floatToMoney(item.LineTotal)),
 			Sku:       item.Sku,
 		}
 	}
@@ -807,13 +689,13 @@ func buildReceiptItemsResponse(items []sqlc.ReceiptItem) []*pb.ReceiptItem {
 }
 
 // buildReceiptSummariesResponse converts unlinked receipts to summaries
-func buildReceiptSummariesResponse(receipts []sqlc.GetUnlinkedReceiptsRow) []*pb.ReceiptSummary {
+func buildReceiptSummariesResponse(receipts []sqlc.Receipt) []*pb.ReceiptSummary {
 	pbReceipts := make([]*pb.ReceiptSummary, len(receipts))
 	for i, receipt := range receipts {
 		pbReceipts[i] = &pb.ReceiptSummary{
 			Id:          receipt.ID,
 			Merchant:    receipt.Merchant,
-			TotalAmount: unwrapMoney(receipt.TotalAmount),
+			TotalAmount: types.Unwrap(receipt.TotalAmount),
 			CreatedAt:   toProtoTimestamp(&receipt.CreatedAt),
 		}
 	}
@@ -867,8 +749,8 @@ func toProtoReceipt(r *sqlc.Receipt) *pb.Receipt {
 		RawPayload:     rawPayload,
 		CanonicalData:  canonicalData,
 		Merchant:       r.Merchant,
-		TotalAmount:    unwrapMoney(r.TotalAmount),
-		TaxAmount:      unwrapMoney(r.TaxAmount),
+		TotalAmount:    types.Unwrap(r.TotalAmount),
+		TaxAmount:      types.Unwrap(r.TaxAmount),
 		PurchaseDate:   timeToProtoDate(r.PurchaseDate),
 		MatchIds:       r.MatchIds,
 		ImageUrl:       r.ImageUrl,
@@ -899,8 +781,8 @@ func toProtoReceiptItem(ri *sqlc.ReceiptItem) *pb.ReceiptItem {
 		Name:         ri.Name,
 		LineNo:       ri.LineNo,
 		Quantity:     quantity,
-		UnitPrice:    unwrapMoney(ri.UnitPrice),
-		LineTotal:    unwrapMoney(ri.LineTotal),
+		UnitPrice:    types.Unwrap(ri.UnitPrice),
+		LineTotal:    types.Unwrap(ri.LineTotal),
 		Sku:          ri.Sku,
 		CategoryHint: ri.CategoryHint,
 		CreatedAt:    toProtoTimestamp(&ri.CreatedAt),
@@ -1034,13 +916,13 @@ func toProtoTopMerchant(merchant *sqlc.GetTopMerchantsRow) *pb.TopMerchant {
 	}
 }
 
-func toProtoAccountBalance(account *sqlc.ListAccountsRow) *pb.AccountBalance {
+func toProtoAccountBalance(account *sqlc.Account) *pb.AccountBalance {
 	if account == nil {
 		return nil
 	}
 
 	// use anchor balance as placeholders for current balance
-	currentBalance := unwrapMoney(account.AnchorBalance)
+	currentBalance := types.Unwrap(account.AnchorBalance)
 	currency := "CAD" // default currency
 	if currentBalance != nil {
 		currency = currentBalance.CurrencyCode

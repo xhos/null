@@ -14,8 +14,8 @@ import (
 )
 
 type AccountService interface {
-	List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsRow, error)
-	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.GetAccountRow, error)
+	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Account, error)
+	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Account, error)
 	Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error)
 	Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error)
 	Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error)
@@ -43,7 +43,7 @@ func newAcctSvc(queries *sqlc.Queries, lg *log.Logger) AccountService {
 	return &acctSvc{queries: queries, log: lg}
 }
 
-func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccountsRow, error) {
+func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.Account, error) {
 	accounts, err := s.queries.ListAccounts(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("AccountService.List", err)
@@ -51,7 +51,7 @@ func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.ListAccoun
 	return accounts, nil
 }
 
-func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.GetAccountRow, error) {
+func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Account, error) {
 	account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
 		UserID: userID,
 		ID:     id,

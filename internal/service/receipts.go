@@ -31,7 +31,7 @@ type ReceiptService interface {
 	BulkCreateItems(ctx context.Context, items []sqlc.BulkCreateReceiptItemsParams) error
 	DeleteItemsByReceipt(ctx context.Context, receiptID int64) error
 
-	GetUnlinked(ctx context.Context, limit *int32) ([]sqlc.GetUnlinkedReceiptsRow, error)
+	GetUnlinked(ctx context.Context, limit *int32) ([]sqlc.Receipt, error)
 	GetMatchCandidates(ctx context.Context) ([]sqlc.GetReceiptMatchCandidatesRow, error)
 
 	UploadReceipt(ctx context.Context, userID uuid.UUID, imageData []byte, provider string) (*sqlc.Receipt, error)
@@ -164,7 +164,7 @@ func (s *receiptSvc) DeleteItemsByReceipt(ctx context.Context, receiptID int64) 
 	return nil
 }
 
-func (s *receiptSvc) GetUnlinked(ctx context.Context, limit *int32) ([]sqlc.GetUnlinkedReceiptsRow, error) {
+func (s *receiptSvc) GetUnlinked(ctx context.Context, limit *int32) ([]sqlc.Receipt, error) {
 	receipts, err := s.queries.GetUnlinkedReceipts(ctx, limit)
 	if err != nil {
 		return nil, wrapErr("ReceiptService.GetUnlinked", err)

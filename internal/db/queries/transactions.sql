@@ -1,33 +1,12 @@
 -- name: ListTransactions :many
 select
-  t.id,
-  t.email_id,
-  t.account_id,
-  t.tx_date,
-  t.tx_amount,
-  t.tx_direction,
-  t.tx_desc,
-  t.balance_after,
-  t.category_id,
-  t.category_manually_set,
-  t.merchant,
-  t.merchant_manually_set,
-  t.user_notes,
-  t.suggestions,
-  t.receipt_id,
-  t.foreign_amount,
-  t.exchange_rate,
-  t.created_at,
-  t.updated_at,
-  c.slug as category_slug,
-  c.color as category_color,
-  a.name as account_name
+  t.*
 from
   transactions t
-  left join categories c on t.category_id = c.id
   join accounts a on t.account_id = a.id
   left join account_users au on a.id = au.account_id
   and au.user_id = sqlc.arg(user_id)::uuid
+  left join categories c on t.category_id = c.id
 where
   (
     a.owner_id = sqlc.arg(user_id)::uuid
@@ -104,33 +83,9 @@ limit
 
 -- name: GetTransaction :one
 select
-  t.id,
-  t.email_id,
-  t.account_id,
-  t.tx_date,
-  t.tx_amount,
-  t.tx_direction,
-  t.tx_desc,
-  t.balance_after,
-  t.category_id,
-  t.category_manually_set,
-  t.merchant,
-  t.merchant_manually_set,
-  t.user_notes,
-  t.suggestions,
-  t.receipt_id,
-  t.foreign_amount,
-  t.exchange_rate,
-  t.created_at,
-  t.updated_at,
-  c.slug as category_slug,
-  c.color as category_color,
-  a.name as account_name,
-  a.account_type,
-  a.bank
+  t.*
 from
   transactions t
-  left join categories c on t.category_id = c.id
   join accounts a on t.account_id = a.id
   left join account_users au on a.id = au.account_id
   and au.user_id = sqlc.arg(user_id)::uuid
@@ -485,31 +440,10 @@ where
 
 -- name: FindCandidateTransactions :many
 select
-  t.id,
-  t.email_id,
-  t.account_id,
-  t.tx_date,
-  t.tx_amount,
-  t.tx_direction,
-  t.tx_desc,
-  t.balance_after,
-  t.category_id,
-  t.category_manually_set,
-  t.merchant,
-  t.merchant_manually_set,
-  t.user_notes,
-  t.suggestions,
-  t.receipt_id,
-  t.foreign_amount,
-  t.exchange_rate,
-  t.created_at,
-  t.updated_at,
-  c.slug as category_slug,
-  c.color as category_color,
+  t.*,
   similarity(t.tx_desc::text, sqlc.arg(merchant)::text) as merchant_score
 from
   transactions t
-  left join categories c on t.category_id = c.id
   join accounts a on t.account_id = a.id
   left join account_users au on a.id = au.account_id
   and au.user_id = sqlc.arg(user_id)::uuid

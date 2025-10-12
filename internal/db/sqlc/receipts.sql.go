@@ -452,11 +452,7 @@ func (q *Queries) GetReceiptMatchCandidates(ctx context.Context) ([]GetReceiptMa
 
 const getUnlinkedReceipts = `-- name: GetUnlinkedReceipts :many
 select
-  id,
-  merchant,
-  purchase_date,
-  total_amount,
-  created_at
+  id, engine, parse_status, link_status, match_ids, merchant, purchase_date, total_amount, tax_amount, raw_payload, canonical_data, image_url, image_sha256, lat, lon, location_source, location_label, created_at, updated_at
 from
   receipts
 where
@@ -467,30 +463,36 @@ limit
   COALESCE($1::int, 50)
 `
 
-type GetUnlinkedReceiptsRow struct {
-	ID           int64        `json:"id"`
-	Merchant     *string      `json:"merchant"`
-	PurchaseDate *time.Time   `json:"purchase_date"`
-	TotalAmount  *types.Money `json:"total_amount"`
-	CreatedAt    time.Time    `json:"created_at"`
-}
-
 // Utility queries
-func (q *Queries) GetUnlinkedReceipts(ctx context.Context, limit *int32) ([]GetUnlinkedReceiptsRow, error) {
+func (q *Queries) GetUnlinkedReceipts(ctx context.Context, limit *int32) ([]Receipt, error) {
 	rows, err := q.db.Query(ctx, getUnlinkedReceipts, limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUnlinkedReceiptsRow
+	var items []Receipt
 	for rows.Next() {
-		var i GetUnlinkedReceiptsRow
+		var i Receipt
 		if err := rows.Scan(
 			&i.ID,
+			&i.Engine,
+			&i.ParseStatus,
+			&i.LinkStatus,
+			&i.MatchIds,
 			&i.Merchant,
 			&i.PurchaseDate,
 			&i.TotalAmount,
+			&i.TaxAmount,
+			&i.RawPayload,
+			&i.CanonicalData,
+			&i.ImageUrl,
+			&i.ImageSha256,
+			&i.Lat,
+			&i.Lon,
+			&i.LocationSource,
+			&i.LocationLabel,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

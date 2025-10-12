@@ -21,7 +21,7 @@ func (s *Server) ListTransactions(ctx context.Context, req *connect.Request[pb.L
 	}
 
 	return connect.NewResponse(&pb.ListTransactionsResponse{
-		Transactions: mapSlice(transactions, toProtoTransactionFromListRow),
+		Transactions: mapSlice(transactions, toProtoTransaction),
 		TotalCount:   int64(len(transactions)),
 		NextCursor:   buildNextCursor(transactions, req.Msg.Limit),
 	}), nil
@@ -44,7 +44,7 @@ func (s *Server) GetTransaction(ctx context.Context, req *connect.Request[pb.Get
 	}
 
 	return connect.NewResponse(&pb.GetTransactionResponse{
-		Transaction: toProtoTransactionFromGetRow(transaction),
+		Transaction: convertTransactionToProto(transaction),
 	}), nil
 }
 
@@ -75,7 +75,7 @@ func (s *Server) CreateTransaction(ctx context.Context, req *connect.Request[pb.
 	}
 
 	return connect.NewResponse(&pb.CreateTransactionResponse{
-		Transaction: toProtoTransactionFromGetRow(transaction),
+		Transaction: convertTransactionToProto(transaction),
 	}), nil
 }
 
@@ -106,7 +106,7 @@ func (s *Server) UpdateTransaction(ctx context.Context, req *connect.Request[pb.
 	}
 
 	return connect.NewResponse(&pb.UpdateTransactionResponse{
-		Transaction: toProtoTransactionFromGetRow(transaction),
+		Transaction: convertTransactionToProto(transaction),
 	}), nil
 }
 
@@ -182,7 +182,7 @@ func (s *Server) CategorizeTransaction(ctx context.Context, req *connect.Request
 	}
 
 	return connect.NewResponse(&pb.CategorizeTransactionResponse{
-		Transaction: toProtoTransactionFromGetRow(transaction),
+		Transaction: convertTransactionToProto(transaction),
 	}), nil
 }
 
@@ -198,9 +198,9 @@ func (s *Server) SearchTransactions(ctx context.Context, req *connect.Request[pb
 	}
 
 	return connect.NewResponse(&pb.SearchTransactionsResponse{
-		Transactions: mapSlice(transactions, func(tx *sqlc.ListTransactionsRow) *pb.TransactionWithScore {
+		Transactions: mapSlice(transactions, func(tx *sqlc.Transaction) *pb.TransactionWithScore {
 			return &pb.TransactionWithScore{
-				Transaction: toProtoTransactionFromListRow(tx),
+				Transaction: convertTransactionToProto(tx),
 			}
 		}),
 		TotalCount: int64(len(transactions)),
@@ -219,7 +219,7 @@ func (s *Server) GetTransactionsByAccount(ctx context.Context, req *connect.Requ
 	}
 
 	return connect.NewResponse(&pb.GetTransactionsByAccountResponse{
-		Transactions: mapSlice(transactions, toProtoTransactionFromListRow),
+		Transactions: mapSlice(transactions, toProtoTransaction),
 		TotalCount:   int64(len(transactions)),
 		NextCursor:   buildNextCursor(transactions, req.Msg.Limit),
 	}), nil
@@ -237,7 +237,7 @@ func (s *Server) GetUncategorizedTransactions(ctx context.Context, req *connect.
 	}
 
 	return connect.NewResponse(&pb.GetUncategorizedTransactionsResponse{
-		Transactions: mapSlice(transactions, toProtoTransactionFromListRow),
+		Transactions: mapSlice(transactions, toProtoTransaction),
 		TotalCount:   int64(len(transactions)),
 		NextCursor:   buildNextCursor(transactions, req.Msg.Limit),
 	}), nil
@@ -307,7 +307,7 @@ func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Req
 	return connect.NewResponse(&pb.FindCandidateTransactionsResponse{
 		Candidates: mapSlice(candidates, func(candidate *sqlc.FindCandidateTransactionsRow) *pb.TransactionWithScore {
 			return &pb.TransactionWithScore{
-				Transaction: toProtoTransactionFromFindRow(candidate),
+				Transaction: convertTransactionToProto(candidate),
 			}
 		}),
 	}), nil

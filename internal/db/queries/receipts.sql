@@ -322,11 +322,7 @@ where
 -- Utility queries
 -- name: GetUnlinkedReceipts :many
 select
-  id,
-  merchant,
-  purchase_date,
-  total_amount,
-  created_at
+  *
 from
   receipts
 where

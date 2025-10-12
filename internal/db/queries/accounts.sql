@@ -1,19 +1,6 @@
 -- name: ListAccounts :many
 select
-  a.id,
-  a.owner_id,
-  a.name,
-  a.bank,
-  a.account_type,
-  a.alias,
-  a.anchor_date,
-  a.anchor_balance,
-  a.balance,
-  a.main_currency,
-  a.colors,
-  a.created_at,
-  a.updated_at,
-  (a.owner_id = @user_id::uuid) as is_owner
+  a.*
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -22,25 +9,12 @@ where
   a.owner_id = @user_id::uuid
   or au.user_id is not null
 order by
-  is_owner desc,
+  (a.owner_id = @user_id::uuid) desc,
   a.created_at;
 
 -- name: GetAccount :one
 select
-  a.id,
-  a.owner_id,
-  a.name,
-  a.bank,
-  a.account_type,
-  a.alias,
-  a.anchor_date,
-  a.anchor_balance,
-  a.balance,
-  a.main_currency,
-  a.colors,
-  a.created_at,
-  a.updated_at,
-  (a.owner_id = @user_id::uuid) as is_owner
+  a.*
 from
   accounts a
   left join account_users au on au.account_id = a.id

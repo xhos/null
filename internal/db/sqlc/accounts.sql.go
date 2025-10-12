@@ -9,7 +9,6 @@ import (
 	"context"
 	"time"
 
-	arian "ariand/internal/gen/arian/v1"
 	"ariand/internal/types"
 	"github.com/google/uuid"
 )
@@ -137,20 +136,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) (i
 
 const getAccount = `-- name: GetAccount :one
 select
-  a.id,
-  a.owner_id,
-  a.name,
-  a.bank,
-  a.account_type,
-  a.alias,
-  a.anchor_date,
-  a.anchor_balance,
-  a.balance,
-  a.main_currency,
-  a.colors,
-  a.created_at,
-  a.updated_at,
-  (a.owner_id = $1::uuid) as is_owner
+  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance, a.created_at, a.updated_at, a.main_currency, a.colors, a.balance
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -168,26 +154,9 @@ type GetAccountParams struct {
 	ID     int64     `json:"id"`
 }
 
-type GetAccountRow struct {
-	ID            int64             `json:"id"`
-	OwnerID       uuid.UUID         `json:"owner_id"`
-	Name          string            `json:"name"`
-	Bank          string            `json:"bank"`
-	AccountType   arian.AccountType `json:"account_type"`
-	Alias         *string           `json:"alias"`
-	AnchorDate    time.Time         `json:"anchor_date"`
-	AnchorBalance *types.Money      `json:"anchor_balance"`
-	Balance       []byte            `json:"balance"`
-	MainCurrency  string            `json:"main_currency"`
-	Colors        []string          `json:"colors"`
-	CreatedAt     time.Time         `json:"created_at"`
-	UpdatedAt     time.Time         `json:"updated_at"`
-	IsOwner       bool              `json:"is_owner"`
-}
-
-func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAccountRow, error) {
+func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (Account, error) {
 	row := q.db.QueryRow(ctx, getAccount, arg.UserID, arg.ID)
-	var i GetAccountRow
+	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.OwnerID,
@@ -197,12 +166,11 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 		&i.Alias,
 		&i.AnchorDate,
 		&i.AnchorBalance,
-		&i.Balance,
-		&i.MainCurrency,
-		&i.Colors,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.IsOwner,
+		&i.MainCurrency,
+		&i.Colors,
+		&i.Balance,
 	)
 	return i, err
 }
@@ -281,20 +249,7 @@ func (q *Queries) GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (i
 
 const listAccounts = `-- name: ListAccounts :many
 select
-  a.id,
-  a.owner_id,
-  a.name,
-  a.bank,
-  a.account_type,
-  a.alias,
-  a.anchor_date,
-  a.anchor_balance,
-  a.balance,
-  a.main_currency,
-  a.colors,
-  a.created_at,
-  a.updated_at,
-  (a.owner_id = $1::uuid) as is_owner
+  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance, a.created_at, a.updated_at, a.main_currency, a.colors, a.balance
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -303,36 +258,19 @@ where
   a.owner_id = $1::uuid
   or au.user_id is not null
 order by
-  is_owner desc,
+  (a.owner_id = $1::uuid) desc,
   a.created_at
 `
 
-type ListAccountsRow struct {
-	ID            int64             `json:"id"`
-	OwnerID       uuid.UUID         `json:"owner_id"`
-	Name          string            `json:"name"`
-	Bank          string            `json:"bank"`
-	AccountType   arian.AccountType `json:"account_type"`
-	Alias         *string           `json:"alias"`
-	AnchorDate    time.Time         `json:"anchor_date"`
-	AnchorBalance *types.Money      `json:"anchor_balance"`
-	Balance       []byte            `json:"balance"`
-	MainCurrency  string            `json:"main_currency"`
-	Colors        []string          `json:"colors"`
-	CreatedAt     time.Time         `json:"created_at"`
-	UpdatedAt     time.Time         `json:"updated_at"`
-	IsOwner       bool              `json:"is_owner"`
-}
-
-func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAccountsRow, error) {
+func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]Account, error) {
 	rows, err := q.db.Query(ctx, listAccounts, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListAccountsRow
+	var items []Account
 	for rows.Next() {
-		var i ListAccountsRow
+		var i Account
 		if err := rows.Scan(
 			&i.ID,
 			&i.OwnerID,
@@ -342,12 +280,11 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 			&i.Alias,
 			&i.AnchorDate,
 			&i.AnchorBalance,
-			&i.Balance,
-			&i.MainCurrency,
-			&i.Colors,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.IsOwner,
+			&i.MainCurrency,
+			&i.Colors,
+			&i.Balance,
 		); err != nil {
 			return nil, err
 		}

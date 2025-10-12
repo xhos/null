@@ -3,6 +3,7 @@ package api
 import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
+	"ariand/internal/types"
 	"context"
 
 	"connectrpc.com/connect"
@@ -38,7 +39,7 @@ func (s *Server) GetAccount(ctx context.Context, req *connect.Request[pb.GetAcco
 	}
 
 	return connect.NewResponse(&pb.GetAccountResponse{
-		Account: toProtoAccountFromGetRow(account),
+		Account: toProtoAccount(account),
 	}), nil
 }
 
@@ -54,7 +55,7 @@ func (s *Server) CreateAccount(ctx context.Context, req *connect.Request[pb.Crea
 	}
 
 	return connect.NewResponse(&pb.CreateAccountResponse{
-		Account: toProtoAccountFromModel(account),
+		Account: toProtoAccount(account),
 	}), nil
 }
 
@@ -66,7 +67,7 @@ func (s *Server) UpdateAccount(ctx context.Context, req *connect.Request[pb.Upda
 	}
 
 	return connect.NewResponse(&pb.UpdateAccountResponse{
-		Account: toProtoAccountFromModel(account),
+		Account: toProtoAccount(account),
 	}), nil
 }
 
@@ -93,7 +94,7 @@ func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.Dele
 
 func (s *Server) SetAccountAnchor(ctx context.Context, req *connect.Request[pb.SetAccountAnchorRequest]) (*connect.Response[pb.SetAccountAnchorResponse], error) {
 	// Convert money to MoneyWrapper and then to JSONB bytes
-	wrapper := wrapMoney(req.Msg.GetBalance())
+	wrapper := types.Wrap(req.Msg.GetBalance())
 	jsonBytes, err := wrapper.Value()
 	if err != nil {
 		return nil, handleError(err)

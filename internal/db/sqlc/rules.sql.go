@@ -7,10 +7,7 @@ package sqlc
 
 import (
 	"context"
-	"time"
 
-	arian "ariand/internal/gen/arian/v1"
-	"ariand/internal/types"
 	"github.com/google/uuid"
 )
 
@@ -187,19 +184,7 @@ func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRu
 
 const getTransactionsForRuleApplication = `-- name: GetTransactionsForRuleApplication :many
 select
-  t.id,
-  t.account_id,
-  t.tx_date,
-  t.tx_amount,
-  t.tx_direction,
-  t.tx_desc,
-  t.merchant,
-  t.category_id,
-  t.category_manually_set,
-  t.merchant_manually_set,
-  a.account_type,
-  a.bank,
-  a.name as account_name
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.receipt_id, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
@@ -214,45 +199,35 @@ type GetTransactionsForRuleApplicationParams struct {
 	IncludeManuallySet *bool     `json:"include_manually_set"`
 }
 
-type GetTransactionsForRuleApplicationRow struct {
-	ID                  int64                      `json:"id"`
-	AccountID           int64                      `json:"account_id"`
-	TxDate              time.Time                  `json:"tx_date"`
-	TxAmount            *types.Money               `json:"tx_amount"`
-	TxDirection         arian.TransactionDirection `json:"tx_direction"`
-	TxDesc              *string                    `json:"tx_desc"`
-	Merchant            *string                    `json:"merchant"`
-	CategoryID          *int64                     `json:"category_id"`
-	CategoryManuallySet bool                       `json:"category_manually_set"`
-	MerchantManuallySet bool                       `json:"merchant_manually_set"`
-	AccountType         arian.AccountType          `json:"account_type"`
-	Bank                string                     `json:"bank"`
-	AccountName         string                     `json:"account_name"`
-}
-
-func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg GetTransactionsForRuleApplicationParams) ([]GetTransactionsForRuleApplicationRow, error) {
+func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg GetTransactionsForRuleApplicationParams) ([]Transaction, error) {
 	rows, err := q.db.Query(ctx, getTransactionsForRuleApplication, arg.UserID, arg.TransactionIds, arg.IncludeManuallySet)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetTransactionsForRuleApplicationRow
+	var items []Transaction
 	for rows.Next() {
-		var i GetTransactionsForRuleApplicationRow
+		var i Transaction
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
+			&i.EmailID,
 			&i.TxDate,
 			&i.TxAmount,
 			&i.TxDirection,
 			&i.TxDesc,
+			&i.BalanceAfter,
 			&i.Merchant,
 			&i.CategoryID,
+			&i.Suggestions,
+			&i.UserNotes,
+			&i.ForeignAmount,
+			&i.ExchangeRate,
+			&i.ReceiptID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.CategoryManuallySet,
 			&i.MerchantManuallySet,
-			&i.AccountType,
-			&i.Bank,
-			&i.AccountName,
 		); err != nil {
 			return nil, err
 		}
