@@ -86,7 +86,10 @@
           '')
         ];
 
-        shellHook = self.checks.${pkgs.system}.pre-commit.shellHook;
+        shellHook = ''
+          export PATH="$HOME/go/bin:$PATH"
+          ${self.checks.${pkgs.system}.pre-commit.shellHook}
+        '';
       };
     });
 
