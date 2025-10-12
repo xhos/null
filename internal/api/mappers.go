@@ -493,15 +493,20 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 		return sqlc.CreateTransactionParams{}, err
 	}
 
+	categoryManuallySet := false
+	merchantManuallySet := false
+
 	params := sqlc.CreateTransactionParams{
-		UserID:      userID,
-		AccountID:   req.GetAccountId(),
-		TxDate:      fromProtoTimestamp(req.TxDate),
-		TxAmount:    txAmountBytes,
-		TxDirection: int16(req.Direction),
-		TxDesc:      req.Description,
-		Merchant:    req.Merchant,
-		UserNotes:   req.UserNotes,
+		UserID:              userID,
+		AccountID:           req.GetAccountId(),
+		TxDate:              fromProtoTimestamp(req.TxDate),
+		TxAmount:            txAmountBytes,
+		TxDirection:         int16(req.Direction),
+		TxDesc:              req.Description,
+		Merchant:            req.Merchant,
+		UserNotes:           req.UserNotes,
+		CategoryManuallySet: &categoryManuallySet,
+		MerchantManuallySet: &merchantManuallySet,
 	}
 
 	// if user provides category_id, mark it as manually set

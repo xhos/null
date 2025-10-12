@@ -20,7 +20,6 @@ type TransactionData struct {
 }
 
 // EvaluateRule evaluates a rule against transaction data
-// This is a placeholder for future implementation when rule application is needed
 func EvaluateRule(rule *RuleConditions, data *TransactionData) (bool, error) {
 	if rule == nil || data == nil {
 		return false, nil

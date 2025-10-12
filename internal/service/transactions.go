@@ -3,6 +3,7 @@ package service
 import (
 	"ariand/internal/ai"
 	"ariand/internal/db/sqlc"
+	"ariand/internal/rules"
 	"ariand/internal/types"
 	"context"
 	"database/sql"
@@ -44,11 +45,12 @@ type txnSvc struct {
 	queries *sqlc.Queries
 	log     *log.Logger
 	catSvc  CategoryService
+	ruleSvc RuleService
 	aiMgr   *ai.Manager
 }
 
-func newTxnSvc(queries *sqlc.Queries, lg *log.Logger, catSvc CategoryService, aiMgr *ai.Manager) TransactionService {
-	return &txnSvc{queries: queries, log: lg, catSvc: catSvc, aiMgr: aiMgr}
+func newTxnSvc(queries *sqlc.Queries, lg *log.Logger, catSvc CategoryService, ruleSvc RuleService, aiMgr *ai.Manager) TransactionService {
+	return &txnSvc{queries: queries, log: lg, catSvc: catSvc, ruleSvc: ruleSvc, aiMgr: aiMgr}
 }
 
 type categorizationResult struct {
@@ -105,6 +107,20 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		return 0, wrapErr("TransactionService.Create", err)
 	}
 
+	// apply rules if fields weren't manually set
+	shouldApplyRules := (params.CategoryManuallySet == nil || !*params.CategoryManuallySet) ||
+		(params.MerchantManuallySet == nil || !*params.MerchantManuallySet)
+
+	s.log.Info("Transaction created, checking if rules should apply",
+		"tx_id", id,
+		"should_apply_rules", shouldApplyRules,
+		"category_manually_set", params.CategoryManuallySet,
+		"merchant_manually_set", params.MerchantManuallySet)
+
+	if shouldApplyRules {
+		s.applyRulesToTransaction(ctx, params.UserID, id)
+	}
+
 	// recalculate all account balances to ensure consistency
 	err = s.queries.SyncAccountBalances(ctx, params.AccountID)
 	if err != nil {
@@ -133,6 +149,16 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	}
 	if err != nil {
 		return wrapErr("TransactionService.Update", err)
+	}
+
+	// apply rules if relevant fields changed and aren't manually set
+	fieldsChangedForRules := params.TxDesc != nil || params.Merchant != nil ||
+		params.TxAmount != nil || params.TxDirection != nil
+	shouldApplyRules := fieldsChangedForRules &&
+		(!tx.CategoryManuallySet || !tx.MerchantManuallySet)
+
+	if shouldApplyRules {
+		s.applyRulesToTransaction(ctx, params.UserID, params.ID)
 	}
 
 	// check if amount, date, or direction changed - if so, recalculate balances
@@ -643,4 +669,102 @@ func equalBytes(a, b []byte) bool {
 		}
 	}
 	return true
+}
+
+func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, txID int64) {
+	s.log.Info("Applying rules to transaction", "tx_id", txID, "user_id", userID)
+
+	// fetch transaction with account data for rule evaluation
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
+		UserID: userID,
+		ID:     txID,
+	})
+	if err != nil {
+		s.log.Warn("failed to fetch transaction for rule application", "tx_id", txID, "error", err)
+		return
+	}
+
+	// skip if manually set
+	if tx.CategoryManuallySet && tx.MerchantManuallySet {
+		s.log.Info("Skipping rule application - both fields manually set", "tx_id", txID)
+		return
+	}
+
+	s.log.Info("Transaction data for rule evaluation",
+		"tx_id", txID,
+		"description", tx.TxDesc,
+		"merchant", tx.Merchant,
+		"category_manually_set", tx.CategoryManuallySet,
+		"merchant_manually_set", tx.MerchantManuallySet)
+
+	// build transaction data for rule evaluation
+	txData := buildTransactionDataFromGetRow(&tx)
+
+	// apply rules
+	result, err := s.ruleSvc.ApplyToTransaction(ctx, userID, txData)
+	if err != nil {
+		s.log.Warn("failed to apply rules", "tx_id", txID, "error", err)
+		return
+	}
+
+	s.log.Info("Rule application result",
+		"tx_id", txID,
+		"category_id", result.CategoryID,
+		"merchant", result.Merchant)
+
+	// update only if rules matched something
+	if result.CategoryID == nil && result.Merchant == nil {
+		s.log.Info("No rules matched for transaction", "tx_id", txID)
+		return
+	}
+
+	updateParams := sqlc.UpdateTransactionParams{
+		ID:     txID,
+		UserID: userID,
+	}
+
+	if !tx.CategoryManuallySet && result.CategoryID != nil {
+		updateParams.CategoryID = result.CategoryID
+		s.log.Info("Setting category from rule", "tx_id", txID, "category_id", *result.CategoryID)
+	}
+
+	if !tx.MerchantManuallySet && result.Merchant != nil {
+		updateParams.Merchant = result.Merchant
+		s.log.Info("Setting merchant from rule", "tx_id", txID, "merchant", *result.Merchant)
+	}
+
+	_, err = s.queries.UpdateTransaction(ctx, updateParams)
+	if err != nil {
+		s.log.Warn("failed to update transaction with rule results", "tx_id", txID, "error", err)
+		return
+	}
+
+	s.log.Info("Successfully applied rules to transaction", "tx_id", txID)
+}
+
+func buildTransactionDataFromGetRow(tx *sqlc.GetTransactionRow) *rules.TransactionData {
+	data := &rules.TransactionData{
+		Merchant:    tx.Merchant,
+		TxDesc:      tx.TxDesc,
+		AccountName: &tx.AccountName,
+		AccountType: stringPtr(tx.AccountType.String()),
+		Bank:        &tx.Bank,
+	}
+
+	if tx.TxDirection > 0 {
+		direction := int16(tx.TxDirection)
+		data.TxDirection = &direction
+	}
+
+	if tx.TxAmount != nil {
+		amount := float64(tx.TxAmount.Units)
+		if tx.TxAmount.Nanos != 0 {
+			amount += float64(tx.TxAmount.Nanos) / 1_000_000_000
+		}
+		data.Amount = &amount
+		currency := tx.TxAmount.CurrencyCode
+		data.Currency = &currency
+	}
+
+	return data
 }

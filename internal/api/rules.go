@@ -107,6 +107,17 @@ func (s *Server) CreateRule(ctx context.Context, req *connect.Request[pb.CreateR
 		return nil, handleError(err)
 	}
 
+	// apply to existing transactions if requested
+	if req.Msg.ApplyToExisting != nil && *req.Msg.ApplyToExisting {
+		count, err := s.services.Rules.ApplyToExisting(ctx, userID, nil)
+		if err != nil {
+			// log but don't fail the request
+			s.log.Warn("failed to apply rule to existing transactions", "rule_id", rule.RuleID, "error", err)
+		} else {
+			s.log.Info("applied rule to existing transactions", "rule_id", rule.RuleID, "count", count)
+		}
+	}
+
 	return connect.NewResponse(&pb.CreateRuleResponse{
 		Rule: toProtoRule(rule),
 	}), nil
@@ -174,6 +185,16 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 	rule, err := s.services.Rules.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
+	}
+
+	// apply to existing transactions if requested
+	if req.Msg.ApplyToExisting != nil && *req.Msg.ApplyToExisting {
+		count, err := s.services.Rules.ApplyToExisting(ctx, userID, nil)
+		if err != nil {
+			s.log.Warn("failed to apply rule to existing transactions", "rule_id", rule.RuleID, "error", err)
+		} else {
+			s.log.Info("applied rule to existing transactions", "rule_id", rule.RuleID, "count", count)
+		}
 	}
 
 	return connect.NewResponse(&pb.UpdateRuleResponse{

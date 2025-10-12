@@ -125,7 +125,9 @@ select
   t.updated_at,
   c.slug as category_slug,
   c.color as category_color,
-  a.name as account_name
+  a.name as account_name,
+  a.account_type,
+  a.bank
 from
   transactions t
   left join categories c on t.category_id = c.id

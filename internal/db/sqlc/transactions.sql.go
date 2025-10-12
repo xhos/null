@@ -440,7 +440,9 @@ select
   t.updated_at,
   c.slug as category_slug,
   c.color as category_color,
-  a.name as account_name
+  a.name as account_name,
+  a.account_type,
+  a.bank
 from
   transactions t
   left join categories c on t.category_id = c.id
@@ -483,6 +485,8 @@ type GetTransactionRow struct {
 	CategorySlug        *string                    `json:"category_slug"`
 	CategoryColor       *string                    `json:"category_color"`
 	AccountName         string                     `json:"account_name"`
+	AccountType         arian.AccountType          `json:"account_type"`
+	Bank                string                     `json:"bank"`
 }
 
 func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) (GetTransactionRow, error) {
@@ -511,6 +515,8 @@ func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) 
 		&i.CategorySlug,
 		&i.CategoryColor,
 		&i.AccountName,
+		&i.AccountType,
+		&i.Bank,
 	)
 	return i, err
 }

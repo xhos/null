@@ -44,10 +44,12 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager)
 		lg.Info("receipt parser service connected successfully", "url", cfg.ReceiptParserURL)
 	}
 
+	ruleSvc := newCatRuleSvc(queries, lg.WithPrefix("rules"))
+
 	return &Services{
-		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, aiMgr),
+		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, ruleSvc, aiMgr),
 		Categories:   catSvc,
-		Rules:        newCatRuleSvc(queries, lg.WithPrefix("rules")),
+		Rules:        ruleSvc,
 		Accounts:     newAcctSvc(queries, lg.WithPrefix("acct")),
 		Dashboard:    newDashSvc(queries),
 		Users:        newUserSvc(queries, lg.WithPrefix("user")),
