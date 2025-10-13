@@ -22,17 +22,27 @@ sql:
             go_type:
               type: 'time.Time'
 
-          # numeric to decimal (default for non-money fields)
-          - db_type: 'pg_catalog.numeric'
+
+          # double precision to float64
+          - db_type: 'double precision'
             nullable: false
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
-          - db_type: 'pg_catalog.numeric'
+              type: 'float64'
+          - db_type: 'double precision'
             nullable: true
             go_type:
-              import: 'github.com/shopspring/decimal'
-              type: 'Decimal'
+              type: 'float64'
+              pointer: true
+
+          # int to int32
+          - db_type: 'pg_catalog.int4'
+            nullable: false
+            go_type:
+              type: 'int32'
+          - db_type: 'pg_catalog.int4'
+            nullable: true
+            go_type:
+              type: 'int32'
               pointer: true
 
           # money fields - use custom Money for JSONB

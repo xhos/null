@@ -262,12 +262,9 @@ const updateUser = `-- name: UpdateUser :one
 update
   users
 set
-  email = COALESCE($1::text, email),
-  display_name = COALESCE($2::text, display_name),
-  default_account_id = COALESCE(
-    $3::bigint,
-    default_account_id
-  )
+  email = $1::text,
+  display_name = $2::text,
+  default_account_id = $3::bigint
 where
   id = $4::uuid
 returning

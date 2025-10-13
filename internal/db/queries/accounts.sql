@@ -58,21 +58,15 @@ returning
 update
   accounts
 set
-  name = COALESCE(sqlc.narg('name')::text, name),
-  bank = COALESCE(sqlc.narg('bank')::text, bank),
-  account_type = COALESCE(
-    sqlc.narg('account_type')::smallint,
-    account_type
-  ),
-  alias = COALESCE(sqlc.narg('alias')::text, alias),
-  anchor_date = COALESCE(sqlc.narg('anchor_date')::date, anchor_date),
-  anchor_balance = COALESCE(
-    sqlc.narg('anchor_balance')::jsonb,
-    anchor_balance
-  ),
-  balance = COALESCE(sqlc.narg('balance')::jsonb, balance),
-  main_currency = COALESCE(sqlc.narg('main_currency')::text, main_currency),
-  colors = COALESCE(sqlc.narg('colors')::text [], colors)
+  name = sqlc.narg('name')::text,
+  bank = sqlc.narg('bank')::text,
+  account_type = sqlc.narg('account_type')::smallint,
+  alias = sqlc.narg('alias')::text,
+  anchor_date = sqlc.narg('anchor_date')::date,
+  anchor_balance = sqlc.narg('anchor_balance')::jsonb,
+  balance = sqlc.narg('balance')::jsonb,
+  main_currency = sqlc.narg('main_currency')::text,
+  colors = sqlc.narg('colors')::text []
 where
   id = @id::bigint
 returning

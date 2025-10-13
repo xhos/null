@@ -13,7 +13,6 @@ import (
 	"ariand/internal/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/shopspring/decimal"
 )
 
 const bulkCategorizeTransactions = `-- name: BulkCategorizeTransactions :execrows
@@ -168,7 +167,7 @@ select
   $11::boolean,
   $12::text,
   $13::jsonb,
-  $14::numeric,
+  $14::double precision,
   $15::text [],
   $16::bigint
 from
@@ -186,23 +185,23 @@ returning
 `
 
 type CreateTransactionParams struct {
-	EmailID             *string          `json:"email_id"`
-	AccountID           int64            `json:"account_id"`
-	TxDate              time.Time        `json:"tx_date"`
-	TxAmount            []byte           `json:"tx_amount"`
-	TxDirection         int16            `json:"tx_direction"`
-	TxDesc              *string          `json:"tx_desc"`
-	BalanceAfter        []byte           `json:"balance_after"`
-	CategoryID          *int64           `json:"category_id"`
-	CategoryManuallySet *bool            `json:"category_manually_set"`
-	Merchant            *string          `json:"merchant"`
-	MerchantManuallySet *bool            `json:"merchant_manually_set"`
-	UserNotes           *string          `json:"user_notes"`
-	ForeignAmount       []byte           `json:"foreign_amount"`
-	ExchangeRate        *decimal.Decimal `json:"exchange_rate"`
-	Suggestions         []string         `json:"suggestions"`
-	ReceiptID           *int64           `json:"receipt_id"`
-	UserID              uuid.UUID        `json:"user_id"`
+	EmailID             *string   `json:"email_id"`
+	AccountID           int64     `json:"account_id"`
+	TxDate              time.Time `json:"tx_date"`
+	TxAmount            []byte    `json:"tx_amount"`
+	TxDirection         int16     `json:"tx_direction"`
+	TxDesc              *string   `json:"tx_desc"`
+	BalanceAfter        []byte    `json:"balance_after"`
+	CategoryID          *int64    `json:"category_id"`
+	CategoryManuallySet *bool     `json:"category_manually_set"`
+	Merchant            *string   `json:"merchant"`
+	MerchantManuallySet *bool     `json:"merchant_manually_set"`
+	UserNotes           *string   `json:"user_notes"`
+	ForeignAmount       []byte    `json:"foreign_amount"`
+	ExchangeRate        *float64  `json:"exchange_rate"`
+	Suggestions         []string  `json:"suggestions"`
+	ReceiptID           *int64    `json:"receipt_id"`
+	UserID              uuid.UUID `json:"user_id"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (int64, error) {
@@ -279,7 +278,7 @@ where
   and t.receipt_id is null
   and t.tx_direction = 2
   and t.tx_date >= ($3::date - interval '60 days')
-  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between $4::numeric and ($4::numeric * 1.20)
+  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between $4::double precision and ($4::double precision * 1.20)
   and similarity(t.tx_desc::text, $1::text) > 0.3
 order by
   merchant_score desc
@@ -288,10 +287,10 @@ limit
 `
 
 type FindCandidateTransactionsParams struct {
-	Merchant string          `json:"merchant"`
-	UserID   uuid.UUID       `json:"user_id"`
-	Date     time.Time       `json:"date"`
-	Total    decimal.Decimal `json:"total"`
+	Merchant string    `json:"merchant"`
+	UserID   uuid.UUID `json:"user_id"`
+	Date     time.Time `json:"date"`
+	Total    float64   `json:"total"`
 }
 
 type FindCandidateTransactionsRow struct {
@@ -308,7 +307,7 @@ type FindCandidateTransactionsRow struct {
 	Suggestions         []string                   `json:"suggestions"`
 	UserNotes           *string                    `json:"user_notes"`
 	ForeignAmount       *types.Money               `json:"foreign_amount"`
-	ExchangeRate        *decimal.Decimal           `json:"exchange_rate"`
+	ExchangeRate        *float64                   `json:"exchange_rate"`
 	ReceiptID           *int64                     `json:"receipt_id"`
 	CreatedAt           time.Time                  `json:"created_at"`
 	UpdatedAt           time.Time                  `json:"updated_at"`
@@ -517,12 +516,12 @@ where
     or t.tx_date <= $5::timestamptz
   )
   and (
-    $6::numeric is null
-    or (t.tx_amount ->> 'units')::bigint >= $6::numeric
+    $6::double precision is null
+    or (t.tx_amount ->> 'units')::bigint >= $6::double precision
   )
   and (
-    $7::numeric is null
-    or (t.tx_amount ->> 'units')::bigint <= $7::numeric
+    $7::double precision is null
+    or (t.tx_amount ->> 'units')::bigint <= $7::double precision
   )
   and (
     $8::smallint is null
@@ -571,23 +570,23 @@ limit
 `
 
 type ListTransactionsParams struct {
-	UserID        uuid.UUID        `json:"user_id"`
-	CursorDate    *time.Time       `json:"cursor_date"`
-	CursorID      *int64           `json:"cursor_id"`
-	Start         *time.Time       `json:"start"`
-	End           *time.Time       `json:"end"`
-	AmountMin     *decimal.Decimal `json:"amount_min"`
-	AmountMax     *decimal.Decimal `json:"amount_max"`
-	Direction     *int16           `json:"direction"`
-	AccountIds    []int64          `json:"account_ids"`
-	Categories    []string         `json:"categories"`
-	MerchantQ     *string          `json:"merchant_q"`
-	DescQ         *string          `json:"desc_q"`
-	Currency      *string          `json:"currency"`
-	TodStart      pgtype.Time      `json:"tod_start"`
-	TodEnd        pgtype.Time      `json:"tod_end"`
-	Uncategorized *bool            `json:"uncategorized"`
-	Limit         *int32           `json:"limit"`
+	UserID        uuid.UUID   `json:"user_id"`
+	CursorDate    *time.Time  `json:"cursor_date"`
+	CursorID      *int64      `json:"cursor_id"`
+	Start         *time.Time  `json:"start"`
+	End           *time.Time  `json:"end"`
+	AmountMin     *float64    `json:"amount_min"`
+	AmountMax     *float64    `json:"amount_max"`
+	Direction     *int16      `json:"direction"`
+	AccountIds    []int64     `json:"account_ids"`
+	Categories    []string    `json:"categories"`
+	MerchantQ     *string     `json:"merchant_q"`
+	DescQ         *string     `json:"desc_q"`
+	Currency      *string     `json:"currency"`
+	TodStart      pgtype.Time `json:"tod_start"`
+	TodEnd        pgtype.Time `json:"tod_end"`
+	Uncategorized *bool       `json:"uncategorized"`
+	Limit         *int32      `json:"limit"`
 }
 
 func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {
@@ -833,29 +832,20 @@ const updateTransaction = `-- name: UpdateTransaction :one
 update
   transactions
 set
-  email_id = COALESCE($1::text, email_id),
-  tx_date = COALESCE($2::timestamptz, tx_date),
-  tx_amount = COALESCE($3::jsonb, tx_amount),
-  tx_direction = COALESCE(
-    $4::smallint,
-    tx_direction
-  ),
-  tx_desc = COALESCE($5::text, tx_desc),
-  category_id = COALESCE($6::bigint, category_id),
-  merchant = COALESCE($7::text, merchant),
-  user_notes = COALESCE($8::text, user_notes),
-  foreign_amount = COALESCE(
-    $9::jsonb,
-    foreign_amount
-  ),
-  exchange_rate = COALESCE(
-    $10::numeric,
-    exchange_rate
-  ),
-  suggestions = COALESCE($11::text [], suggestions),
-  receipt_id = COALESCE($12::bigint, receipt_id),
-  category_manually_set = COALESCE($13::boolean, category_manually_set),
-  merchant_manually_set = COALESCE($14::boolean, merchant_manually_set)
+  email_id = $1::text,
+  tx_date = $2::timestamptz,
+  tx_amount = $3::jsonb,
+  tx_direction = $4::smallint,
+  tx_desc = $5::text,
+  category_id = $6::bigint,
+  merchant = $7::text,
+  user_notes = $8::text,
+  foreign_amount = $9::jsonb,
+  exchange_rate = $10::double precision,
+  suggestions = $11::text [],
+  receipt_id = $12::bigint,
+  category_manually_set = $13::boolean,
+  merchant_manually_set = $14::boolean
 where
   id = $15::bigint
   and account_id in (
@@ -874,22 +864,22 @@ returning
 `
 
 type UpdateTransactionParams struct {
-	EmailID             *string          `json:"email_id"`
-	TxDate              *time.Time       `json:"tx_date"`
-	TxAmount            []byte           `json:"tx_amount"`
-	TxDirection         *int16           `json:"tx_direction"`
-	TxDesc              *string          `json:"tx_desc"`
-	CategoryID          *int64           `json:"category_id"`
-	Merchant            *string          `json:"merchant"`
-	UserNotes           *string          `json:"user_notes"`
-	ForeignAmount       []byte           `json:"foreign_amount"`
-	ExchangeRate        *decimal.Decimal `json:"exchange_rate"`
-	Suggestions         []string         `json:"suggestions"`
-	ReceiptID           *int64           `json:"receipt_id"`
-	CategoryManuallySet *bool            `json:"category_manually_set"`
-	MerchantManuallySet *bool            `json:"merchant_manually_set"`
-	ID                  int64            `json:"id"`
-	UserID              uuid.UUID        `json:"user_id"`
+	EmailID             *string    `json:"email_id"`
+	TxDate              *time.Time `json:"tx_date"`
+	TxAmount            []byte     `json:"tx_amount"`
+	TxDirection         *int16     `json:"tx_direction"`
+	TxDesc              *string    `json:"tx_desc"`
+	CategoryID          *int64     `json:"category_id"`
+	Merchant            *string    `json:"merchant"`
+	UserNotes           *string    `json:"user_notes"`
+	ForeignAmount       []byte     `json:"foreign_amount"`
+	ExchangeRate        *float64   `json:"exchange_rate"`
+	Suggestions         []string   `json:"suggestions"`
+	ReceiptID           *int64     `json:"receipt_id"`
+	CategoryManuallySet *bool      `json:"category_manually_set"`
+	MerchantManuallySet *bool      `json:"merchant_manually_set"`
+	ID                  int64      `json:"id"`
+	UserID              uuid.UUID  `json:"user_id"`
 }
 
 func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (int64, error) {

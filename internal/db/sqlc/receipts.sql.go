@@ -11,18 +11,17 @@ import (
 
 	"ariand/internal/types"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type BulkCreateReceiptItemsParams struct {
-	ReceiptID    int64            `json:"receipt_id"`
-	LineNo       *int32           `json:"line_no"`
-	Name         string           `json:"name"`
-	Qty          *decimal.Decimal `json:"qty"`
-	UnitPrice    *types.Money     `json:"unit_price"`
-	LineTotal    *types.Money     `json:"line_total"`
-	Sku          *string          `json:"sku"`
-	CategoryHint *string          `json:"category_hint"`
+	ReceiptID    int64        `json:"receipt_id"`
+	LineNo       *int32       `json:"line_no"`
+	Name         string       `json:"name"`
+	Qty          *int32       `json:"qty"`
+	UnitPrice    *types.Money `json:"unit_price"`
+	LineTotal    *types.Money `json:"line_total"`
+	Sku          *string      `json:"sku"`
+	CategoryHint *string      `json:"category_hint"`
 }
 
 const createReceipt = `-- name: CreateReceipt :one
@@ -166,7 +165,7 @@ values
     $1::bigint,
     $2::int,
     $3::text,
-    COALESCE($4::numeric, 1),
+    COALESCE($4::int, 1),
     $5::jsonb,
     $6::jsonb,
     $7::text,
@@ -187,14 +186,14 @@ returning
 `
 
 type CreateReceiptItemParams struct {
-	ReceiptID    int64            `json:"receipt_id"`
-	LineNo       *int32           `json:"line_no"`
-	Name         string           `json:"name"`
-	Qty          *decimal.Decimal `json:"qty"`
-	UnitPrice    []byte           `json:"unit_price"`
-	LineTotal    []byte           `json:"line_total"`
-	Sku          *string          `json:"sku"`
-	CategoryHint *string          `json:"category_hint"`
+	ReceiptID    int64   `json:"receipt_id"`
+	LineNo       *int32  `json:"line_no"`
+	Name         string  `json:"name"`
+	Qty          *int32  `json:"qty"`
+	UnitPrice    []byte  `json:"unit_price"`
+	LineTotal    []byte  `json:"line_total"`
+	Sku          *string `json:"sku"`
+	CategoryHint *string `json:"category_hint"`
 }
 
 func (q *Queries) CreateReceiptItem(ctx context.Context, arg CreateReceiptItemParams) (ReceiptItem, error) {
@@ -657,34 +656,22 @@ const updateReceipt = `-- name: UpdateReceipt :execrows
 update
   receipts
 set
-  engine = COALESCE($1::smallint, engine),
-  parse_status = COALESCE(
-    $2::smallint,
-    parse_status
-  ),
-  link_status = COALESCE($3::smallint, link_status),
-  match_ids = COALESCE($4::bigint [], match_ids),
-  merchant = COALESCE($5::text, merchant),
-  purchase_date = COALESCE($6::date, purchase_date),
-  total_amount = COALESCE($7::jsonb, total_amount),
-  tax_amount = COALESCE($8::jsonb, tax_amount),
-  raw_payload = COALESCE($9::jsonb, raw_payload),
-  canonical_data = COALESCE(
-    $10::jsonb,
-    canonical_data
-  ),
-  image_url = COALESCE($11::text, image_url),
-  image_sha256 = COALESCE($12::bytea, image_sha256),
-  lat = COALESCE($13::double precision, lat),
-  lon = COALESCE($14::double precision, lon),
-  location_source = COALESCE(
-    $15::text,
-    location_source
-  ),
-  location_label = COALESCE(
-    $16::text,
-    location_label
-  )
+  engine = $1::smallint,
+  parse_status = $2::smallint,
+  link_status = $3::smallint,
+  match_ids = $4::bigint [],
+  merchant = $5::text,
+  purchase_date = $6::date,
+  total_amount = $7::jsonb,
+  tax_amount = $8::jsonb,
+  raw_payload = $9::jsonb,
+  canonical_data = $10::jsonb,
+  image_url = $11::text,
+  image_sha256 = $12::bytea,
+  lat = $13::double precision,
+  lon = $14::double precision,
+  location_source = $15::text,
+  location_label = $16::text
 where
   id = $17::bigint
 `
@@ -739,13 +726,13 @@ const updateReceiptItem = `-- name: UpdateReceiptItem :one
 update
   receipt_items
 set
-  line_no = COALESCE($1::int, line_no),
-  name = COALESCE($2::text, name),
-  qty = COALESCE($3::numeric, qty),
-  unit_price = COALESCE($4::jsonb, unit_price),
-  line_total = COALESCE($5::jsonb, line_total),
-  sku = COALESCE($6::text, sku),
-  category_hint = COALESCE($7::text, category_hint)
+  line_no = $1::int,
+  name = $2::text,
+  qty = $3::int,
+  unit_price = $4::jsonb,
+  line_total = $5::jsonb,
+  sku = $6::text,
+  category_hint = $7::text
 where
   id = $8::bigint
 returning
@@ -763,14 +750,14 @@ returning
 `
 
 type UpdateReceiptItemParams struct {
-	LineNo       *int32           `json:"line_no"`
-	Name         *string          `json:"name"`
-	Qty          *decimal.Decimal `json:"qty"`
-	UnitPrice    []byte           `json:"unit_price"`
-	LineTotal    []byte           `json:"line_total"`
-	Sku          *string          `json:"sku"`
-	CategoryHint *string          `json:"category_hint"`
-	ID           int64            `json:"id"`
+	LineNo       *int32  `json:"line_no"`
+	Name         *string `json:"name"`
+	Qty          *int32  `json:"qty"`
+	UnitPrice    []byte  `json:"unit_price"`
+	LineTotal    []byte  `json:"line_total"`
+	Sku          *string `json:"sku"`
+	CategoryHint *string `json:"category_hint"`
+	ID           int64   `json:"id"`
 }
 
 func (q *Queries) UpdateReceiptItem(ctx context.Context, arg UpdateReceiptItemParams) (ReceiptItem, error) {

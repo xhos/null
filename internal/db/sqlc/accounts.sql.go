@@ -323,21 +323,15 @@ const updateAccount = `-- name: UpdateAccount :one
 update
   accounts
 set
-  name = COALESCE($1::text, name),
-  bank = COALESCE($2::text, bank),
-  account_type = COALESCE(
-    $3::smallint,
-    account_type
-  ),
-  alias = COALESCE($4::text, alias),
-  anchor_date = COALESCE($5::date, anchor_date),
-  anchor_balance = COALESCE(
-    $6::jsonb,
-    anchor_balance
-  ),
-  balance = COALESCE($7::jsonb, balance),
-  main_currency = COALESCE($8::text, main_currency),
-  colors = COALESCE($9::text [], colors)
+  name = $1::text,
+  bank = $2::text,
+  account_type = $3::smallint,
+  alias = $4::text,
+  anchor_date = $5::date,
+  anchor_balance = $6::jsonb,
+  balance = $7::jsonb,
+  main_currency = $8::text,
+  colors = $9::text []
 where
   id = $10::bigint
 returning

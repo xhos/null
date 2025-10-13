@@ -218,8 +218,8 @@ const updateCategory = `-- name: UpdateCategory :one
 update
   categories
 set
-  slug = COALESCE($1::text, slug),
-  color = COALESCE($2::text, color)
+  slug = $1::text,
+  color = $2::text
 where
   id = $3::bigint
   and user_id = $4::uuid

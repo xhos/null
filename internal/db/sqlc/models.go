@@ -10,7 +10,6 @@ import (
 	arian "ariand/internal/gen/arian/v1"
 	"ariand/internal/types"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type Account struct {
@@ -67,17 +66,17 @@ type Receipt struct {
 }
 
 type ReceiptItem struct {
-	ID           int64            `json:"id"`
-	ReceiptID    int64            `json:"receipt_id"`
-	LineNo       *int32           `json:"line_no"`
-	Name         string           `json:"name"`
-	Qty          *decimal.Decimal `json:"qty"`
-	UnitPrice    *types.Money     `json:"unit_price"`
-	LineTotal    *types.Money     `json:"line_total"`
-	Sku          *string          `json:"sku"`
-	CategoryHint *string          `json:"category_hint"`
-	CreatedAt    time.Time        `json:"created_at"`
-	UpdatedAt    time.Time        `json:"updated_at"`
+	ID           int64        `json:"id"`
+	ReceiptID    int64        `json:"receipt_id"`
+	LineNo       *int32       `json:"line_no"`
+	Name         string       `json:"name"`
+	Qty          *int32       `json:"qty"`
+	UnitPrice    *types.Money `json:"unit_price"`
+	LineTotal    *types.Money `json:"line_total"`
+	Sku          *string      `json:"sku"`
+	CategoryHint *string      `json:"category_hint"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
 }
 
 type Transaction struct {
@@ -94,7 +93,7 @@ type Transaction struct {
 	Suggestions         []string                   `json:"suggestions"`
 	UserNotes           *string                    `json:"user_notes"`
 	ForeignAmount       *types.Money               `json:"foreign_amount"`
-	ExchangeRate        *decimal.Decimal           `json:"exchange_rate"`
+	ExchangeRate        *float64                   `json:"exchange_rate"`
 	ReceiptID           *int64                     `json:"receipt_id"`
 	CreatedAt           time.Time                  `json:"created_at"`
 	UpdatedAt           time.Time                  `json:"updated_at"`

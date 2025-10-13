@@ -129,34 +129,22 @@ returning
 update
   receipts
 set
-  engine = COALESCE(sqlc.narg('engine')::smallint, engine),
-  parse_status = COALESCE(
-    sqlc.narg('parse_status')::smallint,
-    parse_status
-  ),
-  link_status = COALESCE(sqlc.narg('link_status')::smallint, link_status),
-  match_ids = COALESCE(sqlc.narg('match_ids')::bigint [], match_ids),
-  merchant = COALESCE(sqlc.narg('merchant')::text, merchant),
-  purchase_date = COALESCE(sqlc.narg('purchase_date')::date, purchase_date),
-  total_amount = COALESCE(sqlc.narg('total_amount')::jsonb, total_amount),
-  tax_amount = COALESCE(sqlc.narg('tax_amount')::jsonb, tax_amount),
-  raw_payload = COALESCE(sqlc.narg('raw_payload')::jsonb, raw_payload),
-  canonical_data = COALESCE(
-    sqlc.narg('canonical_data')::jsonb,
-    canonical_data
-  ),
-  image_url = COALESCE(sqlc.narg('image_url')::text, image_url),
-  image_sha256 = COALESCE(sqlc.narg('image_sha256')::bytea, image_sha256),
-  lat = COALESCE(sqlc.narg('lat')::double precision, lat),
-  lon = COALESCE(sqlc.narg('lon')::double precision, lon),
-  location_source = COALESCE(
-    sqlc.narg('location_source')::text,
-    location_source
-  ),
-  location_label = COALESCE(
-    sqlc.narg('location_label')::text,
-    location_label
-  )
+  engine = sqlc.narg('engine')::smallint,
+  parse_status = sqlc.narg('parse_status')::smallint,
+  link_status = sqlc.narg('link_status')::smallint,
+  match_ids = sqlc.narg('match_ids')::bigint [],
+  merchant = sqlc.narg('merchant')::text,
+  purchase_date = sqlc.narg('purchase_date')::date,
+  total_amount = sqlc.narg('total_amount')::jsonb,
+  tax_amount = sqlc.narg('tax_amount')::jsonb,
+  raw_payload = sqlc.narg('raw_payload')::jsonb,
+  canonical_data = sqlc.narg('canonical_data')::jsonb,
+  image_url = sqlc.narg('image_url')::text,
+  image_sha256 = sqlc.narg('image_sha256')::bytea,
+  lat = sqlc.narg('lat')::double precision,
+  lon = sqlc.narg('lon')::double precision,
+  location_source = sqlc.narg('location_source')::text,
+  location_label = sqlc.narg('location_label')::text
 where
   id = @id::bigint;
 
@@ -238,7 +226,7 @@ values
     @receipt_id::bigint,
     sqlc.narg('line_no')::int,
     @name::text,
-    COALESCE(sqlc.narg('qty')::numeric, 1),
+    COALESCE(sqlc.narg('qty')::int, 1),
     sqlc.narg('unit_price')::jsonb,
     sqlc.narg('line_total')::jsonb,
     sqlc.narg('sku')::text,
@@ -261,13 +249,13 @@ returning
 update
   receipt_items
 set
-  line_no = COALESCE(sqlc.narg('line_no')::int, line_no),
-  name = COALESCE(sqlc.narg('name')::text, name),
-  qty = COALESCE(sqlc.narg('qty')::numeric, qty),
-  unit_price = COALESCE(sqlc.narg('unit_price')::jsonb, unit_price),
-  line_total = COALESCE(sqlc.narg('line_total')::jsonb, line_total),
-  sku = COALESCE(sqlc.narg('sku')::text, sku),
-  category_hint = COALESCE(sqlc.narg('category_hint')::text, category_hint)
+  line_no = sqlc.narg('line_no')::int,
+  name = sqlc.narg('name')::text,
+  qty = sqlc.narg('qty')::int,
+  unit_price = sqlc.narg('unit_price')::jsonb,
+  line_total = sqlc.narg('line_total')::jsonb,
+  sku = sqlc.narg('sku')::text,
+  category_hint = sqlc.narg('category_hint')::text
 where
   id = @id::bigint
 returning

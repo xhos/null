@@ -58,8 +58,8 @@ returning
 update
   categories
 set
-  slug = COALESCE(sqlc.narg('slug')::text, slug),
-  color = COALESCE(sqlc.narg('color')::text, color)
+  slug = sqlc.narg('slug')::text,
+  color = sqlc.narg('color')::text
 where
   id = @id::bigint
   and user_id = @user_id::uuid

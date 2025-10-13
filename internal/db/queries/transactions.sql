@@ -29,12 +29,12 @@ where
     or t.tx_date <= sqlc.narg('end')::timestamptz
   )
   and (
-    sqlc.narg('amount_min')::numeric is null
-    or (t.tx_amount ->> 'units')::bigint >= sqlc.narg('amount_min')::numeric
+    sqlc.narg('amount_min')::double precision is null
+    or (t.tx_amount ->> 'units')::bigint >= sqlc.narg('amount_min')::double precision
   )
   and (
-    sqlc.narg('amount_max')::numeric is null
-    or (t.tx_amount ->> 'units')::bigint <= sqlc.narg('amount_max')::numeric
+    sqlc.narg('amount_max')::double precision is null
+    or (t.tx_amount ->> 'units')::bigint <= sqlc.narg('amount_max')::double precision
   )
   and (
     sqlc.narg('direction')::smallint is null
@@ -130,7 +130,7 @@ select
   sqlc.narg('merchant_manually_set')::boolean,
   sqlc.narg('user_notes')::text,
   sqlc.narg('foreign_amount')::jsonb,
-  sqlc.narg('exchange_rate')::numeric,
+  sqlc.narg('exchange_rate')::double precision,
   sqlc.narg('suggestions')::text [],
   sqlc.narg('receipt_id')::bigint
 from
@@ -150,29 +150,20 @@ returning
 update
   transactions
 set
-  email_id = COALESCE(sqlc.narg('email_id')::text, email_id),
-  tx_date = COALESCE(sqlc.narg('tx_date')::timestamptz, tx_date),
-  tx_amount = COALESCE(sqlc.narg('tx_amount')::jsonb, tx_amount),
-  tx_direction = COALESCE(
-    sqlc.narg('tx_direction')::smallint,
-    tx_direction
-  ),
-  tx_desc = COALESCE(sqlc.narg('tx_desc')::text, tx_desc),
-  category_id = COALESCE(sqlc.narg('category_id')::bigint, category_id),
-  merchant = COALESCE(sqlc.narg('merchant')::text, merchant),
-  user_notes = COALESCE(sqlc.narg('user_notes')::text, user_notes),
-  foreign_amount = COALESCE(
-    sqlc.narg('foreign_amount')::jsonb,
-    foreign_amount
-  ),
-  exchange_rate = COALESCE(
-    sqlc.narg('exchange_rate')::numeric,
-    exchange_rate
-  ),
-  suggestions = COALESCE(sqlc.narg('suggestions')::text [], suggestions),
-  receipt_id = COALESCE(sqlc.narg('receipt_id')::bigint, receipt_id),
-  category_manually_set = COALESCE(sqlc.narg('category_manually_set')::boolean, category_manually_set),
-  merchant_manually_set = COALESCE(sqlc.narg('merchant_manually_set')::boolean, merchant_manually_set)
+  email_id = sqlc.narg('email_id')::text,
+  tx_date = sqlc.narg('tx_date')::timestamptz,
+  tx_amount = sqlc.narg('tx_amount')::jsonb,
+  tx_direction = sqlc.narg('tx_direction')::smallint,
+  tx_desc = sqlc.narg('tx_desc')::text,
+  category_id = sqlc.narg('category_id')::bigint,
+  merchant = sqlc.narg('merchant')::text,
+  user_notes = sqlc.narg('user_notes')::text,
+  foreign_amount = sqlc.narg('foreign_amount')::jsonb,
+  exchange_rate = sqlc.narg('exchange_rate')::double precision,
+  suggestions = sqlc.narg('suggestions')::text [],
+  receipt_id = sqlc.narg('receipt_id')::bigint,
+  category_manually_set = sqlc.narg('category_manually_set')::boolean,
+  merchant_manually_set = sqlc.narg('merchant_manually_set')::boolean
 where
   id = sqlc.arg(id)::bigint
   and account_id in (
@@ -455,7 +446,7 @@ where
   and t.receipt_id is null
   and t.tx_direction = 2
   and t.tx_date >= (sqlc.arg(date)::date - interval '60 days')
-  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between sqlc.arg(total)::numeric and (sqlc.arg(total)::numeric * 1.20)
+  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between sqlc.arg(total)::double precision and (sqlc.arg(total)::double precision * 1.20)
   and similarity(t.tx_desc::text, sqlc.arg(merchant)::text) > 0.3
 order by
   merchant_score desc

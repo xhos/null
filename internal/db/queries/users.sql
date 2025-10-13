@@ -58,12 +58,9 @@ returning
 update
   users
 set
-  email = COALESCE(sqlc.narg('email')::text, email),
-  display_name = COALESCE(sqlc.narg('display_name')::text, display_name),
-  default_account_id = COALESCE(
-    sqlc.narg('default_account_id')::bigint,
-    default_account_id
-  )
+  email = sqlc.narg('email')::text,
+  display_name = sqlc.narg('display_name')::text,
+  default_account_id = sqlc.narg('default_account_id')::bigint
 where
   id = @id::uuid
 returning
