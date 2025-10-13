@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 */
 
@@ -135,30 +134,27 @@ func (s *service) calculateScore(tx sqlc.FindCandidateTransactionsForUserRow, re
 	return amountScore*0.45 + dateScore*0.35 + merchantScore*0.2
 }
 
-func (s *service) scoreAmount(txAmount *decimal.Decimal, receiptAmount *decimal.Decimal) float64 {
-	if txAmount == nil || receiptAmount == nil {
+func (s *service) scoreAmount(txAmount float64, receiptAmount float64) float64 {
+	if txAmount == 0 || receiptAmount == 0 {
 		return 0
 	}
 
-	txDec := *txAmount
-	receiptDec := *receiptAmount
-
-	if txDec.Equal(receiptDec) {
+	if txAmount == receiptAmount {
 		return 1.0
 	}
 
-	if txDec.LessThan(receiptDec) {
+	if txAmount < receiptAmount {
 		return 0
 	}
 
-	maxDiff := receiptDec.Mul(decimal.NewFromFloat(0.2))
-	diff := txDec.Sub(receiptDec).Abs()
+	maxDiff := receiptAmount * 0.2
+	diff := math.Abs(txAmount - receiptAmount)
 
-	if diff.GreaterThan(maxDiff) {
+	if diff > maxDiff {
 		return 0
 	}
 
-	ratio, _ := diff.Div(maxDiff).Float64()
+	ratio := diff / maxDiff
 	return 0.9 * (1.0 - ratio)
 }
 

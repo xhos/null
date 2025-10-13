@@ -12,7 +12,6 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/money"
 )
 
@@ -299,7 +298,7 @@ func (s *receiptSvc) ParseReceipt(ctx context.Context, userID uuid.UUID, receipt
 					}
 				}
 
-				qty := decimal.NewFromFloat(item.Quantity)
+				qty := int32(item.Quantity)
 
 				itemParams = append(itemParams, sqlc.BulkCreateReceiptItemsParams{
 					ReceiptID: receiptID,

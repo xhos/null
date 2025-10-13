@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/shopspring/decimal"
 )
 
 // moneyToFloat converts MoneyWrapper to float64

@@ -2,8 +2,6 @@ package db
 
 import (
 	"time"
-
-	"github.com/shopspring/decimal"
 )
 
 type ListOpts struct {
@@ -19,8 +17,8 @@ type ListOpts struct {
 	Direction         string
 	MerchantSearch    string
 	DescriptionSearch string
-	AmountMin         *decimal.Decimal
-	AmountMax         *decimal.Decimal
+	AmountMin         *float64
+	AmountMax         *float64
 	Currency          string
 	TimeOfDayStart    *string
 	TimeOfDayEnd      *string

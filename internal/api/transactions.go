@@ -292,11 +292,17 @@ func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Req
 		return nil, err
 	}
 
+	// Convert money to float64 for fuzzy matching
+	totalAmount := 0.0
+	if req.Msg.TotalAmount != nil {
+		totalAmount = float64(req.Msg.TotalAmount.Units) + float64(req.Msg.TotalAmount.Nanos)/1e9
+	}
+
 	params := sqlc.FindCandidateTransactionsParams{
 		UserID:   userID,
 		Merchant: req.Msg.GetMerchant(),
 		Date:     timestampToDate(req.Msg.PurchaseDate),
-		Total:    moneyToDecimal(req.Msg.TotalAmount),
+		Total:    totalAmount,
 	}
 
 	candidates, err := s.services.Transactions.FindCandidateTransactions(ctx, params)

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/codes"
@@ -82,46 +81,33 @@ func timeToProtoDate(t *time.Time) *date.Date {
 
 // ==================== MONEY CONVERSION HELPERS ====================
 
-// Convert decimal.Decimal to money.Money with currency
-func decimalToMoney(amount decimal.Decimal, currency string) *money.Money {
+// Convert int64 to money.Money with currency (for dashboard aggregations)
+func int64ToMoney(amount int64, currency string) *money.Money {
 	if currency == "" {
 		currency = "USD" // fallback default
 	}
 
-	balFloat, _ := amount.Float64()
-	units := int64(balFloat)
-	nanos := int32((balFloat - float64(units)) * 1e9)
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        amount,
+		Nanos:        0,
+	}
+}
+
+// Convert float64 to money.Money with currency (for dashboard averages)
+func float64ToMoney(amount float64, currency string) *money.Money {
+	if currency == "" {
+		currency = "USD" // fallback default
+	}
+
+	units := int64(amount)
+	nanos := int32((amount - float64(units)) * 1e9)
 
 	return &money.Money{
 		CurrencyCode: currency,
 		Units:        units,
 		Nanos:        nanos,
 	}
-}
-
-// Convert *decimal.Decimal to *money.Money (nullable version)
-// func decimalPtrToMoney(amount *decimal.Decimal, currency string) *money.Money {
-// 	if amount == nil {
-// 		return nil
-// 	}
-// 	return decimalToMoney(*amount, currency)
-// }
-
-// Convert money.Money to decimal.Decimal
-func moneyToDecimal(m *money.Money) decimal.Decimal {
-	if m == nil {
-		return decimal.Zero
-	}
-	return decimal.NewFromFloat(float64(m.Units) + float64(m.Nanos)/1e9)
-}
-
-// Convert money.Money to *decimal.Decimal (nullable version)
-func moneyToDecimalPtr(m *money.Money) *decimal.Decimal {
-	if m == nil {
-		return nil
-	}
-	d := moneyToDecimal(m)
-	return &d
 }
 
 // Helper to get currency or default
@@ -355,12 +341,7 @@ func buildListTransactionsParams(userID uuid.UUID, req *pb.ListTransactionsReque
 		endTime := fromProtoTimestamp(req.EndDate)
 		params.End = &endTime
 	}
-	if req.AmountMin != nil {
-		params.AmountMin = moneyToDecimalPtr(req.AmountMin)
-	}
-	if req.AmountMax != nil {
-		params.AmountMax = moneyToDecimalPtr(req.AmountMax)
-	}
+	// Note: AmountMin/AmountMax removed - not used in queries
 	if req.Direction != nil {
 		direction := int16(*req.Direction)
 		params.Direction = &direction
@@ -427,8 +408,7 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 		}
 		params.ForeignAmount = foreignAmountBytes
 		if req.ExchangeRate != nil {
-			exchangeRate := decimal.NewFromFloat(*req.ExchangeRate)
-			params.ExchangeRate = &exchangeRate
+			params.ExchangeRate = req.ExchangeRate
 		}
 	}
 
@@ -494,8 +474,7 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 		params.ForeignAmount = foreignAmountBytes
 	}
 	if req.ExchangeRate != nil {
-		exchangeRate := decimal.NewFromFloat(*req.ExchangeRate)
-		params.ExchangeRate = &exchangeRate
+		params.ExchangeRate = req.ExchangeRate
 	}
 
 	return params, nil
@@ -595,15 +574,6 @@ func toProtoTransaction(t *sqlc.Transaction) *pb.Transaction {
 
 // ==================== RECEIPT PARAMETER BUILDERS ====================
 
-// floatToDecimal converts optional float64 to optional decimal.Decimal
-func floatToDecimal(f *float64) *decimal.Decimal {
-	if f == nil {
-		return nil
-	}
-	result := decimal.NewFromFloat(*f)
-	return &result
-}
-
 // floatToMoney converts optional float64 to optional money.Money in CAD
 func floatToMoney(f *float64) *money.Money {
 	if f == nil {
@@ -628,11 +598,17 @@ func buildReceiptItemParams(req *pb.CreateReceiptItemRequest) (sqlc.CreateReceip
 		return sqlc.CreateReceiptItemParams{}, err
 	}
 
+	var qty *int32
+	if req.Qty != nil {
+		qtyInt := int32(*req.Qty)
+		qty = &qtyInt
+	}
+
 	return sqlc.CreateReceiptItemParams{
 		ReceiptID: req.GetReceiptId(),
 		Name:      req.GetName(),
 		LineNo:    req.LineNo,
-		Qty:       floatToDecimal(req.Qty),
+		Qty:       qty,
 		UnitPrice: unitPriceBytes,
 		LineTotal: lineTotalBytes,
 		Sku:       req.Sku,
@@ -651,11 +627,17 @@ func buildUpdateReceiptItemParams(req *pb.UpdateReceiptItemRequest) (sqlc.Update
 		return sqlc.UpdateReceiptItemParams{}, err
 	}
 
+	var qty *int32
+	if req.Qty != nil {
+		qtyInt := int32(*req.Qty)
+		qty = &qtyInt
+	}
+
 	return sqlc.UpdateReceiptItemParams{
 		ID:        req.GetId(),
 		Name:      req.Name,
 		LineNo:    req.LineNo,
-		Qty:       floatToDecimal(req.Qty),
+		Qty:       qty,
 		UnitPrice: unitPriceBytes,
 		LineTotal: lineTotalBytes,
 		Sku:       req.Sku,
@@ -666,11 +648,17 @@ func buildUpdateReceiptItemParams(req *pb.UpdateReceiptItemRequest) (sqlc.Update
 func buildBulkCreateReceiptItemsParams(items []*pb.CreateReceiptItemRequest) []sqlc.BulkCreateReceiptItemsParams {
 	params := make([]sqlc.BulkCreateReceiptItemsParams, len(items))
 	for i, item := range items {
+		var qty *int32
+		if item.Qty != nil {
+			qtyInt := int32(*item.Qty)
+			qty = &qtyInt
+		}
+
 		params[i] = sqlc.BulkCreateReceiptItemsParams{
 			ReceiptID: item.GetReceiptId(),
 			Name:      item.GetName(),
 			LineNo:    item.LineNo,
-			Qty:       floatToDecimal(item.Qty),
+			Qty:       qty,
 			UnitPrice: types.Wrap(floatToMoney(item.UnitPrice)),
 			LineTotal: types.Wrap(floatToMoney(item.LineTotal)),
 			Sku:       item.Sku,
@@ -771,8 +759,7 @@ func toProtoReceiptItem(ri *sqlc.ReceiptItem) *pb.ReceiptItem {
 
 	var quantity float64
 	if ri.Qty != nil {
-		qtyFloat, _ := ri.Qty.Float64()
-		quantity = qtyFloat
+		quantity = float64(*ri.Qty)
 	}
 
 	return &pb.ReceiptItem{
@@ -853,8 +840,8 @@ func toProtoTrendPoint(trend *sqlc.GetDashboardTrendsRow) *pb.TrendPoint {
 	trendDate, _ := time.Parse("2006-01-02", trend.Date)
 	return &pb.TrendPoint{
 		Date:     timeToDate(trendDate),
-		Income:   decimalToMoney(decimal.NewFromInt(trend.Income), "CAD"),
-		Expenses: decimalToMoney(decimal.NewFromInt(trend.Expenses), "CAD"),
+		Income:   int64ToMoney(trend.Income, "CAD"),
+		Expenses: int64ToMoney(trend.Expenses, "CAD"),
 	}
 }
 
@@ -867,8 +854,8 @@ func toProtoTrendPointFromAccount(trend *sqlc.GetDashboardTrendsForAccountRow) *
 	trendDate, _ := time.Parse("2006-01-02", trend.Date)
 	return &pb.TrendPoint{
 		Date:     timeToDate(trendDate),
-		Income:   decimalToMoney(decimal.NewFromInt(trend.Income), "CAD"),
-		Expenses: decimalToMoney(decimal.NewFromInt(trend.Expenses), "CAD"),
+		Income:   int64ToMoney(trend.Income, "CAD"),
+		Expenses: int64ToMoney(trend.Expenses, "CAD"),
 	}
 }
 
@@ -879,9 +866,9 @@ func toProtoMonthlyComparison(comp *sqlc.GetMonthlyComparisonRow) *pb.MonthlyCom
 
 	return &pb.MonthlyComparison{
 		Month:    comp.Month,
-		Income:   decimalToMoney(decimal.NewFromInt(comp.Income), "CAD"),
-		Expenses: decimalToMoney(decimal.NewFromInt(comp.Expenses), "CAD"),
-		Net:      decimalToMoney(decimal.NewFromInt(comp.Net), "CAD"),
+		Income:   int64ToMoney(comp.Income, "CAD"),
+		Expenses: int64ToMoney(comp.Expenses, "CAD"),
+		Net:      int64ToMoney(comp.Net, "CAD"),
 	}
 }
 
@@ -894,7 +881,7 @@ func toProtoTopCategory(cat *sqlc.GetTopCategoriesRow) *pb.TopCategory {
 		Slug:             cat.Slug,
 		Color:            cat.Color,
 		TransactionCount: cat.TransactionCount,
-		TotalAmount:      decimalToMoney(decimal.NewFromInt(cat.TotalAmount), "CAD"),
+		TotalAmount:      int64ToMoney(cat.TotalAmount, "CAD"),
 	}
 }
 
@@ -911,8 +898,8 @@ func toProtoTopMerchant(merchant *sqlc.GetTopMerchantsRow) *pb.TopMerchant {
 	return &pb.TopMerchant{
 		Merchant:         merchantName,
 		TransactionCount: merchant.TransactionCount,
-		TotalAmount:      decimalToMoney(decimal.NewFromInt(merchant.TotalAmount), "CAD"),
-		AvgAmount:        decimalToMoney(decimal.NewFromFloat(merchant.AvgAmount), "CAD"),
+		TotalAmount:      int64ToMoney(merchant.TotalAmount, "CAD"),
+		AvgAmount:        float64ToMoney(merchant.AvgAmount, "CAD"),
 	}
 }
 
@@ -945,8 +932,8 @@ func toProtoDashboardSummary(summary *sqlc.GetDashboardSummaryRow) *pb.Dashboard
 	return &pb.DashboardSummary{
 		TotalAccounts:             summary.TotalAccounts,
 		TotalTransactions:         summary.TotalTransactions,
-		TotalIncome:               decimalToMoney(interfaceToDecimal(summary.TotalIncome), "CAD"),
-		TotalExpenses:             decimalToMoney(interfaceToDecimal(summary.TotalExpenses), "CAD"),
+		TotalIncome:               int64ToMoney(interfaceToInt64(summary.TotalIncome), "CAD"),
+		TotalExpenses:             int64ToMoney(interfaceToInt64(summary.TotalExpenses), "CAD"),
 		UncategorizedTransactions: summary.UncategorizedTransactions,
 	}
 }
@@ -959,26 +946,26 @@ func toProtoDashboardSummaryFromAccount(summary *sqlc.GetDashboardSummaryForAcco
 	return &pb.DashboardSummary{
 		TotalAccounts:             summary.TotalAccounts,
 		TotalTransactions:         summary.TotalTransactions,
-		TotalIncome:               decimalToMoney(interfaceToDecimal(summary.TotalIncome), "CAD"),
-		TotalExpenses:             decimalToMoney(interfaceToDecimal(summary.TotalExpenses), "CAD"),
+		TotalIncome:               int64ToMoney(interfaceToInt64(summary.TotalIncome), "CAD"),
+		TotalExpenses:             int64ToMoney(interfaceToInt64(summary.TotalExpenses), "CAD"),
 		UncategorizedTransactions: summary.UncategorizedTransactions,
 	}
 }
 
-// helper to safely convert interface{} to decimal.Decimal
-func interfaceToDecimal(v interface{}) decimal.Decimal {
+// helper to safely convert interface{} to int64
+func interfaceToInt64(v interface{}) int64 {
 	if v == nil {
-		return decimal.Zero
+		return 0
 	}
 	switch val := v.(type) {
-	case decimal.Decimal:
+	case int64:
 		return val
 	case float64:
-		return decimal.NewFromFloat(val)
-	case int64:
-		return decimal.NewFromInt(val)
+		return int64(val)
+	case int:
+		return int64(val)
 	default:
-		return decimal.Zero
+		return 0
 	}
 }
 
