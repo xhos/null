@@ -13,115 +13,115 @@ import (
 )
 
 type Account struct {
-	ID            int64             `json:"id"`
-	OwnerID       uuid.UUID         `json:"owner_id"`
-	Name          string            `json:"name"`
-	Bank          string            `json:"bank"`
-	AccountType   arian.AccountType `json:"account_type"`
-	Alias         *string           `json:"alias"`
-	AnchorDate    time.Time         `json:"anchor_date"`
-	AnchorBalance *types.Money      `json:"anchor_balance"`
-	CreatedAt     time.Time         `json:"created_at"`
-	UpdatedAt     time.Time         `json:"updated_at"`
-	MainCurrency  string            `json:"main_currency"`
-	Colors        []string          `json:"colors"`
-	Balance       []byte            `json:"balance"`
+	ID            int64             `db:"id" json:"id"`
+	OwnerID       uuid.UUID         `db:"owner_id" json:"owner_id"`
+	Name          string            `db:"name" json:"name"`
+	Bank          string            `db:"bank" json:"bank"`
+	AccountType   arian.AccountType `db:"account_type" json:"account_type"`
+	Alias         *string           `db:"alias" json:"alias"`
+	AnchorDate    time.Time         `db:"anchor_date" json:"anchor_date"`
+	AnchorBalance *types.Money      `db:"anchor_balance" json:"anchor_balance"`
+	CreatedAt     time.Time         `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time         `db:"updated_at" json:"updated_at"`
+	MainCurrency  string            `db:"main_currency" json:"main_currency"`
+	Colors        []string          `db:"colors" json:"colors"`
+	Balance       []byte            `db:"balance" json:"balance"`
 }
 
 type AccountUser struct {
-	AccountID int64     `json:"account_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	AddedAt   time.Time `json:"added_at"`
+	AccountID int64     `db:"account_id" json:"account_id"`
+	UserID    uuid.UUID `db:"user_id" json:"user_id"`
+	AddedAt   time.Time `db:"added_at" json:"added_at"`
 }
 
 type Category struct {
-	ID        int64     `json:"id"`
-	UserID    uuid.UUID `json:"user_id"`
-	Slug      string    `json:"slug"`
-	Color     string    `json:"color"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        int64     `db:"id" json:"id"`
+	UserID    uuid.UUID `db:"user_id" json:"user_id"`
+	Slug      string    `db:"slug" json:"slug"`
+	Color     string    `db:"color" json:"color"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type Receipt struct {
-	ID             int64                    `json:"id"`
-	Engine         arian.ReceiptEngine      `json:"engine"`
-	ParseStatus    arian.ReceiptParseStatus `json:"parse_status"`
-	LinkStatus     arian.ReceiptLinkStatus  `json:"link_status"`
-	MatchIds       []int64                  `json:"match_ids"`
-	Merchant       *string                  `json:"merchant"`
-	PurchaseDate   *time.Time               `json:"purchase_date"`
-	TotalAmount    *types.Money             `json:"total_amount"`
-	TaxAmount      *types.Money             `json:"tax_amount"`
-	RawPayload     []byte                   `json:"raw_payload"`
-	CanonicalData  []byte                   `json:"canonical_data"`
-	ImageUrl       *string                  `json:"image_url"`
-	ImageSha256    []byte                   `json:"image_sha256"`
-	Lat            *float64                 `json:"lat"`
-	Lon            *float64                 `json:"lon"`
-	LocationSource *string                  `json:"location_source"`
-	LocationLabel  *string                  `json:"location_label"`
-	CreatedAt      time.Time                `json:"created_at"`
-	UpdatedAt      time.Time                `json:"updated_at"`
+	ID             int64                    `db:"id" json:"id"`
+	Engine         arian.ReceiptEngine      `db:"engine" json:"engine"`
+	ParseStatus    arian.ReceiptParseStatus `db:"parse_status" json:"parse_status"`
+	LinkStatus     arian.ReceiptLinkStatus  `db:"link_status" json:"link_status"`
+	MatchIds       []int64                  `db:"match_ids" json:"match_ids"`
+	Merchant       *string                  `db:"merchant" json:"merchant"`
+	PurchaseDate   *time.Time               `db:"purchase_date" json:"purchase_date"`
+	TotalAmount    *types.Money             `db:"total_amount" json:"total_amount"`
+	TaxAmount      *types.Money             `db:"tax_amount" json:"tax_amount"`
+	RawPayload     []byte                   `db:"raw_payload" json:"raw_payload"`
+	CanonicalData  []byte                   `db:"canonical_data" json:"canonical_data"`
+	ImageUrl       *string                  `db:"image_url" json:"image_url"`
+	ImageSha256    []byte                   `db:"image_sha256" json:"image_sha256"`
+	Lat            *float64                 `db:"lat" json:"lat"`
+	Lon            *float64                 `db:"lon" json:"lon"`
+	LocationSource *string                  `db:"location_source" json:"location_source"`
+	LocationLabel  *string                  `db:"location_label" json:"location_label"`
+	CreatedAt      time.Time                `db:"created_at" json:"created_at"`
+	UpdatedAt      time.Time                `db:"updated_at" json:"updated_at"`
 }
 
 type ReceiptItem struct {
-	ID           int64        `json:"id"`
-	ReceiptID    int64        `json:"receipt_id"`
-	LineNo       *int32       `json:"line_no"`
-	Name         string       `json:"name"`
-	Qty          *int32       `json:"qty"`
-	UnitPrice    *types.Money `json:"unit_price"`
-	LineTotal    *types.Money `json:"line_total"`
-	Sku          *string      `json:"sku"`
-	CategoryHint *string      `json:"category_hint"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
+	ID           int64        `db:"id" json:"id"`
+	ReceiptID    int64        `db:"receipt_id" json:"receipt_id"`
+	LineNo       *int32       `db:"line_no" json:"line_no"`
+	Name         string       `db:"name" json:"name"`
+	Qty          *int32       `db:"qty" json:"qty"`
+	UnitPrice    *types.Money `db:"unit_price" json:"unit_price"`
+	LineTotal    *types.Money `db:"line_total" json:"line_total"`
+	Sku          *string      `db:"sku" json:"sku"`
+	CategoryHint *string      `db:"category_hint" json:"category_hint"`
+	CreatedAt    time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt    time.Time    `db:"updated_at" json:"updated_at"`
 }
 
 type Transaction struct {
-	ID                  int64                      `json:"id"`
-	AccountID           int64                      `json:"account_id"`
-	EmailID             *string                    `json:"email_id"`
-	TxDate              time.Time                  `json:"tx_date"`
-	TxAmount            *types.Money               `json:"tx_amount"`
-	TxDirection         arian.TransactionDirection `json:"tx_direction"`
-	TxDesc              *string                    `json:"tx_desc"`
-	BalanceAfter        *types.Money               `json:"balance_after"`
-	Merchant            *string                    `json:"merchant"`
-	CategoryID          *int64                     `json:"category_id"`
-	Suggestions         []string                   `json:"suggestions"`
-	UserNotes           *string                    `json:"user_notes"`
-	ForeignAmount       *types.Money               `json:"foreign_amount"`
-	ExchangeRate        *float64                   `json:"exchange_rate"`
-	ReceiptID           *int64                     `json:"receipt_id"`
-	CreatedAt           time.Time                  `json:"created_at"`
-	UpdatedAt           time.Time                  `json:"updated_at"`
-	CategoryManuallySet bool                       `json:"category_manually_set"`
-	MerchantManuallySet bool                       `json:"merchant_manually_set"`
+	ID                  int64                      `db:"id" json:"id"`
+	AccountID           int64                      `db:"account_id" json:"account_id"`
+	EmailID             *string                    `db:"email_id" json:"email_id"`
+	TxDate              time.Time                  `db:"tx_date" json:"tx_date"`
+	TxAmount            *types.Money               `db:"tx_amount" json:"tx_amount"`
+	TxDirection         arian.TransactionDirection `db:"tx_direction" json:"tx_direction"`
+	TxDesc              *string                    `db:"tx_desc" json:"tx_desc"`
+	BalanceAfter        *types.Money               `db:"balance_after" json:"balance_after"`
+	Merchant            *string                    `db:"merchant" json:"merchant"`
+	CategoryID          *int64                     `db:"category_id" json:"category_id"`
+	Suggestions         []string                   `db:"suggestions" json:"suggestions"`
+	UserNotes           *string                    `db:"user_notes" json:"user_notes"`
+	ForeignAmount       *types.Money               `db:"foreign_amount" json:"foreign_amount"`
+	ExchangeRate        *float64                   `db:"exchange_rate" json:"exchange_rate"`
+	ReceiptID           *int64                     `db:"receipt_id" json:"receipt_id"`
+	CreatedAt           time.Time                  `db:"created_at" json:"created_at"`
+	UpdatedAt           time.Time                  `db:"updated_at" json:"updated_at"`
+	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
+	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
 }
 
 type TransactionRule struct {
-	RuleID        uuid.UUID  `json:"rule_id"`
-	UserID        uuid.UUID  `json:"user_id"`
-	RuleName      string     `json:"rule_name"`
-	CategoryID    *int64     `json:"category_id"`
-	Conditions    []byte     `json:"conditions"`
-	IsActive      *bool      `json:"is_active"`
-	PriorityOrder int32      `json:"priority_order"`
-	RuleSource    string     `json:"rule_source"`
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
-	LastAppliedAt *time.Time `json:"last_applied_at"`
-	TimesApplied  *int32     `json:"times_applied"`
-	Merchant      *string    `json:"merchant"`
+	RuleID        uuid.UUID  `db:"rule_id" json:"rule_id"`
+	UserID        uuid.UUID  `db:"user_id" json:"user_id"`
+	RuleName      string     `db:"rule_name" json:"rule_name"`
+	CategoryID    *int64     `db:"category_id" json:"category_id"`
+	Conditions    []byte     `db:"conditions" json:"conditions"`
+	IsActive      *bool      `db:"is_active" json:"is_active"`
+	PriorityOrder int32      `db:"priority_order" json:"priority_order"`
+	RuleSource    string     `db:"rule_source" json:"rule_source"`
+	CreatedAt     time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time  `db:"updated_at" json:"updated_at"`
+	LastAppliedAt *time.Time `db:"last_applied_at" json:"last_applied_at"`
+	TimesApplied  *int32     `db:"times_applied" json:"times_applied"`
+	Merchant      *string    `db:"merchant" json:"merchant"`
 }
 
 type User struct {
-	ID               uuid.UUID `json:"id"`
-	Email            string    `json:"email"`
-	DisplayName      *string   `json:"display_name"`
-	DefaultAccountID *int64    `json:"default_account_id"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	ID               uuid.UUID `db:"id" json:"id"`
+	Email            string    `db:"email" json:"email"`
+	DisplayName      *string   `db:"display_name" json:"display_name"`
+	DefaultAccountID *int64    `db:"default_account_id" json:"default_account_id"`
+	CreatedAt        time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
 }

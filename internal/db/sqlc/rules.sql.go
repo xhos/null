@@ -28,10 +28,10 @@ where id = ANY($3::bigint[])
 `
 
 type BulkApplyRuleToTransactionsParams struct {
-	CategoryID     int64     `json:"category_id"`
-	Merchant       string    `json:"merchant"`
-	TransactionIds []int64   `json:"transaction_ids"`
-	UserID         uuid.UUID `json:"user_id"`
+	CategoryID     int64     `db:"category_id" json:"category_id"`
+	Merchant       string    `db:"merchant" json:"merchant"`
+	TransactionIds []int64   `db:"transaction_ids" json:"transaction_ids"`
+	UserID         uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) BulkApplyRuleToTransactions(ctx context.Context, arg BulkApplyRuleToTransactionsParams) (int64, error) {
@@ -54,11 +54,11 @@ returning rule_id, user_id, rule_name, category_id, conditions, is_active, prior
 `
 
 type CreateRuleParams struct {
-	UserID     uuid.UUID `json:"user_id"`
-	RuleName   string    `json:"rule_name"`
-	CategoryID int64     `json:"category_id"`
-	Conditions []byte    `json:"conditions"`
-	Merchant   string    `json:"merchant"`
+	UserID     uuid.UUID `db:"user_id" json:"user_id"`
+	RuleName   string    `db:"rule_name" json:"rule_name"`
+	CategoryID int64     `db:"category_id" json:"category_id"`
+	Conditions []byte    `db:"conditions" json:"conditions"`
+	Merchant   string    `db:"merchant" json:"merchant"`
 }
 
 func (q *Queries) CreateRule(ctx context.Context, arg CreateRuleParams) (TransactionRule, error) {
@@ -95,8 +95,8 @@ where rule_id = $1::uuid
 `
 
 type DeleteRuleParams struct {
-	RuleID uuid.UUID `json:"rule_id"`
-	UserID uuid.UUID `json:"user_id"`
+	RuleID uuid.UUID `db:"rule_id" json:"rule_id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) DeleteRule(ctx context.Context, arg DeleteRuleParams) (int64, error) {
@@ -157,8 +157,8 @@ where rule_id = $1::uuid
 `
 
 type GetRuleParams struct {
-	RuleID uuid.UUID `json:"rule_id"`
-	UserID uuid.UUID `json:"user_id"`
+	RuleID uuid.UUID `db:"rule_id" json:"rule_id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRule, error) {
@@ -194,9 +194,9 @@ where (a.owner_id = $1::uuid or au.user_id is not null)
 `
 
 type GetTransactionsForRuleApplicationParams struct {
-	UserID             uuid.UUID `json:"user_id"`
-	TransactionIds     []int64   `json:"transaction_ids"`
-	IncludeManuallySet *bool     `json:"include_manually_set"`
+	UserID             uuid.UUID `db:"user_id" json:"user_id"`
+	TransactionIds     []int64   `db:"transaction_ids" json:"transaction_ids"`
+	IncludeManuallySet *bool     `db:"include_manually_set" json:"include_manually_set"`
 }
 
 func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg GetTransactionsForRuleApplicationParams) ([]Transaction, error) {
@@ -296,14 +296,14 @@ returning rule_id, user_id, rule_name, category_id, conditions, is_active, prior
 `
 
 type UpdateRuleParams struct {
-	RuleName      *string   `json:"rule_name"`
-	CategoryID    *int64    `json:"category_id"`
-	Conditions    []byte    `json:"conditions"`
-	IsActive      *bool     `json:"is_active"`
-	PriorityOrder *int32    `json:"priority_order"`
-	Merchant      *string   `json:"merchant"`
-	RuleID        uuid.UUID `json:"rule_id"`
-	UserID        uuid.UUID `json:"user_id"`
+	RuleName      *string   `db:"rule_name" json:"rule_name"`
+	CategoryID    *int64    `db:"category_id" json:"category_id"`
+	Conditions    []byte    `db:"conditions" json:"conditions"`
+	IsActive      *bool     `db:"is_active" json:"is_active"`
+	PriorityOrder *int32    `db:"priority_order" json:"priority_order"`
+	Merchant      *string   `db:"merchant" json:"merchant"`
+	RuleID        uuid.UUID `db:"rule_id" json:"rule_id"`
+	UserID        uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) UpdateRule(ctx context.Context, arg UpdateRuleParams) (TransactionRule, error) {

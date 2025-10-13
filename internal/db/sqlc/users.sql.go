@@ -49,9 +49,9 @@ returning
 `
 
 type CreateUserParams struct {
-	ID          uuid.UUID `json:"id"`
-	Email       string    `json:"email"`
-	DisplayName *string   `json:"display_name"`
+	ID          uuid.UUID `db:"id" json:"id"`
+	Email       string    `db:"email" json:"email"`
+	DisplayName *string   `db:"display_name" json:"display_name"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -240,8 +240,8 @@ returning
 `
 
 type SetUserDefaultAccountParams struct {
-	DefaultAccountID int64     `json:"default_account_id"`
-	ID               uuid.UUID `json:"id"`
+	DefaultAccountID int64     `db:"default_account_id" json:"default_account_id"`
+	ID               uuid.UUID `db:"id" json:"id"`
 }
 
 func (q *Queries) SetUserDefaultAccount(ctx context.Context, arg SetUserDefaultAccountParams) (User, error) {
@@ -277,10 +277,10 @@ returning
 `
 
 type UpdateUserParams struct {
-	Email            *string   `json:"email"`
-	DisplayName      *string   `json:"display_name"`
-	DefaultAccountID *int64    `json:"default_account_id"`
-	ID               uuid.UUID `json:"id"`
+	Email            *string   `db:"email" json:"email"`
+	DisplayName      *string   `db:"display_name" json:"display_name"`
+	DefaultAccountID *int64    `db:"default_account_id" json:"default_account_id"`
+	ID               uuid.UUID `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -319,8 +319,8 @@ returning
 `
 
 type UpdateUserDisplayNameParams struct {
-	DisplayName string    `json:"display_name"`
-	ID          uuid.UUID `json:"id"`
+	DisplayName string    `db:"display_name" json:"display_name"`
+	ID          uuid.UUID `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) (User, error) {

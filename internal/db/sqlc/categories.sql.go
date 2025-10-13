@@ -26,9 +26,9 @@ returning
 `
 
 type CreateCategoryParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Slug   string    `json:"slug"`
-	Color  string    `json:"color"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	Slug   string    `db:"slug" json:"slug"`
+	Color  string    `db:"color" json:"color"`
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
@@ -60,9 +60,9 @@ returning
 `
 
 type CreateCategoryIfNotExistsParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Slug   string    `json:"slug"`
-	Color  string    `json:"color"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	Slug   string    `db:"slug" json:"slug"`
+	Color  string    `db:"color" json:"color"`
 }
 
 func (q *Queries) CreateCategoryIfNotExists(ctx context.Context, arg CreateCategoryIfNotExistsParams) (Category, error) {
@@ -91,8 +91,8 @@ where
 `
 
 type DeleteCategoriesBySlugPrefixParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Slug   string    `json:"slug"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	Slug   string    `db:"slug" json:"slug"`
 }
 
 func (q *Queries) DeleteCategoriesBySlugPrefix(ctx context.Context, arg DeleteCategoriesBySlugPrefixParams) (int64, error) {
@@ -119,8 +119,8 @@ where
 `
 
 type GetCategoryParams struct {
-	ID     int64     `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) GetCategory(ctx context.Context, arg GetCategoryParams) (Category, error) {
@@ -153,8 +153,8 @@ where
 `
 
 type GetCategoryBySlugParams struct {
-	Slug   string    `json:"slug"`
-	UserID uuid.UUID `json:"user_id"`
+	Slug   string    `db:"slug" json:"slug"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) GetCategoryBySlug(ctx context.Context, arg GetCategoryBySlugParams) (Category, error) {
@@ -233,10 +233,10 @@ returning
 `
 
 type UpdateCategoryParams struct {
-	Slug   *string   `json:"slug"`
-	Color  *string   `json:"color"`
-	ID     int64     `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	Slug   *string   `db:"slug" json:"slug"`
+	Color  *string   `db:"color" json:"color"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
@@ -269,9 +269,9 @@ where
 `
 
 type UpdateChildCategorySlugsParams struct {
-	NewSlugPrefix string    `json:"new_slug_prefix"`
-	OldSlugPrefix string    `json:"old_slug_prefix"`
-	UserID        uuid.UUID `json:"user_id"`
+	NewSlugPrefix string    `db:"new_slug_prefix" json:"new_slug_prefix"`
+	OldSlugPrefix string    `db:"old_slug_prefix" json:"old_slug_prefix"`
+	UserID        uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) UpdateChildCategorySlugs(ctx context.Context, arg UpdateChildCategorySlugsParams) (int64, error) {

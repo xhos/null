@@ -14,14 +14,14 @@ import (
 )
 
 type BulkCreateReceiptItemsParams struct {
-	ReceiptID    int64        `json:"receipt_id"`
-	LineNo       *int32       `json:"line_no"`
-	Name         string       `json:"name"`
-	Qty          *int32       `json:"qty"`
-	UnitPrice    *types.Money `json:"unit_price"`
-	LineTotal    *types.Money `json:"line_total"`
-	Sku          *string      `json:"sku"`
-	CategoryHint *string      `json:"category_hint"`
+	ReceiptID    int64        `db:"receipt_id" json:"receipt_id"`
+	LineNo       *int32       `db:"line_no" json:"line_no"`
+	Name         string       `db:"name" json:"name"`
+	Qty          *int32       `db:"qty" json:"qty"`
+	UnitPrice    *types.Money `db:"unit_price" json:"unit_price"`
+	LineTotal    *types.Money `db:"line_total" json:"line_total"`
+	Sku          *string      `db:"sku" json:"sku"`
+	CategoryHint *string      `db:"category_hint" json:"category_hint"`
 }
 
 const createReceipt = `-- name: CreateReceipt :one
@@ -86,22 +86,22 @@ returning
 `
 
 type CreateReceiptParams struct {
-	Engine         int16      `json:"engine"`
-	ParseStatus    *int16     `json:"parse_status"`
-	LinkStatus     *int16     `json:"link_status"`
-	MatchIds       []int64    `json:"match_ids"`
-	Merchant       *string    `json:"merchant"`
-	PurchaseDate   *time.Time `json:"purchase_date"`
-	TotalAmount    []byte     `json:"total_amount"`
-	TaxAmount      []byte     `json:"tax_amount"`
-	RawPayload     []byte     `json:"raw_payload"`
-	CanonicalData  []byte     `json:"canonical_data"`
-	ImageUrl       *string    `json:"image_url"`
-	ImageSha256    []byte     `json:"image_sha256"`
-	Lat            *float64   `json:"lat"`
-	Lon            *float64   `json:"lon"`
-	LocationSource *string    `json:"location_source"`
-	LocationLabel  *string    `json:"location_label"`
+	Engine         int16      `db:"engine" json:"engine"`
+	ParseStatus    *int16     `db:"parse_status" json:"parse_status"`
+	LinkStatus     *int16     `db:"link_status" json:"link_status"`
+	MatchIds       []int64    `db:"match_ids" json:"match_ids"`
+	Merchant       *string    `db:"merchant" json:"merchant"`
+	PurchaseDate   *time.Time `db:"purchase_date" json:"purchase_date"`
+	TotalAmount    []byte     `db:"total_amount" json:"total_amount"`
+	TaxAmount      []byte     `db:"tax_amount" json:"tax_amount"`
+	RawPayload     []byte     `db:"raw_payload" json:"raw_payload"`
+	CanonicalData  []byte     `db:"canonical_data" json:"canonical_data"`
+	ImageUrl       *string    `db:"image_url" json:"image_url"`
+	ImageSha256    []byte     `db:"image_sha256" json:"image_sha256"`
+	Lat            *float64   `db:"lat" json:"lat"`
+	Lon            *float64   `db:"lon" json:"lon"`
+	LocationSource *string    `db:"location_source" json:"location_source"`
+	LocationLabel  *string    `db:"location_label" json:"location_label"`
 }
 
 func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) (Receipt, error) {
@@ -186,14 +186,14 @@ returning
 `
 
 type CreateReceiptItemParams struct {
-	ReceiptID    int64   `json:"receipt_id"`
-	LineNo       *int32  `json:"line_no"`
-	Name         string  `json:"name"`
-	Qty          *int32  `json:"qty"`
-	UnitPrice    []byte  `json:"unit_price"`
-	LineTotal    []byte  `json:"line_total"`
-	Sku          *string `json:"sku"`
-	CategoryHint *string `json:"category_hint"`
+	ReceiptID    int64   `db:"receipt_id" json:"receipt_id"`
+	LineNo       *int32  `db:"line_no" json:"line_no"`
+	Name         string  `db:"name" json:"name"`
+	Qty          *int32  `db:"qty" json:"qty"`
+	UnitPrice    []byte  `db:"unit_price" json:"unit_price"`
+	LineTotal    []byte  `db:"line_total" json:"line_total"`
+	Sku          *string `db:"sku" json:"sku"`
+	CategoryHint *string `db:"category_hint" json:"category_hint"`
 }
 
 func (q *Queries) CreateReceiptItem(ctx context.Context, arg CreateReceiptItemParams) (ReceiptItem, error) {
@@ -247,8 +247,8 @@ where
 `
 
 type DeleteReceiptParams struct {
-	ID     int64     `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) DeleteReceipt(ctx context.Context, arg DeleteReceiptParams) (int64, error) {
@@ -325,8 +325,8 @@ where
 `
 
 type GetReceiptParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	ID     int64     `json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
 }
 
 func (q *Queries) GetReceipt(ctx context.Context, arg GetReceiptParams) (Receipt, error) {
@@ -416,11 +416,11 @@ order by
 `
 
 type GetReceiptMatchCandidatesRow struct {
-	ID               int64        `json:"id"`
-	Merchant         *string      `json:"merchant"`
-	PurchaseDate     *time.Time   `json:"purchase_date"`
-	TotalAmount      *types.Money `json:"total_amount"`
-	PotentialMatches int64        `json:"potential_matches"`
+	ID               int64        `db:"id" json:"id"`
+	Merchant         *string      `db:"merchant" json:"merchant"`
+	PurchaseDate     *time.Time   `db:"purchase_date" json:"purchase_date"`
+	TotalAmount      *types.Money `db:"total_amount" json:"total_amount"`
+	PotentialMatches int64        `db:"potential_matches" json:"potential_matches"`
 }
 
 func (q *Queries) GetReceiptMatchCandidates(ctx context.Context) ([]GetReceiptMatchCandidatesRow, error) {
@@ -514,8 +514,8 @@ where
 `
 
 type LinkTransactionToReceiptParams struct {
-	ReceiptID     int64 `json:"receipt_id"`
-	TransactionID int64 `json:"transaction_id"`
+	ReceiptID     int64 `db:"receipt_id" json:"receipt_id"`
+	TransactionID int64 `db:"transaction_id" json:"transaction_id"`
 }
 
 func (q *Queries) LinkTransactionToReceipt(ctx context.Context, arg LinkTransactionToReceiptParams) error {
@@ -677,23 +677,23 @@ where
 `
 
 type UpdateReceiptParams struct {
-	Engine         *int16     `json:"engine"`
-	ParseStatus    *int16     `json:"parse_status"`
-	LinkStatus     *int16     `json:"link_status"`
-	MatchIds       []int64    `json:"match_ids"`
-	Merchant       *string    `json:"merchant"`
-	PurchaseDate   *time.Time `json:"purchase_date"`
-	TotalAmount    []byte     `json:"total_amount"`
-	TaxAmount      []byte     `json:"tax_amount"`
-	RawPayload     []byte     `json:"raw_payload"`
-	CanonicalData  []byte     `json:"canonical_data"`
-	ImageUrl       *string    `json:"image_url"`
-	ImageSha256    []byte     `json:"image_sha256"`
-	Lat            *float64   `json:"lat"`
-	Lon            *float64   `json:"lon"`
-	LocationSource *string    `json:"location_source"`
-	LocationLabel  *string    `json:"location_label"`
-	ID             int64      `json:"id"`
+	Engine         *int16     `db:"engine" json:"engine"`
+	ParseStatus    *int16     `db:"parse_status" json:"parse_status"`
+	LinkStatus     *int16     `db:"link_status" json:"link_status"`
+	MatchIds       []int64    `db:"match_ids" json:"match_ids"`
+	Merchant       *string    `db:"merchant" json:"merchant"`
+	PurchaseDate   *time.Time `db:"purchase_date" json:"purchase_date"`
+	TotalAmount    []byte     `db:"total_amount" json:"total_amount"`
+	TaxAmount      []byte     `db:"tax_amount" json:"tax_amount"`
+	RawPayload     []byte     `db:"raw_payload" json:"raw_payload"`
+	CanonicalData  []byte     `db:"canonical_data" json:"canonical_data"`
+	ImageUrl       *string    `db:"image_url" json:"image_url"`
+	ImageSha256    []byte     `db:"image_sha256" json:"image_sha256"`
+	Lat            *float64   `db:"lat" json:"lat"`
+	Lon            *float64   `db:"lon" json:"lon"`
+	LocationSource *string    `db:"location_source" json:"location_source"`
+	LocationLabel  *string    `db:"location_label" json:"location_label"`
+	ID             int64      `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateReceipt(ctx context.Context, arg UpdateReceiptParams) (int64, error) {
@@ -750,14 +750,14 @@ returning
 `
 
 type UpdateReceiptItemParams struct {
-	LineNo       *int32  `json:"line_no"`
-	Name         *string `json:"name"`
-	Qty          *int32  `json:"qty"`
-	UnitPrice    []byte  `json:"unit_price"`
-	LineTotal    []byte  `json:"line_total"`
-	Sku          *string `json:"sku"`
-	CategoryHint *string `json:"category_hint"`
-	ID           int64   `json:"id"`
+	LineNo       *int32  `db:"line_no" json:"line_no"`
+	Name         *string `db:"name" json:"name"`
+	Qty          *int32  `db:"qty" json:"qty"`
+	UnitPrice    []byte  `db:"unit_price" json:"unit_price"`
+	LineTotal    []byte  `db:"line_total" json:"line_total"`
+	Sku          *string `db:"sku" json:"sku"`
+	CategoryHint *string `db:"category_hint" json:"category_hint"`
+	ID           int64   `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateReceiptItem(ctx context.Context, arg UpdateReceiptItemParams) (ReceiptItem, error) {

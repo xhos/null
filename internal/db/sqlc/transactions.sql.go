@@ -37,9 +37,9 @@ where
 `
 
 type BulkCategorizeTransactionsParams struct {
-	CategoryID     int64     `json:"category_id"`
-	TransactionIds []int64   `json:"transaction_ids"`
-	UserID         uuid.UUID `json:"user_id"`
+	CategoryID     int64     `db:"category_id" json:"category_id"`
+	TransactionIds []int64   `db:"transaction_ids" json:"transaction_ids"`
+	UserID         uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) BulkCategorizeTransactions(ctx context.Context, arg BulkCategorizeTransactionsParams) (int64, error) {
@@ -69,8 +69,8 @@ where
 `
 
 type BulkDeleteTransactionsParams struct {
-	TransactionIds []int64   `json:"transaction_ids"`
-	UserID         uuid.UUID `json:"user_id"`
+	TransactionIds []int64   `db:"transaction_ids" json:"transaction_ids"`
+	UserID         uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) BulkDeleteTransactions(ctx context.Context, arg BulkDeleteTransactionsParams) (int64, error) {
@@ -108,16 +108,16 @@ returning
 `
 
 type CategorizeTransactionAtomicParams struct {
-	CategoryID          *int64    `json:"category_id"`
-	CategoryManuallySet bool      `json:"category_manually_set"`
-	Suggestions         []string  `json:"suggestions"`
-	ID                  int64     `json:"id"`
-	UserID              uuid.UUID `json:"user_id"`
+	CategoryID          *int64    `db:"category_id" json:"category_id"`
+	CategoryManuallySet bool      `db:"category_manually_set" json:"category_manually_set"`
+	Suggestions         []string  `db:"suggestions" json:"suggestions"`
+	ID                  int64     `db:"id" json:"id"`
+	UserID              uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 type CategorizeTransactionAtomicRow struct {
-	ID                  int64 `json:"id"`
-	CategoryManuallySet bool  `json:"category_manually_set"`
+	ID                  int64 `db:"id" json:"id"`
+	CategoryManuallySet bool  `db:"category_manually_set" json:"category_manually_set"`
 }
 
 func (q *Queries) CategorizeTransactionAtomic(ctx context.Context, arg CategorizeTransactionAtomicParams) (CategorizeTransactionAtomicRow, error) {
@@ -185,23 +185,23 @@ returning
 `
 
 type CreateTransactionParams struct {
-	EmailID             *string   `json:"email_id"`
-	AccountID           int64     `json:"account_id"`
-	TxDate              time.Time `json:"tx_date"`
-	TxAmount            []byte    `json:"tx_amount"`
-	TxDirection         int16     `json:"tx_direction"`
-	TxDesc              *string   `json:"tx_desc"`
-	BalanceAfter        []byte    `json:"balance_after"`
-	CategoryID          *int64    `json:"category_id"`
-	CategoryManuallySet *bool     `json:"category_manually_set"`
-	Merchant            *string   `json:"merchant"`
-	MerchantManuallySet *bool     `json:"merchant_manually_set"`
-	UserNotes           *string   `json:"user_notes"`
-	ForeignAmount       []byte    `json:"foreign_amount"`
-	ExchangeRate        *float64  `json:"exchange_rate"`
-	Suggestions         []string  `json:"suggestions"`
-	ReceiptID           *int64    `json:"receipt_id"`
-	UserID              uuid.UUID `json:"user_id"`
+	EmailID             *string   `db:"email_id" json:"email_id"`
+	AccountID           int64     `db:"account_id" json:"account_id"`
+	TxDate              time.Time `db:"tx_date" json:"tx_date"`
+	TxAmount            []byte    `db:"tx_amount" json:"tx_amount"`
+	TxDirection         int16     `db:"tx_direction" json:"tx_direction"`
+	TxDesc              *string   `db:"tx_desc" json:"tx_desc"`
+	BalanceAfter        []byte    `db:"balance_after" json:"balance_after"`
+	CategoryID          *int64    `db:"category_id" json:"category_id"`
+	CategoryManuallySet *bool     `db:"category_manually_set" json:"category_manually_set"`
+	Merchant            *string   `db:"merchant" json:"merchant"`
+	MerchantManuallySet *bool     `db:"merchant_manually_set" json:"merchant_manually_set"`
+	UserNotes           *string   `db:"user_notes" json:"user_notes"`
+	ForeignAmount       []byte    `db:"foreign_amount" json:"foreign_amount"`
+	ExchangeRate        *float64  `db:"exchange_rate" json:"exchange_rate"`
+	Suggestions         []string  `db:"suggestions" json:"suggestions"`
+	ReceiptID           *int64    `db:"receipt_id" json:"receipt_id"`
+	UserID              uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (int64, error) {
@@ -250,8 +250,8 @@ returning
 `
 
 type DeleteTransactionParams struct {
-	ID     int64     `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionParams) (int64, error) {
@@ -287,33 +287,33 @@ limit
 `
 
 type FindCandidateTransactionsParams struct {
-	Merchant string    `json:"merchant"`
-	UserID   uuid.UUID `json:"user_id"`
-	Date     time.Time `json:"date"`
-	Total    float64   `json:"total"`
+	Merchant string    `db:"merchant" json:"merchant"`
+	UserID   uuid.UUID `db:"user_id" json:"user_id"`
+	Date     time.Time `db:"date" json:"date"`
+	Total    float64   `db:"total" json:"total"`
 }
 
 type FindCandidateTransactionsRow struct {
-	ID                  int64                      `json:"id"`
-	AccountID           int64                      `json:"account_id"`
-	EmailID             *string                    `json:"email_id"`
-	TxDate              time.Time                  `json:"tx_date"`
-	TxAmount            *types.Money               `json:"tx_amount"`
-	TxDirection         arian.TransactionDirection `json:"tx_direction"`
-	TxDesc              *string                    `json:"tx_desc"`
-	BalanceAfter        *types.Money               `json:"balance_after"`
-	Merchant            *string                    `json:"merchant"`
-	CategoryID          *int64                     `json:"category_id"`
-	Suggestions         []string                   `json:"suggestions"`
-	UserNotes           *string                    `json:"user_notes"`
-	ForeignAmount       *types.Money               `json:"foreign_amount"`
-	ExchangeRate        *float64                   `json:"exchange_rate"`
-	ReceiptID           *int64                     `json:"receipt_id"`
-	CreatedAt           time.Time                  `json:"created_at"`
-	UpdatedAt           time.Time                  `json:"updated_at"`
-	CategoryManuallySet bool                       `json:"category_manually_set"`
-	MerchantManuallySet bool                       `json:"merchant_manually_set"`
-	MerchantScore       float32                    `json:"merchant_score"`
+	ID                  int64                      `db:"id" json:"id"`
+	AccountID           int64                      `db:"account_id" json:"account_id"`
+	EmailID             *string                    `db:"email_id" json:"email_id"`
+	TxDate              time.Time                  `db:"tx_date" json:"tx_date"`
+	TxAmount            *types.Money               `db:"tx_amount" json:"tx_amount"`
+	TxDirection         arian.TransactionDirection `db:"tx_direction" json:"tx_direction"`
+	TxDesc              *string                    `db:"tx_desc" json:"tx_desc"`
+	BalanceAfter        *types.Money               `db:"balance_after" json:"balance_after"`
+	Merchant            *string                    `db:"merchant" json:"merchant"`
+	CategoryID          *int64                     `db:"category_id" json:"category_id"`
+	Suggestions         []string                   `db:"suggestions" json:"suggestions"`
+	UserNotes           *string                    `db:"user_notes" json:"user_notes"`
+	ForeignAmount       *types.Money               `db:"foreign_amount" json:"foreign_amount"`
+	ExchangeRate        *float64                   `db:"exchange_rate" json:"exchange_rate"`
+	ReceiptID           *int64                     `db:"receipt_id" json:"receipt_id"`
+	CreatedAt           time.Time                  `db:"created_at" json:"created_at"`
+	UpdatedAt           time.Time                  `db:"updated_at" json:"updated_at"`
+	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
+	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
+	MerchantScore       float32                    `db:"merchant_score" json:"merchant_score"`
 }
 
 func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandidateTransactionsParams) ([]FindCandidateTransactionsRow, error) {
@@ -408,8 +408,8 @@ where
 `
 
 type GetTransactionParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	ID     int64     `json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
 }
 
 func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) (Transaction, error) {
@@ -460,9 +460,9 @@ order by
 `
 
 type GetTransactionCountByAccountRow struct {
-	ID               int64  `json:"id"`
-	Name             string `json:"name"`
-	TransactionCount int64  `json:"transaction_count"`
+	ID               int64  `db:"id" json:"id"`
+	Name             string `db:"name" json:"name"`
+	TransactionCount int64  `db:"transaction_count" json:"transaction_count"`
 }
 
 func (q *Queries) GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]GetTransactionCountByAccountRow, error) {
@@ -570,23 +570,23 @@ limit
 `
 
 type ListTransactionsParams struct {
-	UserID        uuid.UUID   `json:"user_id"`
-	CursorDate    *time.Time  `json:"cursor_date"`
-	CursorID      *int64      `json:"cursor_id"`
-	Start         *time.Time  `json:"start"`
-	End           *time.Time  `json:"end"`
-	AmountMin     *float64    `json:"amount_min"`
-	AmountMax     *float64    `json:"amount_max"`
-	Direction     *int16      `json:"direction"`
-	AccountIds    []int64     `json:"account_ids"`
-	Categories    []string    `json:"categories"`
-	MerchantQ     *string     `json:"merchant_q"`
-	DescQ         *string     `json:"desc_q"`
-	Currency      *string     `json:"currency"`
-	TodStart      pgtype.Time `json:"tod_start"`
-	TodEnd        pgtype.Time `json:"tod_end"`
-	Uncategorized *bool       `json:"uncategorized"`
-	Limit         *int32      `json:"limit"`
+	UserID        uuid.UUID   `db:"user_id" json:"user_id"`
+	CursorDate    *time.Time  `db:"cursor_date" json:"cursor_date"`
+	CursorID      *int64      `db:"cursor_id" json:"cursor_id"`
+	Start         *time.Time  `db:"start" json:"start"`
+	End           *time.Time  `db:"end" json:"end"`
+	AmountMin     *float64    `db:"amount_min" json:"amount_min"`
+	AmountMax     *float64    `db:"amount_max" json:"amount_max"`
+	Direction     *int16      `db:"direction" json:"direction"`
+	AccountIds    []int64     `db:"account_ids" json:"account_ids"`
+	Categories    []string    `db:"categories" json:"categories"`
+	MerchantQ     *string     `db:"merchant_q" json:"merchant_q"`
+	DescQ         *string     `db:"desc_q" json:"desc_q"`
+	Currency      *string     `db:"currency" json:"currency"`
+	TodStart      pgtype.Time `db:"tod_start" json:"tod_start"`
+	TodEnd        pgtype.Time `db:"tod_end" json:"tod_end"`
+	Uncategorized *bool       `db:"uncategorized" json:"uncategorized"`
+	Limit         *int32      `db:"limit" json:"limit"`
 }
 
 func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {
@@ -722,9 +722,9 @@ where
 `
 
 type RecalculateBalancesAfterTransactionParams struct {
-	AccountID int64     `json:"account_id"`
-	FromDate  time.Time `json:"from_date"`
-	FromID    int64     `json:"from_id"`
+	AccountID int64     `db:"account_id" json:"account_id"`
+	FromDate  time.Time `db:"from_date" json:"from_date"`
+	FromID    int64     `db:"from_id" json:"from_id"`
 }
 
 // Recalculate balance_after for all transactions after a given date/id
@@ -744,8 +744,8 @@ where
 `
 
 type SetTransactionReceiptParams struct {
-	ReceiptID int64 `json:"receipt_id"`
-	ID        int64 `json:"id"`
+	ReceiptID int64 `db:"receipt_id" json:"receipt_id"`
+	ID        int64 `db:"id" json:"id"`
 }
 
 func (q *Queries) SetTransactionReceipt(ctx context.Context, arg SetTransactionReceiptParams) (int64, error) {
@@ -864,22 +864,22 @@ returning
 `
 
 type UpdateTransactionParams struct {
-	EmailID             *string    `json:"email_id"`
-	TxDate              *time.Time `json:"tx_date"`
-	TxAmount            []byte     `json:"tx_amount"`
-	TxDirection         *int16     `json:"tx_direction"`
-	TxDesc              *string    `json:"tx_desc"`
-	CategoryID          *int64     `json:"category_id"`
-	Merchant            *string    `json:"merchant"`
-	UserNotes           *string    `json:"user_notes"`
-	ForeignAmount       []byte     `json:"foreign_amount"`
-	ExchangeRate        *float64   `json:"exchange_rate"`
-	Suggestions         []string   `json:"suggestions"`
-	ReceiptID           *int64     `json:"receipt_id"`
-	CategoryManuallySet *bool      `json:"category_manually_set"`
-	MerchantManuallySet *bool      `json:"merchant_manually_set"`
-	ID                  int64      `json:"id"`
-	UserID              uuid.UUID  `json:"user_id"`
+	EmailID             *string    `db:"email_id" json:"email_id"`
+	TxDate              *time.Time `db:"tx_date" json:"tx_date"`
+	TxAmount            []byte     `db:"tx_amount" json:"tx_amount"`
+	TxDirection         *int16     `db:"tx_direction" json:"tx_direction"`
+	TxDesc              *string    `db:"tx_desc" json:"tx_desc"`
+	CategoryID          *int64     `db:"category_id" json:"category_id"`
+	Merchant            *string    `db:"merchant" json:"merchant"`
+	UserNotes           *string    `db:"user_notes" json:"user_notes"`
+	ForeignAmount       []byte     `db:"foreign_amount" json:"foreign_amount"`
+	ExchangeRate        *float64   `db:"exchange_rate" json:"exchange_rate"`
+	Suggestions         []string   `db:"suggestions" json:"suggestions"`
+	ReceiptID           *int64     `db:"receipt_id" json:"receipt_id"`
+	CategoryManuallySet *bool      `db:"category_manually_set" json:"category_manually_set"`
+	MerchantManuallySet *bool      `db:"merchant_manually_set" json:"merchant_manually_set"`
+	ID                  int64      `db:"id" json:"id"`
+	UserID              uuid.UUID  `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (int64, error) {

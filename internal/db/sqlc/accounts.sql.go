@@ -32,8 +32,8 @@ select
 `
 
 type CheckUserAccountAccessParams struct {
-	UserID    uuid.UUID `json:"user_id"`
-	AccountID int64     `json:"account_id"`
+	UserID    uuid.UUID `db:"user_id" json:"user_id"`
+	AccountID int64     `db:"account_id" json:"account_id"`
 }
 
 func (q *Queries) CheckUserAccountAccess(ctx context.Context, arg CheckUserAccountAccessParams) (bool, error) {
@@ -73,14 +73,14 @@ returning
 `
 
 type CreateAccountParams struct {
-	OwnerID       uuid.UUID `json:"owner_id"`
-	Name          string    `json:"name"`
-	Bank          string    `json:"bank"`
-	AccountType   int16     `json:"account_type"`
-	Alias         *string   `json:"alias"`
-	AnchorBalance []byte    `json:"anchor_balance"`
-	MainCurrency  string    `json:"main_currency"`
-	Colors        []string  `json:"colors"`
+	OwnerID       uuid.UUID `db:"owner_id" json:"owner_id"`
+	Name          string    `db:"name" json:"name"`
+	Bank          string    `db:"bank" json:"bank"`
+	AccountType   int16     `db:"account_type" json:"account_type"`
+	Alias         *string   `db:"alias" json:"alias"`
+	AnchorBalance []byte    `db:"anchor_balance" json:"anchor_balance"`
+	MainCurrency  string    `db:"main_currency" json:"main_currency"`
+	Colors        []string  `db:"colors" json:"colors"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
@@ -122,8 +122,8 @@ where
 `
 
 type DeleteAccountParams struct {
-	ID     int64     `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) (int64, error) {
@@ -150,8 +150,8 @@ where
 `
 
 type GetAccountParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	ID     int64     `json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	ID     int64     `db:"id" json:"id"`
 }
 
 func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (Account, error) {
@@ -307,8 +307,8 @@ where
 `
 
 type SetAccountAnchorParams struct {
-	AnchorBalance []byte `json:"anchor_balance"`
-	ID            int64  `json:"id"`
+	AnchorBalance []byte `db:"anchor_balance" json:"anchor_balance"`
+	ID            int64  `db:"id" json:"id"`
 }
 
 func (q *Queries) SetAccountAnchor(ctx context.Context, arg SetAccountAnchorParams) (int64, error) {
@@ -339,16 +339,16 @@ returning
 `
 
 type UpdateAccountParams struct {
-	Name          *string    `json:"name"`
-	Bank          *string    `json:"bank"`
-	AccountType   *int16     `json:"account_type"`
-	Alias         *string    `json:"alias"`
-	AnchorDate    *time.Time `json:"anchor_date"`
-	AnchorBalance []byte     `json:"anchor_balance"`
-	Balance       []byte     `json:"balance"`
-	MainCurrency  *string    `json:"main_currency"`
-	Colors        []string   `json:"colors"`
-	ID            int64      `json:"id"`
+	Name          *string    `db:"name" json:"name"`
+	Bank          *string    `db:"bank" json:"bank"`
+	AccountType   *int16     `db:"account_type" json:"account_type"`
+	Alias         *string    `db:"alias" json:"alias"`
+	AnchorDate    *time.Time `db:"anchor_date" json:"anchor_date"`
+	AnchorBalance []byte     `db:"anchor_balance" json:"anchor_balance"`
+	Balance       []byte     `db:"balance" json:"balance"`
+	MainCurrency  *string    `db:"main_currency" json:"main_currency"`
+	Colors        []string   `db:"colors" json:"colors"`
+	ID            int64      `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {

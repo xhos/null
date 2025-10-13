@@ -94,6 +94,18 @@ func int64ToMoney(amount int64, currency string) *money.Money {
 	}
 }
 
+// Convert cents (int64) to money.Money with proper units and nanos
+func centsToMoney(cents int64, currency string) *money.Money {
+	if currency == "" {
+		currency = "USD"
+	}
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        cents / 100,
+		Nanos:        int32((cents % 100) * 10000000),
+	}
+}
+
 // Convert float64 to money.Money with currency (for dashboard averages)
 func float64ToMoney(amount float64, currency string) *money.Money {
 	if currency == "" {
@@ -840,8 +852,8 @@ func toProtoTrendPoint(trend *sqlc.GetDashboardTrendsRow) *pb.TrendPoint {
 	trendDate, _ := time.Parse("2006-01-02", trend.Date)
 	return &pb.TrendPoint{
 		Date:     timeToDate(trendDate),
-		Income:   int64ToMoney(trend.Income, "CAD"),
-		Expenses: int64ToMoney(trend.Expenses, "CAD"),
+		Income:   centsToMoney(trend.IncomeCents, "CAD"),
+		Expenses: centsToMoney(trend.ExpenseCents, "CAD"),
 	}
 }
 
@@ -854,8 +866,8 @@ func toProtoTrendPointFromAccount(trend *sqlc.GetDashboardTrendsForAccountRow) *
 	trendDate, _ := time.Parse("2006-01-02", trend.Date)
 	return &pb.TrendPoint{
 		Date:     timeToDate(trendDate),
-		Income:   int64ToMoney(trend.Income, "CAD"),
-		Expenses: int64ToMoney(trend.Expenses, "CAD"),
+		Income:   centsToMoney(trend.IncomeCents, "CAD"),
+		Expenses: centsToMoney(trend.ExpenseCents, "CAD"),
 	}
 }
 
@@ -866,9 +878,9 @@ func toProtoMonthlyComparison(comp *sqlc.GetMonthlyComparisonRow) *pb.MonthlyCom
 
 	return &pb.MonthlyComparison{
 		Month:    comp.Month,
-		Income:   int64ToMoney(comp.Income, "CAD"),
-		Expenses: int64ToMoney(comp.Expenses, "CAD"),
-		Net:      int64ToMoney(comp.Net, "CAD"),
+		Income:   centsToMoney(comp.IncomeCents, "CAD"),
+		Expenses: centsToMoney(comp.ExpenseCents, "CAD"),
+		Net:      centsToMoney(comp.NetCents, "CAD"),
 	}
 }
 
@@ -881,7 +893,7 @@ func toProtoTopCategory(cat *sqlc.GetTopCategoriesRow) *pb.TopCategory {
 		Slug:             cat.Slug,
 		Color:            cat.Color,
 		TransactionCount: cat.TransactionCount,
-		TotalAmount:      int64ToMoney(cat.TotalAmount, "CAD"),
+		TotalAmount:      centsToMoney(cat.TotalAmountCents, "CAD"),
 	}
 }
 
@@ -898,8 +910,8 @@ func toProtoTopMerchant(merchant *sqlc.GetTopMerchantsRow) *pb.TopMerchant {
 	return &pb.TopMerchant{
 		Merchant:         merchantName,
 		TransactionCount: merchant.TransactionCount,
-		TotalAmount:      int64ToMoney(merchant.TotalAmount, "CAD"),
-		AvgAmount:        float64ToMoney(merchant.AvgAmount, "CAD"),
+		TotalAmount:      centsToMoney(merchant.TotalAmountCents, "CAD"),
+		AvgAmount:        centsToMoney(merchant.AvgAmountCents, "CAD"),
 	}
 }
 
@@ -932,8 +944,8 @@ func toProtoDashboardSummary(summary *sqlc.GetDashboardSummaryRow) *pb.Dashboard
 	return &pb.DashboardSummary{
 		TotalAccounts:             summary.TotalAccounts,
 		TotalTransactions:         summary.TotalTransactions,
-		TotalIncome:               int64ToMoney(interfaceToInt64(summary.TotalIncome), "CAD"),
-		TotalExpenses:             int64ToMoney(interfaceToInt64(summary.TotalExpenses), "CAD"),
+		TotalIncome:               centsToMoney(summary.TotalIncomeCents, "CAD"),
+		TotalExpenses:             centsToMoney(summary.TotalExpenseCents, "CAD"),
 		UncategorizedTransactions: summary.UncategorizedTransactions,
 	}
 }
@@ -946,26 +958,9 @@ func toProtoDashboardSummaryFromAccount(summary *sqlc.GetDashboardSummaryForAcco
 	return &pb.DashboardSummary{
 		TotalAccounts:             summary.TotalAccounts,
 		TotalTransactions:         summary.TotalTransactions,
-		TotalIncome:               int64ToMoney(interfaceToInt64(summary.TotalIncome), "CAD"),
-		TotalExpenses:             int64ToMoney(interfaceToInt64(summary.TotalExpenses), "CAD"),
+		TotalIncome:               centsToMoney(summary.TotalIncomeCents, "CAD"),
+		TotalExpenses:             centsToMoney(summary.TotalExpenseCents, "CAD"),
 		UncategorizedTransactions: summary.UncategorizedTransactions,
-	}
-}
-
-// helper to safely convert interface{} to int64
-func interfaceToInt64(v interface{}) int64 {
-	if v == nil {
-		return 0
-	}
-	switch val := v.(type) {
-	case int64:
-		return val
-	case float64:
-		return int64(val)
-	case int:
-		return int64(val)
-	default:
-		return 0
 	}
 }
 
