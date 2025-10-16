@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     -X 'ariand/internal/version.BuildTime=${BUILD_TIME:-$(date -u +%Y%m%d-%H%M%S)}' \
     -X 'ariand/internal/version.GitCommit=${GIT_COMMIT:-dev}' \
     -X 'ariand/internal/version.GitBranch=${GIT_BRANCH:-main}'" \
-    -o /out/ariand ./cmd/main.go
+    -o /out/ariand ./cmd/ariand/main.go
 
 # ----- grpc_health_probe -------------------------------------------------------------------------
 FROM alpine:3.22.1 AS health-probe
