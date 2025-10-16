@@ -3,16 +3,11 @@ FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
-ARG BUILD_TIME
 ARG GIT_COMMIT
-ARG GIT_BRANCH
-
-# build dependencies
-RUN apk add --no-cache git
 
 WORKDIR /src
 
-# cache dependencies
+# cache deps
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
@@ -24,40 +19,25 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
     go build -trimpath -ldflags="-s -w \
-    -X 'ariand/internal/version.BuildTime=${BUILD_TIME:-$(date -u +%Y%m%d-%H%M%S)}' \
-    -X 'ariand/internal/version.GitCommit=${GIT_COMMIT:-dev}' \
-    -X 'ariand/internal/version.GitBranch=${GIT_BRANCH:-main}'" \
-    -o /out/ariand ./cmd/ariand/main.go
-
-# ----- grpc_health_probe -------------------------------------------------------------------------
-FROM alpine:3.22.1 AS health-probe
-
-ARG TARGETARCH
-
-RUN apk add --no-cache curl && \
-    GRPC_HEALTH_PROBE_VERSION=v0.4.40 && \
-    ARCH=${TARGETARCH:-amd64} && \
-    curl -fsSL "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${ARCH}" \
-    -o /grpc_health_probe && \
-    chmod +x /grpc_health_probe
+        -X 'ariand/internal/version.Version=${VERSION:-dev}' \
+        -X 'ariand/internal/version.GitCommit=${GIT_COMMIT:-dev}'" \
+        -o /out/ariand ./cmd/ariand/main.go
 
 # ----- runtime ----------------------------------------------------------------------------------- 
-FROM alpine:3.22.1
+FROM alpine:3.22.2
 
 # metadata
 LABEL org.opencontainers.image.title="ariand" \
-      org.opencontainers.image.description="main gRPC server" \
       org.opencontainers.image.source="https://github.com/xhos/ariand"
 
-# runtime dependencies
+# runtime deps
 RUN apk add --no-cache ca-certificates tzdata curl && \
     addgroup -g 1001 -S app && \
     adduser -u 1001 -S -G app -h /app app
 
-# copy binaries and migrations
+# copy binary and migrations
 COPY --from=builder --chown=app:app /out/ariand /app/ariand
-COPY --from=builder --chown=app:app /src/internal/ /app/internal/
-COPY --from=health-probe --chown=app:app /grpc_health_probe /usr/local/bin/grpc_health_probe
+COPY --from=builder --chown=app:app /src/internal/db/migrations /app/internal/db/migrations
 
 USER app
 WORKDIR /app

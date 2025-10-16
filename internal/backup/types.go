@@ -46,11 +46,11 @@ type TransactionData struct {
 }
 
 type RuleData struct {
-	RuleName      string                 `json:"rule_name"`
-	CategorySlug  *string                `json:"category_slug,omitempty"`
-	Merchant      *string                `json:"merchant,omitempty"`
-	Conditions    map[string]interface{} `json:"conditions"`
-	IsActive      *bool                  `json:"is_active,omitempty"`
-	PriorityOrder *int32                 `json:"priority_order,omitempty"`
-	RuleSource    *string                `json:"rule_source,omitempty"`
+	RuleName      string         `json:"rule_name"`
+	CategorySlug  *string        `json:"category_slug,omitempty"`
+	Merchant      *string        `json:"merchant,omitempty"`
+	Conditions    map[string]any `json:"conditions"`
+	IsActive      *bool          `json:"is_active,omitempty"`
+	PriorityOrder *int32         `json:"priority_order,omitempty"`
+	RuleSource    *string        `json:"rule_source,omitempty"`
 }

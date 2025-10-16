@@ -38,7 +38,7 @@ func main() {
 			Formatter:       log.JSONFormatter,
 		})
 
-	logger.Info("starting ariand", "version", version.FullVersion())
+	logger.Info("starting ariand", "version", version.Full())
 
 	// ----- migrations -------------
 	logger.Info("running database migrations")

@@ -1,33 +1,21 @@
 package version
 
-import (
-	"fmt"
-	"runtime"
-)
+import "fmt"
 
 const (
-	Major    = 1
-	Minor    = 5
-	Patch    = 0
 	RepoName = "ariand"
 	RepoURL  = "https://github.com/xhos/ariand"
 )
 
 var (
-	BuildTime = "unknown"
+	Version   = "dev"
 	GitCommit = "unknown"
-	GitBranch = "unknown"
 )
 
-func Version() string {
-	return fmt.Sprintf("v%d.%d.%d", Major, Minor, Patch)
-}
-
-func FullVersion() string {
-	return fmt.Sprintf("%s (commit: %s, branch: %s, built: %s, go: %s)",
-		Version(), GitCommit, GitBranch, BuildTime, runtime.Version())
+func Full() string {
+	return fmt.Sprintf("%s (%s)", Version, GitCommit[:7])
 }
 
 func Short() string {
-	return fmt.Sprintf("%d.%d.%d", Major, Minor, Patch)
+	return Version
 }
