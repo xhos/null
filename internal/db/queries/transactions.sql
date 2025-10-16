@@ -460,3 +460,20 @@ from
   transactions
 where
   id = ANY(@ids::bigint []);
+
+-- name: ListAllTransactions :many
+select
+  t.*
+from
+  transactions t
+  join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = sqlc.arg(user_id)::uuid
+where
+  (
+    a.owner_id = sqlc.arg(user_id)::uuid
+    or au.user_id is not null
+  )
+order by
+  t.tx_date desc,
+  t.id desc;

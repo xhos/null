@@ -485,6 +485,64 @@ func (q *Queries) GetTransactionCountByAccount(ctx context.Context, userID uuid.
 	return items, nil
 }
 
+const listAllTransactions = `-- name: ListAllTransactions :many
+select
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.receipt_id, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
+from
+  transactions t
+  join accounts a on t.account_id = a.id
+  left join account_users au on a.id = au.account_id
+  and au.user_id = $1::uuid
+where
+  (
+    a.owner_id = $1::uuid
+    or au.user_id is not null
+  )
+order by
+  t.tx_date desc,
+  t.id desc
+`
+
+func (q *Queries) ListAllTransactions(ctx context.Context, userID uuid.UUID) ([]Transaction, error) {
+	rows, err := q.db.Query(ctx, listAllTransactions, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.EmailID,
+			&i.TxDate,
+			&i.TxAmount,
+			&i.TxDirection,
+			&i.TxDesc,
+			&i.BalanceAfter,
+			&i.Merchant,
+			&i.CategoryID,
+			&i.Suggestions,
+			&i.UserNotes,
+			&i.ForeignAmount,
+			&i.ExchangeRate,
+			&i.ReceiptID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTransactions = `-- name: ListTransactions :many
 select
   t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.receipt_id, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set

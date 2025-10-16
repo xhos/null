@@ -20,6 +20,7 @@ type Services struct {
 	Dashboard    DashboardService
 	Receipts     ReceiptService
 	Users        UserService
+	Backup       BackupService
 }
 
 func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager) (*Services, error) {
@@ -54,5 +55,6 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager)
 		Dashboard:    newDashSvc(queries),
 		Users:        newUserSvc(queries, lg.WithPrefix("user")),
 		Receipts:     newReceiptSvc(queries, parserClient, storage.NewLocalStorage("/tmp/receipts", "/api/receipts/images"), lg.WithPrefix("receipt")),
+		Backup:       newBackupSvc(queries),
 	}, nil
 }

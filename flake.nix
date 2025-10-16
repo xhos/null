@@ -44,8 +44,12 @@
           air
           golangci-lint
 
+          protoc-gen-go-grpc
+          protoc-gen-connect-go
+          protoc-gen-go
+
           (writeShellScriptBin "run" ''
-            go run cmd/main.go
+            go run cmd/ariand/main.go
           '')
 
           (writeShellScriptBin "fmt" ''
@@ -86,10 +90,7 @@
           '')
         ];
 
-        shellHook = ''
-          export PATH="$HOME/go/bin:$PATH"
-          ${self.checks.${pkgs.system}.pre-commit.shellHook}
-        '';
+        shellHook = "${self.checks.${pkgs.system}.pre-commit.shellHook}";
       };
     });
 
