@@ -227,19 +227,19 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 	// bulk update each group
 	totalUpdated := 0
 	for key, txIDs := range updateGroups {
-		var categoryID *int64
-		var merchant *string
+		categoryID := int64(0)
+		merchant := ""
 
 		if key.categoryID > 0 {
-			categoryID = &key.categoryID
+			categoryID = key.categoryID
 		}
 		if key.merchant != "" {
-			merchant = &key.merchant
+			merchant = key.merchant
 		}
 
 		affected, err := s.queries.BulkApplyRuleToTransactions(ctx, sqlc.BulkApplyRuleToTransactionsParams{
-			CategoryID:     *categoryID,
-			Merchant:       *merchant,
+			CategoryID:     categoryID,
+			Merchant:       merchant,
 			TransactionIds: txIDs,
 			UserID:         userID,
 		})

@@ -54,8 +54,16 @@ where (a.owner_id = @user_id::uuid or au.user_id is not null)
 -- name: BulkApplyRuleToTransactions :execrows
 update transactions
 set
-  category_id = coalesce(@category_id::bigint, category_id),
-  merchant = coalesce(@merchant::text, merchant)
+  category_id = case
+    when @category_id::bigint > 0 and category_manually_set = false
+    then @category_id::bigint
+    else category_id
+  end,
+  merchant = case
+    when @merchant::text != '' and merchant_manually_set = false
+    then @merchant::text
+    else merchant
+  end
 where id = ANY(@transaction_ids::bigint[])
   and account_id in (
     select a.id
@@ -63,5 +71,7 @@ where id = ANY(@transaction_ids::bigint[])
     left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
     where a.owner_id = @user_id::uuid or au.user_id is not null
   )
-  and category_manually_set = false
-  and merchant_manually_set = false;
+  and (
+    (@category_id::bigint > 0 and category_manually_set = false) or
+    (@merchant::text != '' and merchant_manually_set = false)
+  );

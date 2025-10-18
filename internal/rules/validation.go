@@ -214,10 +214,26 @@ func validateMinMaxOperator(_ OperatorType, condition *Condition, fieldPrefix st
 	}
 }
 
-func validateRegularOperator(_ OperatorType, condition *Condition, fieldPrefix string, result *ValidationResult) {
+func validateRegularOperator(operator OperatorType, condition *Condition, fieldPrefix string, result *ValidationResult) {
 	if condition.Value == nil {
 		msg := fmt.Sprintf("Operator '%s' requires 'value'", condition.Operator)
 		addError(result, fieldPrefix+".value", msg, "REQUIRED_FIELD")
+		return
+	}
+
+	// Check if value is empty string
+	if strVal, ok := condition.Value.(string); ok && strVal == "" {
+		msg := fmt.Sprintf("Operator '%s' requires a non-empty value", condition.Operator)
+		addError(result, fieldPrefix+".value", msg, "EMPTY_VALUE")
+		return
+	}
+
+	// For numeric operators, validate that the value can be parsed as a number
+	if IsNumericOperator(operator) {
+		if _, err := getNumericValue(condition.Value); err != nil {
+			msg := fmt.Sprintf("Invalid numeric value for operator '%s': %s", condition.Operator, err.Error())
+			addError(result, fieldPrefix+".value", msg, "INVALID_NUMERIC_VALUE")
+		}
 	}
 
 	if len(condition.Values) > 0 {

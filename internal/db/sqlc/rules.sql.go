@@ -14,8 +14,16 @@ import (
 const bulkApplyRuleToTransactions = `-- name: BulkApplyRuleToTransactions :execrows
 update transactions
 set
-  category_id = coalesce($1::bigint, category_id),
-  merchant = coalesce($2::text, merchant)
+  category_id = case
+    when $1::bigint > 0 and category_manually_set = false
+    then $1::bigint
+    else category_id
+  end,
+  merchant = case
+    when $2::text != '' and merchant_manually_set = false
+    then $2::text
+    else merchant
+  end
 where id = ANY($3::bigint[])
   and account_id in (
     select a.id
@@ -23,8 +31,10 @@ where id = ANY($3::bigint[])
     left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
     where a.owner_id = $4::uuid or au.user_id is not null
   )
-  and category_manually_set = false
-  and merchant_manually_set = false
+  and (
+    ($1::bigint > 0 and category_manually_set = false) or
+    ($2::text != '' and merchant_manually_set = false)
+  )
 `
 
 type BulkApplyRuleToTransactionsParams struct {
