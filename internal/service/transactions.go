@@ -151,8 +151,7 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	}
 
 	// apply rules if relevant fields changed and aren't manually set
-	fieldsChangedForRules := params.TxDesc != nil || params.Merchant != nil ||
-		params.TxAmount != nil || params.TxDirection != nil
+	fieldsChangedForRules := params.TxDesc != nil || params.Merchant != nil || params.TxAmount != nil
 	shouldApplyRules := fieldsChangedForRules &&
 		(!tx.CategoryManuallySet || !tx.MerchantManuallySet)
 

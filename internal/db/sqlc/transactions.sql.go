@@ -890,20 +890,20 @@ const updateTransaction = `-- name: UpdateTransaction :one
 update
   transactions
 set
-  email_id = $1::text,
-  tx_date = $2::timestamptz,
-  tx_amount = $3::jsonb,
-  tx_direction = $4::smallint,
-  tx_desc = $5::text,
-  category_id = $6::bigint,
-  merchant = $7::text,
-  user_notes = $8::text,
-  foreign_amount = $9::jsonb,
-  exchange_rate = $10::double precision,
-  suggestions = $11::text [],
-  receipt_id = $12::bigint,
-  category_manually_set = $13::boolean,
-  merchant_manually_set = $14::boolean
+  email_id = coalesce($1::text, email_id),
+  tx_date = coalesce($2::timestamptz, tx_date),
+  tx_amount = coalesce($3::jsonb, tx_amount),
+  tx_direction = coalesce($4::smallint, tx_direction),
+  tx_desc = coalesce($5::text, tx_desc),
+  category_id = coalesce($6::bigint, category_id),
+  merchant = coalesce($7::text, merchant),
+  user_notes = coalesce($8::text, user_notes),
+  foreign_amount = coalesce($9::jsonb, foreign_amount),
+  exchange_rate = coalesce($10::double precision, exchange_rate),
+  suggestions = coalesce($11::text[], suggestions),
+  receipt_id = coalesce($12::bigint, receipt_id),
+  category_manually_set = coalesce($13::boolean, category_manually_set),
+  merchant_manually_set = coalesce($14::boolean, merchant_manually_set)
 where
   id = $15::bigint
   and account_id in (

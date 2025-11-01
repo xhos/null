@@ -150,20 +150,20 @@ returning
 update
   transactions
 set
-  email_id = sqlc.narg('email_id')::text,
-  tx_date = sqlc.narg('tx_date')::timestamptz,
-  tx_amount = sqlc.narg('tx_amount')::jsonb,
-  tx_direction = sqlc.narg('tx_direction')::smallint,
-  tx_desc = sqlc.narg('tx_desc')::text,
-  category_id = sqlc.narg('category_id')::bigint,
-  merchant = sqlc.narg('merchant')::text,
-  user_notes = sqlc.narg('user_notes')::text,
-  foreign_amount = sqlc.narg('foreign_amount')::jsonb,
-  exchange_rate = sqlc.narg('exchange_rate')::double precision,
-  suggestions = sqlc.narg('suggestions')::text [],
-  receipt_id = sqlc.narg('receipt_id')::bigint,
-  category_manually_set = sqlc.narg('category_manually_set')::boolean,
-  merchant_manually_set = sqlc.narg('merchant_manually_set')::boolean
+  email_id = coalesce(sqlc.narg('email_id')::text, email_id),
+  tx_date = coalesce(sqlc.narg('tx_date')::timestamptz, tx_date),
+  tx_amount = coalesce(sqlc.narg('tx_amount')::jsonb, tx_amount),
+  tx_direction = coalesce(sqlc.narg('tx_direction')::smallint, tx_direction),
+  tx_desc = coalesce(sqlc.narg('tx_desc')::text, tx_desc),
+  category_id = coalesce(sqlc.narg('category_id')::bigint, category_id),
+  merchant = coalesce(sqlc.narg('merchant')::text, merchant),
+  user_notes = coalesce(sqlc.narg('user_notes')::text, user_notes),
+  foreign_amount = coalesce(sqlc.narg('foreign_amount')::jsonb, foreign_amount),
+  exchange_rate = coalesce(sqlc.narg('exchange_rate')::double precision, exchange_rate),
+  suggestions = coalesce(sqlc.narg('suggestions')::text[], suggestions),
+  receipt_id = coalesce(sqlc.narg('receipt_id')::bigint, receipt_id),
+  category_manually_set = coalesce(sqlc.narg('category_manually_set')::boolean, category_manually_set),
+  merchant_manually_set = coalesce(sqlc.narg('merchant_manually_set')::boolean, merchant_manually_set)
 where
   id = sqlc.arg(id)::bigint
   and account_id in (
