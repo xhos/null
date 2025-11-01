@@ -10,6 +10,9 @@ exclude_regex = ["_test\\.go"]
 log = "build-errors.log"
 delay = 1000
 stop_on_error = true
+# Set text logs for development
+args_bin = ["LOG_FORMAT=text"]
+full_bin = "LOG_FORMAT=text ./tmp/main"
 
 [log]
 time = false

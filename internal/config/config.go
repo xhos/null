@@ -21,7 +21,8 @@ type Config struct {
 
 	ExchangeAPIURL string // exchange rate API URL
 
-	LogLevel log.Level // logging level
+	LogLevel  log.Level // logging level
+	LogFormat string    // logging format: "json" or "text"
 }
 
 // parseAddress ensures the address is in the correct format for network listeners.
@@ -85,6 +86,11 @@ func Load() Config {
 		logLevel = log.InfoLevel
 	}
 
+	logFormat := strings.ToLower(strings.TrimSpace(os.Getenv("LOG_FORMAT")))
+	if logFormat != "json" && logFormat != "text" {
+		logFormat = "json" // default to json for production
+	}
+
 	return Config{
 		Address:              parseAddress(*address),
 		APIKey:               apiKey,
@@ -94,5 +100,6 @@ func Load() Config {
 		ReceiptParserTimeout: receiptParserTimeout,
 		ExchangeAPIURL:       exchangeAPIURL,
 		LogLevel:             logLevel,
+		LogFormat:            logFormat,
 	}
 }

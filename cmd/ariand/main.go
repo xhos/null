@@ -30,12 +30,20 @@ func main() {
 	}
 	defer logFile.Close()
 
+	// Choose formatter based on config
+	var formatter log.Formatter
+	if cfg.LogFormat == "text" {
+		formatter = log.TextFormatter
+	} else {
+		formatter = log.JSONFormatter
+	}
+
 	logger := log.NewWithOptions(
 		io.MultiWriter(os.Stdout, logFile),
 		log.Options{
 			ReportTimestamp: true,
 			Level:           cfg.LogLevel,
-			Formatter:       log.JSONFormatter,
+			Formatter:       formatter,
 		})
 
 	logger.Info("starting ariand", "version", version.Full())

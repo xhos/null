@@ -18,8 +18,10 @@ ariand is a high-performance gRPC (or rather [connect-go](https://github.com/con
 | `DATABASE_URL`            | PostgreSQL connection string               |          | [x]        |
 | `ARIAN_RECEIPTS_URL`      | gRPC endpoint for receipt parsing service  |          | [x]        |
 | `BETTER_AUTH_URL`         | URL for BetterAuth service                 |          | [x]        |
-| `RECEIPT_PARSER_TIMEOUT`  | Timeout for receipt parser requests        |          | [ ]        |
+| `EXCHANGE_API_URL`        | Exchange rate API endpoint                 |          | [x]        |
+| `RECEIPT_PARSER_TIMEOUT`  | Timeout for receipt parser requests        | `30s`    | [ ]        |
 | `LOG_LEVEL`               | Log level: debug, info, warn, error        | `info`   | [ ]        |
+| `LOG_FORMAT`              | Log format: json, text                     | `json`   | [ ]        |
 | `OPENAI_API_KEY`          | OpenAI API access                          |          | [ ]        |
 | `ANTHROPIC_API_KEY`       | Anthropic API access                       |          | [ ]        |
 | `OLLAMA_API_KEY`          | Ollama API access                          |          | [ ]        |
