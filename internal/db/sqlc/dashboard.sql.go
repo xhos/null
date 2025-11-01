@@ -71,6 +71,67 @@ func (q *Queries) GetAccountBalances(ctx context.Context, userID uuid.UUID) ([]G
 	return items, nil
 }
 
+const getCategorySpendingForPeriod = `-- name: GetCategorySpendingForPeriod :many
+select
+  t.category_id,
+  c.id as category_db_id,
+  c.slug as category_slug,
+  c.color as category_color,
+  COALESCE(SUM(amount_cents(t.tx_amount)), 0)::bigint as total_cents,
+  COUNT(t.id)::bigint as transaction_count
+from transactions t
+join accounts a on t.account_id = a.id
+left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
+left join categories c on t.category_id = c.id
+where (a.owner_id = $1::uuid or au.user_id is not null)
+  and t.tx_direction = 2
+  and t.tx_date >= $2::timestamptz
+  and t.tx_date <= $3::timestamptz
+group by t.category_id, c.id, c.slug, c.color
+`
+
+type GetCategorySpendingForPeriodParams struct {
+	UserID    uuid.UUID `db:"user_id" json:"user_id"`
+	StartDate time.Time `db:"start_date" json:"start_date"`
+	EndDate   time.Time `db:"end_date" json:"end_date"`
+}
+
+type GetCategorySpendingForPeriodRow struct {
+	CategoryID       *int64  `db:"category_id" json:"category_id"`
+	CategoryDbID     *int64  `db:"category_db_id" json:"category_db_id"`
+	CategorySlug     *string `db:"category_slug" json:"category_slug"`
+	CategoryColor    *string `db:"category_color" json:"category_color"`
+	TotalCents       int64   `db:"total_cents" json:"total_cents"`
+	TransactionCount int64   `db:"transaction_count" json:"transaction_count"`
+}
+
+func (q *Queries) GetCategorySpendingForPeriod(ctx context.Context, arg GetCategorySpendingForPeriodParams) ([]GetCategorySpendingForPeriodRow, error) {
+	rows, err := q.db.Query(ctx, getCategorySpendingForPeriod, arg.UserID, arg.StartDate, arg.EndDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCategorySpendingForPeriodRow
+	for rows.Next() {
+		var i GetCategorySpendingForPeriodRow
+		if err := rows.Scan(
+			&i.CategoryID,
+			&i.CategoryDbID,
+			&i.CategorySlug,
+			&i.CategoryColor,
+			&i.TotalCents,
+			&i.TransactionCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDashboardSummary = `-- name: GetDashboardSummary :one
 select
   COUNT(distinct a.id)::bigint as total_accounts,

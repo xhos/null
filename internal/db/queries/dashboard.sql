@@ -133,3 +133,21 @@ where (a.owner_id = @user_id::uuid or au.user_id is not null)
   and (sqlc.narg('end')::timestamptz is null or t.tx_date <= sqlc.narg('end')::timestamptz)
 group by date
 order by date;
+
+-- name: GetCategorySpendingForPeriod :many
+select
+  t.category_id,
+  c.id as category_db_id,
+  c.slug as category_slug,
+  c.color as category_color,
+  COALESCE(SUM(amount_cents(t.tx_amount)), 0)::bigint as total_cents,
+  COUNT(t.id)::bigint as transaction_count
+from transactions t
+join accounts a on t.account_id = a.id
+left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
+left join categories c on t.category_id = c.id
+where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and t.tx_direction = 2
+  and t.tx_date >= @start_date::timestamptz
+  and t.tx_date <= @end_date::timestamptz
+group by t.category_id, c.id, c.slug, c.color;

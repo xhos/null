@@ -44,6 +44,7 @@ type ListTransactionsRequest struct {
 	Currency         *string                `protobuf:"bytes,15,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	TimeOfDayStart   *TimeOfDay             `protobuf:"bytes,16,opt,name=time_of_day_start,json=timeOfDayStart,proto3,oneof" json:"time_of_day_start,omitempty"`
 	TimeOfDayEnd     *TimeOfDay             `protobuf:"bytes,17,opt,name=time_of_day_end,json=timeOfDayEnd,proto3,oneof" json:"time_of_day_end,omitempty"`
+	Uncategorized    *bool                  `protobuf:"varint,18,opt,name=uncategorized,proto3,oneof" json:"uncategorized,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -195,6 +196,13 @@ func (x *ListTransactionsRequest) GetTimeOfDayEnd() *TimeOfDay {
 		return x.TimeOfDayEnd
 	}
 	return nil
+}
+
+func (x *ListTransactionsRequest) GetUncategorized() bool {
+	if x != nil && x.Uncategorized != nil {
+		return *x.Uncategorized
+	}
+	return false
 }
 
 type ListTransactionsResponse struct {
@@ -1917,7 +1925,7 @@ var File_arian_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
-	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xe3\b\n" +
+	"#arian/v1/transaction_services.proto\x12\barian.v1\x1a\x15arian/v1/common.proto\x1a\x14arian/v1/enums.proto\x1a\x1aarian/v1/transaction.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\xa0\t\n" +
 	"\x17ListTransactionsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12+\n" +
 	"\n" +
@@ -1945,7 +1953,8 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"R\x10descriptionQuery\x88\x01\x01\x12\x1f\n" +
 	"\bcurrency\x18\x0f \x01(\tH\vR\bcurrency\x88\x01\x01\x12C\n" +
 	"\x11time_of_day_start\x18\x10 \x01(\v2\x13.arian.v1.TimeOfDayH\fR\x0etimeOfDayStart\x88\x01\x01\x12?\n" +
-	"\x0ftime_of_day_end\x18\x11 \x01(\v2\x13.arian.v1.TimeOfDayH\rR\ftimeOfDayEnd\x88\x01\x01B\r\n" +
+	"\x0ftime_of_day_end\x18\x11 \x01(\v2\x13.arian.v1.TimeOfDayH\rR\ftimeOfDayEnd\x88\x01\x01\x12)\n" +
+	"\runcategorized\x18\x12 \x01(\bH\x0eR\runcategorized\x88\x01\x01B\r\n" +
 	"\v_account_idB\b\n" +
 	"\x06_limitB\t\n" +
 	"\a_offsetB\r\n" +
@@ -1960,7 +1969,8 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x12_description_queryB\v\n" +
 	"\t_currencyB\x14\n" +
 	"\x12_time_of_day_startB\x12\n" +
-	"\x10_time_of_day_end\"\xbe\x01\n" +
+	"\x10_time_of_day_endB\x10\n" +
+	"\x0e_uncategorized\"\xbe\x01\n" +
 	"\x18ListTransactionsResponse\x129\n" +
 	"\ftransactions\x18\x01 \x03(\v2\x15.arian.v1.TransactionR\ftransactions\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +

@@ -375,6 +375,9 @@ func buildListTransactionsParams(userID uuid.UUID, req *pb.ListTransactionsReque
 	if req.Currency != nil {
 		params.Currency = req.Currency
 	}
+	if req.Uncategorized != nil {
+		params.Uncategorized = req.Uncategorized
+	}
 
 	return params
 }

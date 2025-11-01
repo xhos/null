@@ -2,9 +2,14 @@ package api
 
 import (
 	pb "ariand/internal/gen/arian/v1"
+	"ariand/internal/service"
 	"context"
+	"fmt"
+	"sort"
+	"time"
 
 	"connectrpc.com/connect"
+	"google.golang.org/genproto/googleapis/type/date"
 )
 
 func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[pb.GetDashboardSummaryRequest]) (*connect.Response[pb.GetDashboardSummaryResponse], error) {
@@ -201,4 +206,202 @@ func (s *Server) GetTotalDebt(ctx context.Context, req *connect.Request[pb.GetTo
 	return connect.NewResponse(&pb.GetTotalDebtResponse{
 		TotalDebt: totalDebt,
 	}), nil
+}
+
+func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect.Request[pb.GetCategorySpendingComparisonRequest]) (*connect.Response[pb.GetCategorySpendingComparisonResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Map proto period type to service period type
+	periodType, err := mapPeriodType(req.Msg.PeriodType)
+	if err != nil {
+		return nil, handleError(err)
+	}
+
+	// Convert custom dates if provided (dateToTime from mappers.go returns *time.Time)
+	customStart := dateToTime(req.Msg.CustomStartDate)
+	customEnd := dateToTime(req.Msg.CustomEndDate)
+
+	// Get spending data from service layer
+	result, err := s.services.Dashboard.GetCategorySpendingComparison(ctx, service.CategorySpendingParams{
+		UserID:      userID,
+		PeriodType:  periodType,
+		CustomStart: customStart,
+		CustomEnd:   customEnd,
+		Timezone:    req.Msg.Timezone,
+	})
+	if err != nil {
+		return nil, handleError(err)
+	}
+
+	// Build a map to merge current and previous period data
+	type MergedSpending struct {
+		CategoryID    *int64
+		Slug          *string
+		Color         *string
+		CurrentCents  int64
+		CurrentCount  int64
+		PreviousCents int64
+		PreviousCount int64
+	}
+
+	merged := make(map[string]*MergedSpending)
+
+	// Add current period data
+	for i := range result.Current {
+		row := &result.Current[i]
+		key := categoryKeyToString(row.CategoryID)
+		merged[key] = &MergedSpending{
+			CategoryID:    row.CategoryID,
+			Slug:          row.CategorySlug,
+			Color:         row.CategoryColor,
+			CurrentCents:  row.TotalCents,
+			CurrentCount:  row.TransactionCount,
+			PreviousCents: 0,
+			PreviousCount: 0,
+		}
+	}
+
+	// Merge previous period data
+	for i := range result.Previous {
+		row := &result.Previous[i]
+		key := categoryKeyToString(row.CategoryID)
+		if existing, ok := merged[key]; ok {
+			existing.PreviousCents = row.TotalCents
+			existing.PreviousCount = row.TransactionCount
+		} else {
+			// Category exists in previous but not current
+			merged[key] = &MergedSpending{
+				CategoryID:    row.CategoryID,
+				Slug:          row.CategorySlug,
+				Color:         row.CategoryColor,
+				CurrentCents:  0,
+				CurrentCount:  0,
+				PreviousCents: row.TotalCents,
+				PreviousCount: row.TransactionCount,
+			}
+		}
+	}
+
+	// Separate categorized from uncategorized and build response
+	var categories []*pb.CategorySpendingItem
+	var uncategorized *pb.CategorySpendingComparison
+	var totalCurrentCents int64
+	var totalPreviousCents int64
+
+	for _, spending := range merged {
+		currentSpending := &pb.PeriodSpending{
+			Amount:           centsToMoney(spending.CurrentCents, "CAD"),
+			TransactionCount: spending.CurrentCount,
+		}
+		previousSpending := &pb.PeriodSpending{
+			Amount:           centsToMoney(spending.PreviousCents, "CAD"),
+			TransactionCount: spending.PreviousCount,
+		}
+
+		comparison := &pb.CategorySpendingComparison{
+			CategoryId:     spending.CategoryID,
+			CurrentPeriod:  currentSpending,
+			PreviousPeriod: previousSpending,
+		}
+
+		// Track totals
+		totalCurrentCents += spending.CurrentCents
+		totalPreviousCents += spending.PreviousCents
+
+		if spending.CategoryID == nil {
+			// Uncategorized transactions
+			uncategorized = comparison
+		} else {
+			// Categorized transactions
+			item := &pb.CategorySpendingItem{
+				Category: &pb.Category{
+					Id:    *spending.CategoryID,
+					Slug:  *spending.Slug,
+					Color: *spending.Color,
+				},
+				Spending: comparison,
+			}
+			categories = append(categories, item)
+		}
+	}
+
+	// Sort categories by current period amount descending
+	sortCategoriesByCurrentSpending(categories)
+
+	// Build period info from service result
+	currentPeriod := &pb.PeriodInfo{
+		StartDate: stringToDate(result.CurrentPeriod.StartDate),
+		EndDate:   stringToDate(result.CurrentPeriod.EndDate),
+		Label:     result.CurrentPeriod.Label,
+	}
+	previousPeriod := &pb.PeriodInfo{
+		StartDate: stringToDate(result.PreviousPeriod.StartDate),
+		EndDate:   stringToDate(result.PreviousPeriod.EndDate),
+		Label:     result.PreviousPeriod.Label,
+	}
+
+	// Build totals
+	totals := &pb.CategorySpendingTotals{
+		CurrentPeriodTotal:  centsToMoney(totalCurrentCents, "CAD"),
+		PreviousPeriodTotal: centsToMoney(totalPreviousCents, "CAD"),
+	}
+
+	return connect.NewResponse(&pb.GetCategorySpendingComparisonResponse{
+		CurrentPeriod:  currentPeriod,
+		PreviousPeriod: previousPeriod,
+		Categories:     categories,
+		Uncategorized:  uncategorized,
+		Totals:         totals,
+	}), nil
+}
+
+// categoryKeyToString converts a category ID to a unique string key for the map
+func categoryKeyToString(id *int64) string {
+	if id == nil {
+		return "uncategorized"
+	}
+	return fmt.Sprintf("cat_%d", *id)
+}
+
+// sortCategoriesByCurrentSpending sorts categories by current period spending descending
+func sortCategoriesByCurrentSpending(categories []*pb.CategorySpendingItem) {
+	sort.Slice(categories, func(i, j int) bool {
+		iCents := categories[i].Spending.CurrentPeriod.Amount.Units*100 +
+			int64(categories[i].Spending.CurrentPeriod.Amount.Nanos/10000000)
+		jCents := categories[j].Spending.CurrentPeriod.Amount.Units*100 +
+			int64(categories[j].Spending.CurrentPeriod.Amount.Nanos/10000000)
+		return iCents > jCents
+	})
+}
+
+// mapPeriodType converts proto PeriodType to service PeriodType
+func mapPeriodType(pt pb.PeriodType) (service.PeriodType, error) {
+	switch pt {
+	case pb.PeriodType_PERIOD_TYPE_7_DAYS:
+		return service.Period7Days, nil
+	case pb.PeriodType_PERIOD_TYPE_30_DAYS:
+		return service.Period30Days, nil
+	case pb.PeriodType_PERIOD_TYPE_90_DAYS:
+		return service.Period90Days, nil
+	case pb.PeriodType_PERIOD_TYPE_CUSTOM:
+		return service.PeriodCustom, nil
+	default:
+		return 0, fmt.Errorf("invalid period type: %v", pt)
+	}
+}
+
+// stringToDate converts a date string (YYYY-MM-DD) to google.type.Date
+func stringToDate(s string) *date.Date {
+	t, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return nil
+	}
+	return &date.Date{
+		Year:  int32(t.Year()),
+		Month: int32(t.Month()),
+		Day:   int32(t.Day()),
+	}
 }

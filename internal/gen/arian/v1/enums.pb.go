@@ -281,6 +281,61 @@ func (ReceiptLinkStatus) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{4}
 }
 
+type PeriodType int32
+
+const (
+	PeriodType_PERIOD_TYPE_UNSPECIFIED PeriodType = 0
+	PeriodType_PERIOD_TYPE_7_DAYS      PeriodType = 1
+	PeriodType_PERIOD_TYPE_30_DAYS     PeriodType = 2
+	PeriodType_PERIOD_TYPE_90_DAYS     PeriodType = 3
+	PeriodType_PERIOD_TYPE_CUSTOM      PeriodType = 4
+)
+
+// Enum value maps for PeriodType.
+var (
+	PeriodType_name = map[int32]string{
+		0: "PERIOD_TYPE_UNSPECIFIED",
+		1: "PERIOD_TYPE_7_DAYS",
+		2: "PERIOD_TYPE_30_DAYS",
+		3: "PERIOD_TYPE_90_DAYS",
+		4: "PERIOD_TYPE_CUSTOM",
+	}
+	PeriodType_value = map[string]int32{
+		"PERIOD_TYPE_UNSPECIFIED": 0,
+		"PERIOD_TYPE_7_DAYS":      1,
+		"PERIOD_TYPE_30_DAYS":     2,
+		"PERIOD_TYPE_90_DAYS":     3,
+		"PERIOD_TYPE_CUSTOM":      4,
+	}
+)
+
+func (x PeriodType) Enum() *PeriodType {
+	p := new(PeriodType)
+	*p = x
+	return p
+}
+
+func (x PeriodType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PeriodType) Descriptor() protoreflect.EnumDescriptor {
+	return file_arian_v1_enums_proto_enumTypes[5].Descriptor()
+}
+
+func (PeriodType) Type() protoreflect.EnumType {
+	return &file_arian_v1_enums_proto_enumTypes[5]
+}
+
+func (x PeriodType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PeriodType.Descriptor instead.
+func (PeriodType) EnumDescriptor() ([]byte, []int) {
+	return file_arian_v1_enums_proto_rawDescGZIP(), []int{5}
+}
+
 var File_arian_v1_enums_proto protoreflect.FileDescriptor
 
 const file_arian_v1_enums_proto_rawDesc = "" +
@@ -310,7 +365,14 @@ const file_arian_v1_enums_proto_rawDesc = "" +
 	"\x17LINK_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14LINK_STATUS_UNLINKED\x10\x01\x12\x17\n" +
 	"\x13LINK_STATUS_MATCHED\x10\x02\x12\"\n" +
-	"\x1eLINK_STATUS_NEEDS_VERIFICATION\x10\x03B\x81\x01\n" +
+	"\x1eLINK_STATUS_NEEDS_VERIFICATION\x10\x03*\x8b\x01\n" +
+	"\n" +
+	"PeriodType\x12\x1b\n" +
+	"\x17PERIOD_TYPE_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12PERIOD_TYPE_7_DAYS\x10\x01\x12\x17\n" +
+	"\x13PERIOD_TYPE_30_DAYS\x10\x02\x12\x17\n" +
+	"\x13PERIOD_TYPE_90_DAYS\x10\x03\x12\x16\n" +
+	"\x12PERIOD_TYPE_CUSTOM\x10\x04B\x81\x01\n" +
 	"\fcom.arian.v1B\n" +
 	"EnumsProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
@@ -326,13 +388,14 @@ func file_arian_v1_enums_proto_rawDescGZIP() []byte {
 	return file_arian_v1_enums_proto_rawDescData
 }
 
-var file_arian_v1_enums_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_arian_v1_enums_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
 var file_arian_v1_enums_proto_goTypes = []any{
 	(AccountType)(0),          // 0: arian.v1.AccountType
 	(TransactionDirection)(0), // 1: arian.v1.TransactionDirection
 	(ReceiptEngine)(0),        // 2: arian.v1.ReceiptEngine
 	(ReceiptParseStatus)(0),   // 3: arian.v1.ReceiptParseStatus
 	(ReceiptLinkStatus)(0),    // 4: arian.v1.ReceiptLinkStatus
+	(PeriodType)(0),           // 5: arian.v1.PeriodType
 }
 var file_arian_v1_enums_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -352,7 +415,7 @@ func file_arian_v1_enums_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_enums_proto_rawDesc), len(file_arian_v1_enums_proto_rawDesc)),
-			NumEnums:      5,
+			NumEnums:      6,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   0,

@@ -4,6 +4,7 @@ import (
 	"ariand/internal/db/sqlc"
 	"ariand/internal/types"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,36 @@ import (
 type AccountSummary struct {
 	Summary *sqlc.GetDashboardSummaryForAccountRow
 	Trends  []sqlc.GetDashboardTrendsForAccountRow
+}
+
+type PeriodType int
+
+const (
+	Period7Days PeriodType = iota
+	Period30Days
+	Period90Days
+	PeriodCustom
+)
+
+type CategorySpendingParams struct {
+	UserID      uuid.UUID
+	PeriodType  PeriodType
+	CustomStart *time.Time
+	CustomEnd   *time.Time
+	Timezone    string
+}
+
+type PeriodInfo struct {
+	StartDate string
+	EndDate   string
+	Label     string
+}
+
+type CategorySpendingResult struct {
+	CurrentPeriod  PeriodInfo
+	PreviousPeriod PeriodInfo
+	Current        []sqlc.GetCategorySpendingForPeriodRow
+	Previous       []sqlc.GetCategorySpendingForPeriodRow
 }
 
 type DashboardService interface {
@@ -27,6 +58,7 @@ type DashboardService interface {
 	AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error)
 	GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error)
 	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error)
+	GetCategorySpendingComparison(ctx context.Context, params CategorySpendingParams) (*CategorySpendingResult, error)
 }
 
 type dashSvc struct {
@@ -250,4 +282,120 @@ func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, start
 	_ = accountID
 
 	return s.Trends(ctx, params)
+}
+
+func (s *dashSvc) GetCategorySpendingComparison(
+	ctx context.Context,
+	params CategorySpendingParams,
+) (*CategorySpendingResult, error) {
+	// Calculate period boundaries (timezone support coming later from user preferences)
+	loc := time.UTC
+	now := time.Now().In(loc)
+
+	var currentStart, currentEnd, previousStart, previousEnd time.Time
+	var currentLabel, previousLabel string
+
+	switch params.PeriodType {
+	case Period7Days:
+		currentStart = startOfDay(now.AddDate(0, 0, -6), loc)
+		currentEnd = endOfDay(now, loc)
+		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
+		previousStart = startOfDay(now.AddDate(0, 0, -13), loc)
+		currentLabel = "Last 7 Days"
+		previousLabel = "Previous 7 Days"
+
+	case Period30Days:
+		currentStart = startOfDay(now.AddDate(0, 0, -29), loc)
+		currentEnd = endOfDay(now, loc)
+		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
+		previousStart = startOfDay(now.AddDate(0, 0, -59), loc)
+		currentLabel = "Last 30 Days"
+		previousLabel = "Previous 30 Days"
+
+	case Period90Days:
+		currentStart = startOfDay(now.AddDate(0, 0, -89), loc)
+		currentEnd = endOfDay(now, loc)
+		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
+		previousStart = startOfDay(now.AddDate(0, 0, -179), loc)
+		currentLabel = "Last 90 Days"
+		previousLabel = "Previous 90 Days"
+
+	case PeriodCustom:
+		if params.CustomStart == nil || params.CustomEnd == nil {
+			return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
+				fmt.Errorf("custom period requires both start and end dates"))
+		}
+
+		currentStart = startOfDay(*params.CustomStart, loc)
+		currentEnd = endOfDay(*params.CustomEnd, loc)
+
+		if currentEnd.Before(currentStart) {
+			return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
+				fmt.Errorf("end date must be after start date"))
+		}
+
+		duration := currentEnd.Sub(currentStart) + time.Nanosecond
+		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
+		previousStart = currentStart.Add(-duration)
+
+		currentLabel = formatDateRange(currentStart, currentEnd)
+		previousLabel = formatDateRange(previousStart, previousEnd)
+
+	default:
+		return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
+			fmt.Errorf("invalid period type"))
+	}
+
+	// Query current period
+	current, err := s.queries.GetCategorySpendingForPeriod(ctx, sqlc.GetCategorySpendingForPeriodParams{
+		UserID:    params.UserID,
+		StartDate: currentStart,
+		EndDate:   currentEnd,
+	})
+	if err != nil {
+		return nil, wrapErr("DashboardService.GetCategorySpendingComparison.Current", err)
+	}
+
+	// Query previous period
+	previous, err := s.queries.GetCategorySpendingForPeriod(ctx, sqlc.GetCategorySpendingForPeriodParams{
+		UserID:    params.UserID,
+		StartDate: previousStart,
+		EndDate:   previousEnd,
+	})
+	if err != nil {
+		return nil, wrapErr("DashboardService.GetCategorySpendingComparison.Previous", err)
+	}
+
+	return &CategorySpendingResult{
+		CurrentPeriod: PeriodInfo{
+			StartDate: currentStart.Format("2006-01-02"),
+			EndDate:   currentEnd.Format("2006-01-02"),
+			Label:     currentLabel,
+		},
+		PreviousPeriod: PeriodInfo{
+			StartDate: previousStart.Format("2006-01-02"),
+			EndDate:   previousEnd.Format("2006-01-02"),
+			Label:     previousLabel,
+		},
+		Current:  current,
+		Previous: previous,
+	}, nil
+}
+
+func startOfDay(t time.Time, loc *time.Location) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
+}
+
+func endOfDay(t time.Time, loc *time.Location) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, loc)
+}
+
+func formatDateRange(start, end time.Time) string {
+	if start.Year() == end.Year() && start.Month() == end.Month() {
+		return fmt.Sprintf("%s %d-%d, %d",
+			start.Month().String()[:3], start.Day(), end.Day(), start.Year())
+	}
+	return fmt.Sprintf("%s %d, %d - %s %d, %d",
+		start.Month().String()[:3], start.Day(), start.Year(),
+		end.Month().String()[:3], end.Day(), end.Year())
 }
