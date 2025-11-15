@@ -70,12 +70,17 @@ func newDashSvc(queries *sqlc.Queries) DashboardService {
 }
 
 func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+	primaryCurrency, err := s.getUserPrimaryCurrency(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("DashboardService.Balance.GetPrimaryCurrency", err)
+	}
+
 	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Balance", err)
 	}
 
-	total := money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0}
+	total := money.Money{CurrencyCode: primaryCurrency, Units: 0, Nanos: 0}
 
 	for _, balance := range balances {
 		hasBalance := len(balance.CurrentBalance) > 0
@@ -89,6 +94,8 @@ func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, 
 		}
 
 		if types.IsPositive(&m.Money) {
+			// TODO: Convert to primary currency if different
+			// For now, assume all accounts are in same currency
 			total, err = types.AddMoney(&total, &m.Money)
 			if err != nil {
 				return nil, wrapErr("DashboardService.Balance.AddMoney", err)
@@ -100,12 +107,17 @@ func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, 
 }
 
 func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+	primaryCurrency, err := s.getUserPrimaryCurrency(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("DashboardService.Debt.GetPrimaryCurrency", err)
+	}
+
 	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Debt", err)
 	}
 
-	total := money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0}
+	total := money.Money{CurrencyCode: primaryCurrency, Units: 0, Nanos: 0}
 
 	for _, balance := range balances {
 		hasBalance := len(balance.CurrentBalance) > 0
@@ -120,6 +132,7 @@ func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, err
 
 		if types.IsNegative(&m.Money) {
 			absoluteAmount := types.Negate(&m.Money)
+			// TODO: Convert to primary currency if different
 			total, err = types.AddMoney(&total, &absoluteAmount)
 			if err != nil {
 				return nil, wrapErr("DashboardService.Debt.AddMoney", err)
@@ -171,12 +184,17 @@ func (s *dashSvc) TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsP
 }
 
 func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+	primaryCurrency, err := s.getUserPrimaryCurrency(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("DashboardService.NetBalance.GetPrimaryCurrency", err)
+	}
+
 	balances, err := s.AccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.NetBalance", err)
 	}
 
-	total := money.Money{CurrencyCode: "CAD", Units: 0, Nanos: 0}
+	total := money.Money{CurrencyCode: primaryCurrency, Units: 0, Nanos: 0}
 
 	for _, balance := range balances {
 		hasBalance := len(balance.CurrentBalance) > 0
@@ -189,6 +207,7 @@ func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Mone
 			continue
 		}
 
+		// TODO: Convert to primary currency if different
 		total, err = types.AddMoney(&total, &m.Money)
 		if err != nil {
 			return nil, wrapErr("DashboardService.NetBalance.AddMoney", err)
@@ -288,8 +307,11 @@ func (s *dashSvc) GetCategorySpendingComparison(
 	ctx context.Context,
 	params CategorySpendingParams,
 ) (*CategorySpendingResult, error) {
-	// Calculate period boundaries (timezone support coming later from user preferences)
-	loc := time.UTC
+	// TODO: falling back to UTC if timezone is not great
+	loc, err := time.LoadLocation(params.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
 	now := time.Now().In(loc)
 
 	var currentStart, currentEnd, previousStart, previousEnd time.Time
@@ -398,4 +420,15 @@ func formatDateRange(start, end time.Time) string {
 	return fmt.Sprintf("%s %d, %d - %s %d, %d",
 		start.Month().String()[:3], start.Day(), start.Year(),
 		end.Month().String()[:3], end.Day(), end.Year())
+}
+
+// getUserPrimaryCurrency retrieves the user's primary currency
+// Falls back to CAD if not found or on error
+func (s *dashSvc) getUserPrimaryCurrency(ctx context.Context, userID uuid.UUID) (string, error) {
+	currency, err := s.queries.GetUserPrimaryCurrency(ctx, userID)
+	if err != nil {
+		// If we can't get currency, default to CAD
+		return "CAD", nil
+	}
+	return currency, nil
 }

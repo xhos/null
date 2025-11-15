@@ -31,21 +31,9 @@ func (q *Queries) CheckUserExists(ctx context.Context, id uuid.UUID) (bool, erro
 }
 
 const createUser = `-- name: CreateUser :one
-insert into
-  users (id, email, display_name)
-values
-  (
-    $1::uuid,
-    $2::text,
-    $3::text
-  )
-returning
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
+insert into users (id, email, display_name)
+values ($1::uuid, $2::text, $3::text)
+returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
 `
 
 type CreateUserParams struct {
@@ -64,6 +52,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.DefaultAccountID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PrimaryCurrency,
+		&i.Timezone,
 	)
 	return i, err
 }
@@ -107,17 +97,8 @@ func (q *Queries) DeleteUserWithCascade(ctx context.Context, id uuid.UUID) (int6
 }
 
 const getUser = `-- name: GetUser :one
-select
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
-from
-  users
-where
-  id = $1::uuid
+select id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone from users
+where id = $1::uuid
 `
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -130,22 +111,15 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.DefaultAccountID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PrimaryCurrency,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-select
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
-from
-  users
-where
-  lower(email) = lower($1::text)
+select id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone from users
+where lower(email) = lower($1::text)
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -158,6 +132,8 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.DefaultAccountID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PrimaryCurrency,
+		&i.Timezone,
 	)
 	return i, err
 }
@@ -182,18 +158,41 @@ func (q *Queries) GetUserFirstAccount(ctx context.Context, userID uuid.UUID) (in
 	return id, err
 }
 
-const listUsers = `-- name: ListUsers :many
+const getUserPrimaryCurrency = `-- name: GetUserPrimaryCurrency :one
 select
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
+  primary_currency
 from
   users
-order by
-  created_at desc
+where
+  id = $1::uuid
+`
+
+func (q *Queries) GetUserPrimaryCurrency(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getUserPrimaryCurrency, id)
+	var primary_currency string
+	err := row.Scan(&primary_currency)
+	return primary_currency, err
+}
+
+const getUserTimezone = `-- name: GetUserTimezone :one
+select
+  timezone
+from
+  users
+where
+  id = $1::uuid
+`
+
+func (q *Queries) GetUserTimezone(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getUserTimezone, id)
+	var timezone string
+	err := row.Scan(&timezone)
+	return timezone, err
+}
+
+const listUsers = `-- name: ListUsers :many
+select id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone from users
+order by created_at desc
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
@@ -212,6 +211,8 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.DefaultAccountID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PrimaryCurrency,
+			&i.Timezone,
 		); err != nil {
 			return nil, err
 		}
@@ -224,19 +225,10 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 }
 
 const setUserDefaultAccount = `-- name: SetUserDefaultAccount :one
-update
-  users
-set
-  default_account_id = $1::bigint
-where
-  id = $2::uuid
-returning
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
+update users
+set default_account_id = $1::bigint
+where id = $2::uuid
+returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
 `
 
 type SetUserDefaultAccountParams struct {
@@ -254,32 +246,30 @@ func (q *Queries) SetUserDefaultAccount(ctx context.Context, arg SetUserDefaultA
 		&i.DefaultAccountID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PrimaryCurrency,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :one
-update
-  users
+update users
 set
   email = $1::text,
   display_name = $2::text,
-  default_account_id = $3::bigint
-where
-  id = $4::uuid
-returning
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
+  default_account_id = $3::bigint,
+  primary_currency = coalesce($4::varchar(3), primary_currency),
+  timezone = coalesce($5::varchar(50), timezone)
+where id = $6::uuid
+returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
 `
 
 type UpdateUserParams struct {
 	Email            *string   `db:"email" json:"email"`
 	DisplayName      *string   `db:"display_name" json:"display_name"`
 	DefaultAccountID *int64    `db:"default_account_id" json:"default_account_id"`
+	PrimaryCurrency  *string   `db:"primary_currency" json:"primary_currency"`
+	Timezone         *string   `db:"timezone" json:"timezone"`
 	ID               uuid.UUID `db:"id" json:"id"`
 }
 
@@ -288,6 +278,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Email,
 		arg.DisplayName,
 		arg.DefaultAccountID,
+		arg.PrimaryCurrency,
+		arg.Timezone,
 		arg.ID,
 	)
 	var i User
@@ -298,24 +290,17 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.DefaultAccountID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PrimaryCurrency,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const updateUserDisplayName = `-- name: UpdateUserDisplayName :one
-update
-  users
-set
-  display_name = $1::text
-where
-  id = $2::uuid
-returning
-  id,
-  email,
-  display_name,
-  default_account_id,
-  created_at,
-  updated_at
+update users
+set display_name = $1::text
+where id = $2::uuid
+returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
 `
 
 type UpdateUserDisplayNameParams struct {
@@ -333,6 +318,8 @@ func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDispl
 		&i.DefaultAccountID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PrimaryCurrency,
+		&i.Timezone,
 	)
 	return i, err
 }

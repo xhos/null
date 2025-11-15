@@ -124,4 +124,6 @@ type User struct {
 	DefaultAccountID *int64    `db:"default_account_id" json:"default_account_id"`
 	CreatedAt        time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
+	PrimaryCurrency  string    `db:"primary_currency" json:"primary_currency"`
+	Timezone         string    `db:"timezone" json:"timezone"`
 }

@@ -87,21 +87,43 @@ with balance_deltas as (
   join accounts a on t.account_id = a.id
   where t.tx_date > a.anchor_date
   group by t.account_id
+),
+calculated_balances as (
+  select
+    a.id,
+    a.name,
+    a.account_type,
+    a.anchor_balance->>'currency_code' as currency_code,
+    (a.anchor_balance->>'units')::bigint as anchor_units,
+    (a.anchor_balance->>'nanos')::int as anchor_nanos,
+    COALESCE(d.delta_cents, 0) as delta_cents,
+    a.owner_id,
+    au.user_id as shared_user_id
+  from accounts a
+  left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
+  left join balance_deltas d on a.id = d.account_id
+  where (a.owner_id = @user_id::uuid or au.user_id is not null)
 )
 select
-  a.id,
-  a.name,
-  a.account_type,
+  cb.id,
+  cb.name,
+  cb.account_type,
   jsonb_build_object(
-    'currency_code', a.anchor_balance->>'currency_code',
-    'units', ((a.anchor_balance->>'units')::bigint + COALESCE(d.delta_cents, 0) / 100)::bigint,
-    'nanos', (COALESCE(d.delta_cents, 0) % 100 * 10000000)::int
+    'currency_code', cb.currency_code,
+    'units', cb.anchor_units + (cb.anchor_nanos + cb.delta_cents * 10000000) / 1000000000 + cb.delta_cents / 100,
+    'nanos', (cb.anchor_nanos + (cb.delta_cents % 100) * 10000000) % 1000000000
   ) as current_balance
-from accounts a
-left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
-left join balance_deltas d on a.id = d.account_id
-where (a.owner_id = @user_id::uuid or au.user_id is not null)
-order by (a.anchor_balance->>'units')::bigint + COALESCE(d.delta_cents, 0) / 100 desc;
+from calculated_balances cb
+order by
+  case cb.account_type
+    when 1 then 1  -- ACCOUNT_CHEQUING
+    when 2 then 2  -- ACCOUNT_SAVINGS
+    when 3 then 3  -- ACCOUNT_INVESTMENT
+    when 4 then 4  -- ACCOUNT_OTHER
+    when 5 then 5  -- ACCOUNT_CREDIT_CARD
+    else 6
+  end,
+  cb.anchor_units + (cb.anchor_nanos + cb.delta_cents * 10000000) / 1000000000 + cb.delta_cents / 100 desc;
 
 -- name: GetDashboardSummaryForAccount :one
 select
