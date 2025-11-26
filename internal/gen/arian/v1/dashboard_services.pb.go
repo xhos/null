@@ -1165,7 +1165,6 @@ type GetCategorySpendingComparisonRequest struct {
 	PeriodType      PeriodType             `protobuf:"varint,2,opt,name=period_type,json=periodType,proto3,enum=arian.v1.PeriodType" json:"period_type,omitempty"`
 	CustomStartDate *date.Date             `protobuf:"bytes,3,opt,name=custom_start_date,json=customStartDate,proto3,oneof" json:"custom_start_date,omitempty"`
 	CustomEndDate   *date.Date             `protobuf:"bytes,4,opt,name=custom_end_date,json=customEndDate,proto3,oneof" json:"custom_end_date,omitempty"`
-	Timezone        string                 `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1226,13 +1225,6 @@ func (x *GetCategorySpendingComparisonRequest) GetCustomEndDate() *date.Date {
 		return x.CustomEndDate
 	}
 	return nil
-}
-
-func (x *GetCategorySpendingComparisonRequest) GetTimezone() string {
-	if x != nil {
-		return x.Timezone
-	}
-	return ""
 }
 
 type CategorySpendingItem struct {
@@ -1363,6 +1355,118 @@ func (x *GetCategorySpendingComparisonResponse) GetTotals() *CategorySpendingTot
 	return nil
 }
 
+type GetNetWorthHistoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	StartDate     *date.Date             `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate       *date.Date             `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	Granularity   Granularity            `protobuf:"varint,4,opt,name=granularity,proto3,enum=arian.v1.Granularity" json:"granularity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNetWorthHistoryRequest) Reset() {
+	*x = GetNetWorthHistoryRequest{}
+	mi := &file_arian_v1_dashboard_services_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNetWorthHistoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNetWorthHistoryRequest) ProtoMessage() {}
+
+func (x *GetNetWorthHistoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_dashboard_services_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNetWorthHistoryRequest.ProtoReflect.Descriptor instead.
+func (*GetNetWorthHistoryRequest) Descriptor() ([]byte, []int) {
+	return file_arian_v1_dashboard_services_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetNetWorthHistoryRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *GetNetWorthHistoryRequest) GetStartDate() *date.Date {
+	if x != nil {
+		return x.StartDate
+	}
+	return nil
+}
+
+func (x *GetNetWorthHistoryRequest) GetEndDate() *date.Date {
+	if x != nil {
+		return x.EndDate
+	}
+	return nil
+}
+
+func (x *GetNetWorthHistoryRequest) GetGranularity() Granularity {
+	if x != nil {
+		return x.Granularity
+	}
+	return Granularity_GRANULARITY_UNSPECIFIED
+}
+
+type GetNetWorthHistoryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DataPoints    []*NetWorthPoint       `protobuf:"bytes,1,rep,name=data_points,json=dataPoints,proto3" json:"data_points,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNetWorthHistoryResponse) Reset() {
+	*x = GetNetWorthHistoryResponse{}
+	mi := &file_arian_v1_dashboard_services_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNetWorthHistoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNetWorthHistoryResponse) ProtoMessage() {}
+
+func (x *GetNetWorthHistoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_dashboard_services_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNetWorthHistoryResponse.ProtoReflect.Descriptor instead.
+func (*GetNetWorthHistoryResponse) Descriptor() ([]byte, []int) {
+	return file_arian_v1_dashboard_services_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetNetWorthHistoryResponse) GetDataPoints() []*NetWorthPoint {
+	if x != nil {
+		return x.DataPoints
+	}
+	return nil
+}
+
 var File_arian_v1_dashboard_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_dashboard_services_proto_rawDesc = "" +
@@ -1462,14 +1566,13 @@ const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"L\n" +
 	"\x15GetNetBalanceResponse\x123\n" +
 	"\vnet_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\n" +
-	"netBalance\"\xc0\x02\n" +
+	"netBalance\"\xa4\x02\n" +
 	"$GetCategorySpendingComparisonRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x125\n" +
 	"\vperiod_type\x18\x02 \x01(\x0e2\x14.arian.v1.PeriodTypeR\n" +
 	"periodType\x12B\n" +
 	"\x11custom_start_date\x18\x03 \x01(\v2\x11.google.type.DateH\x00R\x0fcustomStartDate\x88\x01\x01\x12>\n" +
-	"\x0fcustom_end_date\x18\x04 \x01(\v2\x11.google.type.DateH\x01R\rcustomEndDate\x88\x01\x01\x12\x1a\n" +
-	"\btimezone\x18\x05 \x01(\tR\btimezoneB\x14\n" +
+	"\x0fcustom_end_date\x18\x04 \x01(\v2\x11.google.type.DateH\x01R\rcustomEndDate\x88\x01\x01B\x14\n" +
 	"\x12_custom_start_dateB\x12\n" +
 	"\x10_custom_end_date\"\x9a\x01\n" +
 	"\x14CategorySpendingItem\x123\n" +
@@ -1484,7 +1587,16 @@ const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"categories\x12O\n" +
 	"\runcategorized\x18\x04 \x01(\v2$.arian.v1.CategorySpendingComparisonH\x00R\runcategorized\x88\x01\x01\x128\n" +
 	"\x06totals\x18\x05 \x01(\v2 .arian.v1.CategorySpendingTotalsR\x06totalsB\x10\n" +
-	"\x0e_uncategorized2\xf8\b\n" +
+	"\x0e_uncategorized\"\xcd\x01\n" +
+	"\x19GetNetWorthHistoryRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x120\n" +
+	"\n" +
+	"start_date\x18\x02 \x01(\v2\x11.google.type.DateR\tstartDate\x12,\n" +
+	"\bend_date\x18\x03 \x01(\v2\x11.google.type.DateR\aendDate\x127\n" +
+	"\vgranularity\x18\x04 \x01(\x0e2\x15.arian.v1.GranularityR\vgranularity\"V\n" +
+	"\x1aGetNetWorthHistoryResponse\x128\n" +
+	"\vdata_points\x18\x01 \x03(\v2\x17.arian.v1.NetWorthPointR\n" +
+	"dataPoints2\xd9\t\n" +
 	"\x10DashboardService\x12b\n" +
 	"\x13GetDashboardSummary\x12$.arian.v1.GetDashboardSummaryRequest\x1a%.arian.v1.GetDashboardSummaryResponse\x12M\n" +
 	"\fGetTrendData\x12\x1d.arian.v1.GetTrendDataRequest\x1a\x1e.arian.v1.GetTrendDataResponse\x12e\n" +
@@ -1497,7 +1609,8 @@ const file_arian_v1_dashboard_services_proto_rawDesc = "" +
 	"\x0fGetTotalBalance\x12 .arian.v1.GetTotalBalanceRequest\x1a!.arian.v1.GetTotalBalanceResponse\x12M\n" +
 	"\fGetTotalDebt\x12\x1d.arian.v1.GetTotalDebtRequest\x1a\x1e.arian.v1.GetTotalDebtResponse\x12P\n" +
 	"\rGetNetBalance\x12\x1e.arian.v1.GetNetBalanceRequest\x1a\x1f.arian.v1.GetNetBalanceResponse\x12\x80\x01\n" +
-	"\x1dGetCategorySpendingComparison\x12..arian.v1.GetCategorySpendingComparisonRequest\x1a/.arian.v1.GetCategorySpendingComparisonResponseB\x8d\x01\n" +
+	"\x1dGetCategorySpendingComparison\x12..arian.v1.GetCategorySpendingComparisonRequest\x1a/.arian.v1.GetCategorySpendingComparisonResponse\x12_\n" +
+	"\x12GetNetWorthHistory\x12#.arian.v1.GetNetWorthHistoryRequest\x1a$.arian.v1.GetNetWorthHistoryResponseB\x8d\x01\n" +
 	"\fcom.arian.v1B\x16DashboardServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
@@ -1512,7 +1625,7 @@ func file_arian_v1_dashboard_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_dashboard_services_proto_rawDescData
 }
 
-var file_arian_v1_dashboard_services_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_arian_v1_dashboard_services_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_arian_v1_dashboard_services_proto_goTypes = []any{
 	(*GetDashboardSummaryRequest)(nil),            // 0: arian.v1.GetDashboardSummaryRequest
 	(*GetDashboardSummaryResponse)(nil),           // 1: arian.v1.GetDashboardSummaryResponse
@@ -1539,84 +1652,94 @@ var file_arian_v1_dashboard_services_proto_goTypes = []any{
 	(*GetCategorySpendingComparisonRequest)(nil),  // 22: arian.v1.GetCategorySpendingComparisonRequest
 	(*CategorySpendingItem)(nil),                  // 23: arian.v1.CategorySpendingItem
 	(*GetCategorySpendingComparisonResponse)(nil), // 24: arian.v1.GetCategorySpendingComparisonResponse
-	(*date.Date)(nil),                             // 25: google.type.Date
-	(*DashboardSummary)(nil),                      // 26: arian.v1.DashboardSummary
-	(*TrendPoint)(nil),                            // 27: arian.v1.TrendPoint
-	(*MonthlyComparison)(nil),                     // 28: arian.v1.MonthlyComparison
-	(*TopCategory)(nil),                           // 29: arian.v1.TopCategory
-	(*TopMerchant)(nil),                           // 30: arian.v1.TopMerchant
-	(*AccountBalance)(nil),                        // 31: arian.v1.AccountBalance
-	(*money.Money)(nil),                           // 32: google.type.Money
-	(PeriodType)(0),                               // 33: arian.v1.PeriodType
-	(*Category)(nil),                              // 34: arian.v1.Category
-	(*CategorySpendingComparison)(nil),            // 35: arian.v1.CategorySpendingComparison
-	(*PeriodInfo)(nil),                            // 36: arian.v1.PeriodInfo
-	(*CategorySpendingTotals)(nil),                // 37: arian.v1.CategorySpendingTotals
+	(*GetNetWorthHistoryRequest)(nil),             // 25: arian.v1.GetNetWorthHistoryRequest
+	(*GetNetWorthHistoryResponse)(nil),            // 26: arian.v1.GetNetWorthHistoryResponse
+	(*date.Date)(nil),                             // 27: google.type.Date
+	(*DashboardSummary)(nil),                      // 28: arian.v1.DashboardSummary
+	(*TrendPoint)(nil),                            // 29: arian.v1.TrendPoint
+	(*MonthlyComparison)(nil),                     // 30: arian.v1.MonthlyComparison
+	(*TopCategory)(nil),                           // 31: arian.v1.TopCategory
+	(*TopMerchant)(nil),                           // 32: arian.v1.TopMerchant
+	(*AccountBalance)(nil),                        // 33: arian.v1.AccountBalance
+	(*money.Money)(nil),                           // 34: google.type.Money
+	(PeriodType)(0),                               // 35: arian.v1.PeriodType
+	(*Category)(nil),                              // 36: arian.v1.Category
+	(*CategorySpendingComparison)(nil),            // 37: arian.v1.CategorySpendingComparison
+	(*PeriodInfo)(nil),                            // 38: arian.v1.PeriodInfo
+	(*CategorySpendingTotals)(nil),                // 39: arian.v1.CategorySpendingTotals
+	(Granularity)(0),                              // 40: arian.v1.Granularity
+	(*NetWorthPoint)(nil),                         // 41: arian.v1.NetWorthPoint
 }
 var file_arian_v1_dashboard_services_proto_depIdxs = []int32{
-	25, // 0: arian.v1.GetDashboardSummaryRequest.start_date:type_name -> google.type.Date
-	25, // 1: arian.v1.GetDashboardSummaryRequest.end_date:type_name -> google.type.Date
-	26, // 2: arian.v1.GetDashboardSummaryResponse.summary:type_name -> arian.v1.DashboardSummary
-	25, // 3: arian.v1.GetTrendDataRequest.start_date:type_name -> google.type.Date
-	25, // 4: arian.v1.GetTrendDataRequest.end_date:type_name -> google.type.Date
-	27, // 5: arian.v1.GetTrendDataResponse.trends:type_name -> arian.v1.TrendPoint
-	28, // 6: arian.v1.GetMonthlyComparisonResponse.comparisons:type_name -> arian.v1.MonthlyComparison
-	25, // 7: arian.v1.GetTopCategoriesRequest.start_date:type_name -> google.type.Date
-	25, // 8: arian.v1.GetTopCategoriesRequest.end_date:type_name -> google.type.Date
-	29, // 9: arian.v1.GetTopCategoriesResponse.categories:type_name -> arian.v1.TopCategory
-	25, // 10: arian.v1.GetTopMerchantsRequest.start_date:type_name -> google.type.Date
-	25, // 11: arian.v1.GetTopMerchantsRequest.end_date:type_name -> google.type.Date
-	30, // 12: arian.v1.GetTopMerchantsResponse.merchants:type_name -> arian.v1.TopMerchant
-	25, // 13: arian.v1.GetAccountSummaryRequest.start_date:type_name -> google.type.Date
-	25, // 14: arian.v1.GetAccountSummaryRequest.end_date:type_name -> google.type.Date
-	26, // 15: arian.v1.GetAccountSummaryResponse.summary:type_name -> arian.v1.DashboardSummary
-	27, // 16: arian.v1.GetAccountSummaryResponse.trends:type_name -> arian.v1.TrendPoint
-	25, // 17: arian.v1.GetSpendingTrendsRequest.start_date:type_name -> google.type.Date
-	25, // 18: arian.v1.GetSpendingTrendsRequest.end_date:type_name -> google.type.Date
-	27, // 19: arian.v1.GetSpendingTrendsResponse.trends:type_name -> arian.v1.TrendPoint
-	31, // 20: arian.v1.GetAccountBalancesResponse.balances:type_name -> arian.v1.AccountBalance
-	32, // 21: arian.v1.GetTotalBalanceResponse.total_balance:type_name -> google.type.Money
-	32, // 22: arian.v1.GetTotalDebtResponse.total_debt:type_name -> google.type.Money
-	32, // 23: arian.v1.GetNetBalanceResponse.net_balance:type_name -> google.type.Money
-	33, // 24: arian.v1.GetCategorySpendingComparisonRequest.period_type:type_name -> arian.v1.PeriodType
-	25, // 25: arian.v1.GetCategorySpendingComparisonRequest.custom_start_date:type_name -> google.type.Date
-	25, // 26: arian.v1.GetCategorySpendingComparisonRequest.custom_end_date:type_name -> google.type.Date
-	34, // 27: arian.v1.CategorySpendingItem.category:type_name -> arian.v1.Category
-	35, // 28: arian.v1.CategorySpendingItem.spending:type_name -> arian.v1.CategorySpendingComparison
-	36, // 29: arian.v1.GetCategorySpendingComparisonResponse.current_period:type_name -> arian.v1.PeriodInfo
-	36, // 30: arian.v1.GetCategorySpendingComparisonResponse.previous_period:type_name -> arian.v1.PeriodInfo
+	27, // 0: arian.v1.GetDashboardSummaryRequest.start_date:type_name -> google.type.Date
+	27, // 1: arian.v1.GetDashboardSummaryRequest.end_date:type_name -> google.type.Date
+	28, // 2: arian.v1.GetDashboardSummaryResponse.summary:type_name -> arian.v1.DashboardSummary
+	27, // 3: arian.v1.GetTrendDataRequest.start_date:type_name -> google.type.Date
+	27, // 4: arian.v1.GetTrendDataRequest.end_date:type_name -> google.type.Date
+	29, // 5: arian.v1.GetTrendDataResponse.trends:type_name -> arian.v1.TrendPoint
+	30, // 6: arian.v1.GetMonthlyComparisonResponse.comparisons:type_name -> arian.v1.MonthlyComparison
+	27, // 7: arian.v1.GetTopCategoriesRequest.start_date:type_name -> google.type.Date
+	27, // 8: arian.v1.GetTopCategoriesRequest.end_date:type_name -> google.type.Date
+	31, // 9: arian.v1.GetTopCategoriesResponse.categories:type_name -> arian.v1.TopCategory
+	27, // 10: arian.v1.GetTopMerchantsRequest.start_date:type_name -> google.type.Date
+	27, // 11: arian.v1.GetTopMerchantsRequest.end_date:type_name -> google.type.Date
+	32, // 12: arian.v1.GetTopMerchantsResponse.merchants:type_name -> arian.v1.TopMerchant
+	27, // 13: arian.v1.GetAccountSummaryRequest.start_date:type_name -> google.type.Date
+	27, // 14: arian.v1.GetAccountSummaryRequest.end_date:type_name -> google.type.Date
+	28, // 15: arian.v1.GetAccountSummaryResponse.summary:type_name -> arian.v1.DashboardSummary
+	29, // 16: arian.v1.GetAccountSummaryResponse.trends:type_name -> arian.v1.TrendPoint
+	27, // 17: arian.v1.GetSpendingTrendsRequest.start_date:type_name -> google.type.Date
+	27, // 18: arian.v1.GetSpendingTrendsRequest.end_date:type_name -> google.type.Date
+	29, // 19: arian.v1.GetSpendingTrendsResponse.trends:type_name -> arian.v1.TrendPoint
+	33, // 20: arian.v1.GetAccountBalancesResponse.balances:type_name -> arian.v1.AccountBalance
+	34, // 21: arian.v1.GetTotalBalanceResponse.total_balance:type_name -> google.type.Money
+	34, // 22: arian.v1.GetTotalDebtResponse.total_debt:type_name -> google.type.Money
+	34, // 23: arian.v1.GetNetBalanceResponse.net_balance:type_name -> google.type.Money
+	35, // 24: arian.v1.GetCategorySpendingComparisonRequest.period_type:type_name -> arian.v1.PeriodType
+	27, // 25: arian.v1.GetCategorySpendingComparisonRequest.custom_start_date:type_name -> google.type.Date
+	27, // 26: arian.v1.GetCategorySpendingComparisonRequest.custom_end_date:type_name -> google.type.Date
+	36, // 27: arian.v1.CategorySpendingItem.category:type_name -> arian.v1.Category
+	37, // 28: arian.v1.CategorySpendingItem.spending:type_name -> arian.v1.CategorySpendingComparison
+	38, // 29: arian.v1.GetCategorySpendingComparisonResponse.current_period:type_name -> arian.v1.PeriodInfo
+	38, // 30: arian.v1.GetCategorySpendingComparisonResponse.previous_period:type_name -> arian.v1.PeriodInfo
 	23, // 31: arian.v1.GetCategorySpendingComparisonResponse.categories:type_name -> arian.v1.CategorySpendingItem
-	35, // 32: arian.v1.GetCategorySpendingComparisonResponse.uncategorized:type_name -> arian.v1.CategorySpendingComparison
-	37, // 33: arian.v1.GetCategorySpendingComparisonResponse.totals:type_name -> arian.v1.CategorySpendingTotals
-	0,  // 34: arian.v1.DashboardService.GetDashboardSummary:input_type -> arian.v1.GetDashboardSummaryRequest
-	2,  // 35: arian.v1.DashboardService.GetTrendData:input_type -> arian.v1.GetTrendDataRequest
-	4,  // 36: arian.v1.DashboardService.GetMonthlyComparison:input_type -> arian.v1.GetMonthlyComparisonRequest
-	6,  // 37: arian.v1.DashboardService.GetTopCategories:input_type -> arian.v1.GetTopCategoriesRequest
-	8,  // 38: arian.v1.DashboardService.GetTopMerchants:input_type -> arian.v1.GetTopMerchantsRequest
-	10, // 39: arian.v1.DashboardService.GetAccountSummary:input_type -> arian.v1.GetAccountSummaryRequest
-	14, // 40: arian.v1.DashboardService.GetAccountBalances:input_type -> arian.v1.GetAccountBalancesRequest
-	12, // 41: arian.v1.DashboardService.GetSpendingTrends:input_type -> arian.v1.GetSpendingTrendsRequest
-	16, // 42: arian.v1.DashboardService.GetTotalBalance:input_type -> arian.v1.GetTotalBalanceRequest
-	18, // 43: arian.v1.DashboardService.GetTotalDebt:input_type -> arian.v1.GetTotalDebtRequest
-	20, // 44: arian.v1.DashboardService.GetNetBalance:input_type -> arian.v1.GetNetBalanceRequest
-	22, // 45: arian.v1.DashboardService.GetCategorySpendingComparison:input_type -> arian.v1.GetCategorySpendingComparisonRequest
-	1,  // 46: arian.v1.DashboardService.GetDashboardSummary:output_type -> arian.v1.GetDashboardSummaryResponse
-	3,  // 47: arian.v1.DashboardService.GetTrendData:output_type -> arian.v1.GetTrendDataResponse
-	5,  // 48: arian.v1.DashboardService.GetMonthlyComparison:output_type -> arian.v1.GetMonthlyComparisonResponse
-	7,  // 49: arian.v1.DashboardService.GetTopCategories:output_type -> arian.v1.GetTopCategoriesResponse
-	9,  // 50: arian.v1.DashboardService.GetTopMerchants:output_type -> arian.v1.GetTopMerchantsResponse
-	11, // 51: arian.v1.DashboardService.GetAccountSummary:output_type -> arian.v1.GetAccountSummaryResponse
-	15, // 52: arian.v1.DashboardService.GetAccountBalances:output_type -> arian.v1.GetAccountBalancesResponse
-	13, // 53: arian.v1.DashboardService.GetSpendingTrends:output_type -> arian.v1.GetSpendingTrendsResponse
-	17, // 54: arian.v1.DashboardService.GetTotalBalance:output_type -> arian.v1.GetTotalBalanceResponse
-	19, // 55: arian.v1.DashboardService.GetTotalDebt:output_type -> arian.v1.GetTotalDebtResponse
-	21, // 56: arian.v1.DashboardService.GetNetBalance:output_type -> arian.v1.GetNetBalanceResponse
-	24, // 57: arian.v1.DashboardService.GetCategorySpendingComparison:output_type -> arian.v1.GetCategorySpendingComparisonResponse
-	46, // [46:58] is the sub-list for method output_type
-	34, // [34:46] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	37, // 32: arian.v1.GetCategorySpendingComparisonResponse.uncategorized:type_name -> arian.v1.CategorySpendingComparison
+	39, // 33: arian.v1.GetCategorySpendingComparisonResponse.totals:type_name -> arian.v1.CategorySpendingTotals
+	27, // 34: arian.v1.GetNetWorthHistoryRequest.start_date:type_name -> google.type.Date
+	27, // 35: arian.v1.GetNetWorthHistoryRequest.end_date:type_name -> google.type.Date
+	40, // 36: arian.v1.GetNetWorthHistoryRequest.granularity:type_name -> arian.v1.Granularity
+	41, // 37: arian.v1.GetNetWorthHistoryResponse.data_points:type_name -> arian.v1.NetWorthPoint
+	0,  // 38: arian.v1.DashboardService.GetDashboardSummary:input_type -> arian.v1.GetDashboardSummaryRequest
+	2,  // 39: arian.v1.DashboardService.GetTrendData:input_type -> arian.v1.GetTrendDataRequest
+	4,  // 40: arian.v1.DashboardService.GetMonthlyComparison:input_type -> arian.v1.GetMonthlyComparisonRequest
+	6,  // 41: arian.v1.DashboardService.GetTopCategories:input_type -> arian.v1.GetTopCategoriesRequest
+	8,  // 42: arian.v1.DashboardService.GetTopMerchants:input_type -> arian.v1.GetTopMerchantsRequest
+	10, // 43: arian.v1.DashboardService.GetAccountSummary:input_type -> arian.v1.GetAccountSummaryRequest
+	14, // 44: arian.v1.DashboardService.GetAccountBalances:input_type -> arian.v1.GetAccountBalancesRequest
+	12, // 45: arian.v1.DashboardService.GetSpendingTrends:input_type -> arian.v1.GetSpendingTrendsRequest
+	16, // 46: arian.v1.DashboardService.GetTotalBalance:input_type -> arian.v1.GetTotalBalanceRequest
+	18, // 47: arian.v1.DashboardService.GetTotalDebt:input_type -> arian.v1.GetTotalDebtRequest
+	20, // 48: arian.v1.DashboardService.GetNetBalance:input_type -> arian.v1.GetNetBalanceRequest
+	22, // 49: arian.v1.DashboardService.GetCategorySpendingComparison:input_type -> arian.v1.GetCategorySpendingComparisonRequest
+	25, // 50: arian.v1.DashboardService.GetNetWorthHistory:input_type -> arian.v1.GetNetWorthHistoryRequest
+	1,  // 51: arian.v1.DashboardService.GetDashboardSummary:output_type -> arian.v1.GetDashboardSummaryResponse
+	3,  // 52: arian.v1.DashboardService.GetTrendData:output_type -> arian.v1.GetTrendDataResponse
+	5,  // 53: arian.v1.DashboardService.GetMonthlyComparison:output_type -> arian.v1.GetMonthlyComparisonResponse
+	7,  // 54: arian.v1.DashboardService.GetTopCategories:output_type -> arian.v1.GetTopCategoriesResponse
+	9,  // 55: arian.v1.DashboardService.GetTopMerchants:output_type -> arian.v1.GetTopMerchantsResponse
+	11, // 56: arian.v1.DashboardService.GetAccountSummary:output_type -> arian.v1.GetAccountSummaryResponse
+	15, // 57: arian.v1.DashboardService.GetAccountBalances:output_type -> arian.v1.GetAccountBalancesResponse
+	13, // 58: arian.v1.DashboardService.GetSpendingTrends:output_type -> arian.v1.GetSpendingTrendsResponse
+	17, // 59: arian.v1.DashboardService.GetTotalBalance:output_type -> arian.v1.GetTotalBalanceResponse
+	19, // 60: arian.v1.DashboardService.GetTotalDebt:output_type -> arian.v1.GetTotalDebtResponse
+	21, // 61: arian.v1.DashboardService.GetNetBalance:output_type -> arian.v1.GetNetBalanceResponse
+	24, // 62: arian.v1.DashboardService.GetCategorySpendingComparison:output_type -> arian.v1.GetCategorySpendingComparisonResponse
+	26, // 63: arian.v1.DashboardService.GetNetWorthHistory:output_type -> arian.v1.GetNetWorthHistoryResponse
+	51, // [51:64] is the sub-list for method output_type
+	38, // [38:51] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_dashboard_services_proto_init() }
@@ -1644,7 +1767,7 @@ func file_arian_v1_dashboard_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_dashboard_services_proto_rawDesc), len(file_arian_v1_dashboard_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

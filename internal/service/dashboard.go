@@ -30,7 +30,6 @@ type CategorySpendingParams struct {
 	PeriodType  PeriodType
 	CustomStart *time.Time
 	CustomEnd   *time.Time
-	Timezone    string
 }
 
 type PeriodInfo struct {
@@ -46,6 +45,13 @@ type CategorySpendingResult struct {
 	Previous       []sqlc.GetCategorySpendingForPeriodRow
 }
 
+type NetWorthHistoryParams struct {
+	UserID      uuid.UUID
+	StartDate   time.Time
+	EndDate     time.Time
+	Granularity int32
+}
+
 type DashboardService interface {
 	Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
 	Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error)
@@ -59,6 +65,7 @@ type DashboardService interface {
 	GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error)
 	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error)
 	GetCategorySpendingComparison(ctx context.Context, params CategorySpendingParams) (*CategorySpendingResult, error)
+	GetNetWorthHistory(ctx context.Context, params NetWorthHistoryParams) ([]sqlc.GetNetWorthHistoryRow, error)
 }
 
 type dashSvc struct {
@@ -307,8 +314,13 @@ func (s *dashSvc) GetCategorySpendingComparison(
 	ctx context.Context,
 	params CategorySpendingParams,
 ) (*CategorySpendingResult, error) {
-	// TODO: falling back to UTC if timezone is not great
-	loc, err := time.LoadLocation(params.Timezone)
+	// Get user's timezone from preferences
+	timezone, err := s.queries.GetUserTimezone(ctx, params.UserID)
+	if err != nil {
+		timezone = "UTC" // fallback
+	}
+
+	loc, err := time.LoadLocation(timezone)
 	if err != nil {
 		loc = time.UTC
 	}
@@ -431,4 +443,36 @@ func (s *dashSvc) getUserPrimaryCurrency(ctx context.Context, userID uuid.UUID) 
 		return "CAD", nil
 	}
 	return currency, nil
+}
+
+func (s *dashSvc) GetNetWorthHistory(
+	ctx context.Context,
+	params NetWorthHistoryParams,
+) ([]sqlc.GetNetWorthHistoryRow, error) {
+	// Get user's timezone from preferences
+	timezone, err := s.queries.GetUserTimezone(ctx, params.UserID)
+	if err != nil {
+		timezone = "UTC" // fallback
+	}
+
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
+	// Ensure dates are in the correct timezone
+	startDate := params.StartDate.In(loc)
+	endDate := params.EndDate.In(loc)
+
+	result, err := s.queries.GetNetWorthHistory(ctx, sqlc.GetNetWorthHistoryParams{
+		UserID:      params.UserID,
+		StartDate:   startDate,
+		EndDate:     endDate,
+		Granularity: params.Granularity,
+	})
+	if err != nil {
+		return nil, wrapErr("DashboardService.GetNetWorthHistory", err)
+	}
+
+	return result, nil
 }

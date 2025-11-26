@@ -259,11 +259,13 @@ func toProtoUser(u *sqlc.User) *pb.User {
 	}
 
 	user := &pb.User{
-		Id:          u.ID.String(),
-		Email:       u.Email,
-		DisplayName: u.DisplayName,
-		CreatedAt:   toProtoTimestamp(&u.CreatedAt),
-		UpdatedAt:   toProtoTimestamp(&u.UpdatedAt),
+		Id:              u.ID.String(),
+		Email:           u.Email,
+		DisplayName:     u.DisplayName,
+		PrimaryCurrency: u.PrimaryCurrency,
+		Timezone:        u.Timezone,
+		CreatedAt:       toProtoTimestamp(&u.CreatedAt),
+		UpdatedAt:       toProtoTimestamp(&u.UpdatedAt),
 	}
 
 	if u.DefaultAccountID != nil {
@@ -297,6 +299,8 @@ func updateUserParamsFromProto(req *pb.UpdateUserRequest) (sqlc.UpdateUserParams
 		Email:            req.Email,
 		DisplayName:      req.DisplayName,
 		DefaultAccountID: req.DefaultAccountId,
+		PrimaryCurrency:  req.PrimaryCurrency,
+		Timezone:         req.Timezone,
 	}, nil
 }
 

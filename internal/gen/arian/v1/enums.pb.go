@@ -336,6 +336,58 @@ func (PeriodType) EnumDescriptor() ([]byte, []int) {
 	return file_arian_v1_enums_proto_rawDescGZIP(), []int{5}
 }
 
+type Granularity int32
+
+const (
+	Granularity_GRANULARITY_UNSPECIFIED Granularity = 0
+	Granularity_GRANULARITY_DAY         Granularity = 1
+	Granularity_GRANULARITY_WEEK        Granularity = 2
+	Granularity_GRANULARITY_MONTH       Granularity = 3
+)
+
+// Enum value maps for Granularity.
+var (
+	Granularity_name = map[int32]string{
+		0: "GRANULARITY_UNSPECIFIED",
+		1: "GRANULARITY_DAY",
+		2: "GRANULARITY_WEEK",
+		3: "GRANULARITY_MONTH",
+	}
+	Granularity_value = map[string]int32{
+		"GRANULARITY_UNSPECIFIED": 0,
+		"GRANULARITY_DAY":         1,
+		"GRANULARITY_WEEK":        2,
+		"GRANULARITY_MONTH":       3,
+	}
+)
+
+func (x Granularity) Enum() *Granularity {
+	p := new(Granularity)
+	*p = x
+	return p
+}
+
+func (x Granularity) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Granularity) Descriptor() protoreflect.EnumDescriptor {
+	return file_arian_v1_enums_proto_enumTypes[6].Descriptor()
+}
+
+func (Granularity) Type() protoreflect.EnumType {
+	return &file_arian_v1_enums_proto_enumTypes[6]
+}
+
+func (x Granularity) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Granularity.Descriptor instead.
+func (Granularity) EnumDescriptor() ([]byte, []int) {
+	return file_arian_v1_enums_proto_rawDescGZIP(), []int{6}
+}
+
 var File_arian_v1_enums_proto protoreflect.FileDescriptor
 
 const file_arian_v1_enums_proto_rawDesc = "" +
@@ -372,7 +424,12 @@ const file_arian_v1_enums_proto_rawDesc = "" +
 	"\x12PERIOD_TYPE_7_DAYS\x10\x01\x12\x17\n" +
 	"\x13PERIOD_TYPE_30_DAYS\x10\x02\x12\x17\n" +
 	"\x13PERIOD_TYPE_90_DAYS\x10\x03\x12\x16\n" +
-	"\x12PERIOD_TYPE_CUSTOM\x10\x04B\x81\x01\n" +
+	"\x12PERIOD_TYPE_CUSTOM\x10\x04*l\n" +
+	"\vGranularity\x12\x1b\n" +
+	"\x17GRANULARITY_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fGRANULARITY_DAY\x10\x01\x12\x14\n" +
+	"\x10GRANULARITY_WEEK\x10\x02\x12\x15\n" +
+	"\x11GRANULARITY_MONTH\x10\x03B\x81\x01\n" +
 	"\fcom.arian.v1B\n" +
 	"EnumsProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
@@ -388,7 +445,7 @@ func file_arian_v1_enums_proto_rawDescGZIP() []byte {
 	return file_arian_v1_enums_proto_rawDescData
 }
 
-var file_arian_v1_enums_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_arian_v1_enums_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_arian_v1_enums_proto_goTypes = []any{
 	(AccountType)(0),          // 0: arian.v1.AccountType
 	(TransactionDirection)(0), // 1: arian.v1.TransactionDirection
@@ -396,6 +453,7 @@ var file_arian_v1_enums_proto_goTypes = []any{
 	(ReceiptParseStatus)(0),   // 3: arian.v1.ReceiptParseStatus
 	(ReceiptLinkStatus)(0),    // 4: arian.v1.ReceiptLinkStatus
 	(PeriodType)(0),           // 5: arian.v1.PeriodType
+	(Granularity)(0),          // 6: arian.v1.Granularity
 }
 var file_arian_v1_enums_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -415,7 +473,7 @@ func file_arian_v1_enums_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_enums_proto_rawDesc), len(file_arian_v1_enums_proto_rawDesc)),
-			NumEnums:      6,
+			NumEnums:      7,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   0,

@@ -10,6 +10,7 @@ import (
 
 	"connectrpc.com/connect"
 	"google.golang.org/genproto/googleapis/type/date"
+	"google.golang.org/genproto/googleapis/type/money"
 )
 
 func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[pb.GetDashboardSummaryRequest]) (*connect.Response[pb.GetDashboardSummaryResponse], error) {
@@ -230,7 +231,6 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 		PeriodType:  periodType,
 		CustomStart: customStart,
 		CustomEnd:   customEnd,
-		Timezone:    req.Msg.Timezone,
 	})
 	if err != nil {
 		return nil, handleError(err)
@@ -403,5 +403,72 @@ func stringToDate(s string) *date.Date {
 		Year:  int32(t.Year()),
 		Month: int32(t.Month()),
 		Day:   int32(t.Day()),
+	}
+}
+
+func (s *Server) GetNetWorthHistory(ctx context.Context, req *connect.Request[pb.GetNetWorthHistoryRequest]) (*connect.Response[pb.GetNetWorthHistoryResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert proto dates to time.Time
+	startDate := dateToTime(req.Msg.StartDate)
+	endDate := dateToTime(req.Msg.EndDate)
+
+	if startDate == nil || endDate == nil {
+		return nil, handleError(fmt.Errorf("start_date and end_date are required"))
+	}
+
+	// Get user to fetch their primary currency
+	user, err := s.services.Users.Get(ctx, userID)
+	if err != nil {
+		return nil, handleError(err)
+	}
+	primaryCurrency := user.PrimaryCurrency
+
+	// Map proto granularity to int32
+	granularity := mapGranularity(req.Msg.Granularity)
+
+	// Get history from service layer
+	history, err := s.services.Dashboard.GetNetWorthHistory(ctx, service.NetWorthHistoryParams{
+		UserID:      userID,
+		StartDate:   *startDate,
+		EndDate:     *endDate,
+		Granularity: granularity,
+	})
+	if err != nil {
+		return nil, handleError(err)
+	}
+
+	// Convert to proto NetWorthPoints
+	dataPoints := make([]*pb.NetWorthPoint, len(history))
+	for i, point := range history {
+		dataPoints[i] = &pb.NetWorthPoint{
+			Date: stringToDate(point.Date),
+			NetWorth: &money.Money{
+				CurrencyCode: primaryCurrency,
+				Units:        point.NetWorthUnits,
+				Nanos:        point.NetWorthNanos,
+			},
+		}
+	}
+
+	return connect.NewResponse(&pb.GetNetWorthHistoryResponse{
+		DataPoints: dataPoints,
+	}), nil
+}
+
+// mapGranularity converts proto Granularity to int32
+func mapGranularity(g pb.Granularity) int32 {
+	switch g {
+	case pb.Granularity_GRANULARITY_DAY:
+		return 1
+	case pb.Granularity_GRANULARITY_WEEK:
+		return 2
+	case pb.Granularity_GRANULARITY_MONTH:
+		return 3
+	default:
+		return 1 // default to day
 	}
 }

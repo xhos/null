@@ -405,6 +405,108 @@ func (q *Queries) GetMonthlyComparison(ctx context.Context, arg GetMonthlyCompar
 	return items, nil
 }
 
+const getNetWorthHistory = `-- name: GetNetWorthHistory :many
+with date_series as (
+  select
+    generate_series(
+      $1::timestamptz,
+      $2::timestamptz,
+      case $3::int
+        when 1 then interval '1 day'
+        when 2 then interval '1 week'
+        when 3 then interval '1 month'
+        else interval '1 day'
+      end
+    )::date as period_date
+),
+user_accounts as (
+  select a.id, a.anchor_date, a.anchor_balance
+  from accounts a
+  left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
+  where (a.owner_id = $4::uuid or au.user_id is not null)
+),
+account_balances_at_date as (
+  select
+    ds.period_date,
+    ua.id as account_id,
+    ua.anchor_balance->>'currency_code' as currency_code,
+    (ua.anchor_balance->>'units')::bigint as anchor_units,
+    (ua.anchor_balance->>'nanos')::int as anchor_nanos,
+    COALESCE(
+      SUM(
+        case when t.tx_direction = 1
+          then amount_cents(t.tx_amount)
+          else -amount_cents(t.tx_amount)
+        end
+      ), 0
+    ) as delta_cents
+  from date_series ds
+  cross join user_accounts ua
+  left join transactions t on t.account_id = ua.id
+    and t.tx_date > ua.anchor_date
+    and t.tx_date <= ds.period_date
+  group by ds.period_date, ua.id, ua.anchor_balance
+),
+net_worth_per_date as (
+  select
+    ab.period_date,
+    SUM(
+      ab.anchor_units +
+      (ab.anchor_nanos + ab.delta_cents * 10000000) / 1000000000 +
+      ab.delta_cents / 100
+    ) as total_units,
+    SUM(
+      (ab.anchor_nanos + (ab.delta_cents % 100) * 10000000) % 1000000000
+    ) as total_nanos
+  from account_balances_at_date ab
+  group by ab.period_date
+)
+select
+  to_char(nw.period_date, 'YYYY-MM-DD') as date,
+  (nw.total_units + nw.total_nanos / 1000000000)::bigint as net_worth_units,
+  (nw.total_nanos % 1000000000)::int as net_worth_nanos
+from net_worth_per_date nw
+order by nw.period_date
+`
+
+type GetNetWorthHistoryParams struct {
+	StartDate   time.Time `db:"start_date" json:"start_date"`
+	EndDate     time.Time `db:"end_date" json:"end_date"`
+	Granularity int32     `db:"granularity" json:"granularity"`
+	UserID      uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+type GetNetWorthHistoryRow struct {
+	Date          string `db:"date" json:"date"`
+	NetWorthUnits int64  `db:"net_worth_units" json:"net_worth_units"`
+	NetWorthNanos int32  `db:"net_worth_nanos" json:"net_worth_nanos"`
+}
+
+func (q *Queries) GetNetWorthHistory(ctx context.Context, arg GetNetWorthHistoryParams) ([]GetNetWorthHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getNetWorthHistory,
+		arg.StartDate,
+		arg.EndDate,
+		arg.Granularity,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNetWorthHistoryRow
+	for rows.Next() {
+		var i GetNetWorthHistoryRow
+		if err := rows.Scan(&i.Date, &i.NetWorthUnits, &i.NetWorthNanos); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTopCategories = `-- name: GetTopCategories :many
 select
   c.slug,

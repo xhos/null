@@ -308,6 +308,8 @@ type UpdateUserRequest struct {
 	Email            *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	DisplayName      *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
 	DefaultAccountId *int64                 `protobuf:"varint,4,opt,name=default_account_id,json=defaultAccountId,proto3,oneof" json:"default_account_id,omitempty"`
+	PrimaryCurrency  *string                `protobuf:"bytes,5,opt,name=primary_currency,json=primaryCurrency,proto3,oneof" json:"primary_currency,omitempty"`
+	Timezone         *string                `protobuf:"bytes,6,opt,name=timezone,proto3,oneof" json:"timezone,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -368,6 +370,20 @@ func (x *UpdateUserRequest) GetDefaultAccountId() int64 {
 		return *x.DefaultAccountId
 	}
 	return 0
+}
+
+func (x *UpdateUserRequest) GetPrimaryCurrency() string {
+	if x != nil && x.PrimaryCurrency != nil {
+		return *x.PrimaryCurrency
+	}
+	return ""
+}
+
+func (x *UpdateUserRequest) GetTimezone() string {
+	if x != nil && x.Timezone != nil {
+		return *x.Timezone
+	}
+	return ""
 }
 
 type UpdateUserResponse struct {
@@ -897,15 +913,20 @@ const file_arian_v1_user_services_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x03 \x01(\tH\x00R\vdisplayName\x88\x01\x01B\x0f\n" +
 	"\r_display_name\"8\n" +
 	"\x12CreateUserResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\xcb\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"\xdf\x02\n" +
 	"\x11UpdateUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12&\n" +
 	"\fdisplay_name\x18\x03 \x01(\tH\x01R\vdisplayName\x88\x01\x01\x121\n" +
-	"\x12default_account_id\x18\x04 \x01(\x03H\x02R\x10defaultAccountId\x88\x01\x01B\b\n" +
+	"\x12default_account_id\x18\x04 \x01(\x03H\x02R\x10defaultAccountId\x88\x01\x01\x12D\n" +
+	"\x10primary_currency\x18\x05 \x01(\tB\x14\xbaH\x11r\x0f2\n" +
+	"^[A-Z]{3}$\x98\x01\x03H\x03R\x0fprimaryCurrency\x88\x01\x01\x12*\n" +
+	"\btimezone\x18\x06 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182H\x04R\btimezone\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_display_nameB\x15\n" +
-	"\x13_default_account_id\"8\n" +
+	"\x13_default_account_idB\x13\n" +
+	"\x11_primary_currencyB\v\n" +
+	"\t_timezone\"8\n" +
 	"\x12UpdateUserResponse\x12\"\n" +
 	"\x04user\x18\x01 \x01(\v2\x0e.arian.v1.UserR\x04user\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +

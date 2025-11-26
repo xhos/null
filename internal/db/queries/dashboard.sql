@@ -173,3 +173,66 @@ where (a.owner_id = @user_id::uuid or au.user_id is not null)
   and t.tx_date >= @start_date::timestamptz
   and t.tx_date <= @end_date::timestamptz
 group by t.category_id, c.id, c.slug, c.color;
+
+-- name: GetNetWorthHistory :many
+with date_series as (
+  select
+    generate_series(
+      @start_date::timestamptz,
+      @end_date::timestamptz,
+      case @granularity::int
+        when 1 then interval '1 day'
+        when 2 then interval '1 week'
+        when 3 then interval '1 month'
+        else interval '1 day'
+      end
+    )::date as period_date
+),
+user_accounts as (
+  select a.id, a.anchor_date, a.anchor_balance
+  from accounts a
+  left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
+  where (a.owner_id = @user_id::uuid or au.user_id is not null)
+),
+account_balances_at_date as (
+  select
+    ds.period_date,
+    ua.id as account_id,
+    ua.anchor_balance->>'currency_code' as currency_code,
+    (ua.anchor_balance->>'units')::bigint as anchor_units,
+    (ua.anchor_balance->>'nanos')::int as anchor_nanos,
+    COALESCE(
+      SUM(
+        case when t.tx_direction = 1
+          then amount_cents(t.tx_amount)
+          else -amount_cents(t.tx_amount)
+        end
+      ), 0
+    ) as delta_cents
+  from date_series ds
+  cross join user_accounts ua
+  left join transactions t on t.account_id = ua.id
+    and t.tx_date > ua.anchor_date
+    and t.tx_date <= ds.period_date
+  group by ds.period_date, ua.id, ua.anchor_balance
+),
+net_worth_per_date as (
+  select
+    ab.period_date,
+    SUM(
+      ab.anchor_units +
+      (ab.anchor_nanos + ab.delta_cents * 10000000) / 1000000000 +
+      ab.delta_cents / 100
+    ) as total_units,
+    SUM(
+      (ab.anchor_nanos + (ab.delta_cents % 100) * 10000000) % 1000000000
+    ) as total_nanos
+  from account_balances_at_date ab
+  group by ab.period_date
+)
+select
+  to_char(nw.period_date, 'YYYY-MM-DD') as date,
+  (nw.total_units + nw.total_nanos / 1000000000)::bigint as net_worth_units,
+  (nw.total_nanos % 1000000000)::int as net_worth_nanos
+from net_worth_per_date nw
+order by nw.period_date;

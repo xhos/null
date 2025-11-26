@@ -69,6 +69,9 @@ const (
 	// DashboardServiceGetCategorySpendingComparisonProcedure is the fully-qualified name of the
 	// DashboardService's GetCategorySpendingComparison RPC.
 	DashboardServiceGetCategorySpendingComparisonProcedure = "/arian.v1.DashboardService/GetCategorySpendingComparison"
+	// DashboardServiceGetNetWorthHistoryProcedure is the fully-qualified name of the DashboardService's
+	// GetNetWorthHistory RPC.
+	DashboardServiceGetNetWorthHistoryProcedure = "/arian.v1.DashboardService/GetNetWorthHistory"
 )
 
 // DashboardServiceClient is a client for the arian.v1.DashboardService service.
@@ -85,6 +88,7 @@ type DashboardServiceClient interface {
 	GetTotalDebt(context.Context, *connect.Request[v1.GetTotalDebtRequest]) (*connect.Response[v1.GetTotalDebtResponse], error)
 	GetNetBalance(context.Context, *connect.Request[v1.GetNetBalanceRequest]) (*connect.Response[v1.GetNetBalanceResponse], error)
 	GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error)
+	GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error)
 }
 
 // NewDashboardServiceClient constructs a client for the arian.v1.DashboardService service. By
@@ -170,6 +174,12 @@ func NewDashboardServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(dashboardServiceMethods.ByName("GetCategorySpendingComparison")),
 			connect.WithClientOptions(opts...),
 		),
+		getNetWorthHistory: connect.NewClient[v1.GetNetWorthHistoryRequest, v1.GetNetWorthHistoryResponse](
+			httpClient,
+			baseURL+DashboardServiceGetNetWorthHistoryProcedure,
+			connect.WithSchema(dashboardServiceMethods.ByName("GetNetWorthHistory")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -187,6 +197,7 @@ type dashboardServiceClient struct {
 	getTotalDebt                  *connect.Client[v1.GetTotalDebtRequest, v1.GetTotalDebtResponse]
 	getNetBalance                 *connect.Client[v1.GetNetBalanceRequest, v1.GetNetBalanceResponse]
 	getCategorySpendingComparison *connect.Client[v1.GetCategorySpendingComparisonRequest, v1.GetCategorySpendingComparisonResponse]
+	getNetWorthHistory            *connect.Client[v1.GetNetWorthHistoryRequest, v1.GetNetWorthHistoryResponse]
 }
 
 // GetDashboardSummary calls arian.v1.DashboardService.GetDashboardSummary.
@@ -249,6 +260,11 @@ func (c *dashboardServiceClient) GetCategorySpendingComparison(ctx context.Conte
 	return c.getCategorySpendingComparison.CallUnary(ctx, req)
 }
 
+// GetNetWorthHistory calls arian.v1.DashboardService.GetNetWorthHistory.
+func (c *dashboardServiceClient) GetNetWorthHistory(ctx context.Context, req *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error) {
+	return c.getNetWorthHistory.CallUnary(ctx, req)
+}
+
 // DashboardServiceHandler is an implementation of the arian.v1.DashboardService service.
 type DashboardServiceHandler interface {
 	GetDashboardSummary(context.Context, *connect.Request[v1.GetDashboardSummaryRequest]) (*connect.Response[v1.GetDashboardSummaryResponse], error)
@@ -263,6 +279,7 @@ type DashboardServiceHandler interface {
 	GetTotalDebt(context.Context, *connect.Request[v1.GetTotalDebtRequest]) (*connect.Response[v1.GetTotalDebtResponse], error)
 	GetNetBalance(context.Context, *connect.Request[v1.GetNetBalanceRequest]) (*connect.Response[v1.GetNetBalanceResponse], error)
 	GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error)
+	GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error)
 }
 
 // NewDashboardServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -344,6 +361,12 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 		connect.WithSchema(dashboardServiceMethods.ByName("GetCategorySpendingComparison")),
 		connect.WithHandlerOptions(opts...),
 	)
+	dashboardServiceGetNetWorthHistoryHandler := connect.NewUnaryHandler(
+		DashboardServiceGetNetWorthHistoryProcedure,
+		svc.GetNetWorthHistory,
+		connect.WithSchema(dashboardServiceMethods.ByName("GetNetWorthHistory")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/arian.v1.DashboardService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DashboardServiceGetDashboardSummaryProcedure:
@@ -370,6 +393,8 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 			dashboardServiceGetNetBalanceHandler.ServeHTTP(w, r)
 		case DashboardServiceGetCategorySpendingComparisonProcedure:
 			dashboardServiceGetCategorySpendingComparisonHandler.ServeHTTP(w, r)
+		case DashboardServiceGetNetWorthHistoryProcedure:
+			dashboardServiceGetNetWorthHistoryHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -425,4 +450,8 @@ func (UnimplementedDashboardServiceHandler) GetNetBalance(context.Context, *conn
 
 func (UnimplementedDashboardServiceHandler) GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetCategorySpendingComparison is not implemented"))
+}
+
+func (UnimplementedDashboardServiceHandler) GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetNetWorthHistory is not implemented"))
 }

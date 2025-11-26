@@ -603,6 +603,58 @@ func (x *CategorySpendingTotals) GetPreviousPeriodTotal() *money.Money {
 	return nil
 }
 
+type NetWorthPoint struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Date          *date.Date             `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"`
+	NetWorth      *money.Money           `protobuf:"bytes,2,opt,name=net_worth,json=netWorth,proto3" json:"net_worth,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetWorthPoint) Reset() {
+	*x = NetWorthPoint{}
+	mi := &file_arian_v1_dashboard_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetWorthPoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetWorthPoint) ProtoMessage() {}
+
+func (x *NetWorthPoint) ProtoReflect() protoreflect.Message {
+	mi := &file_arian_v1_dashboard_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetWorthPoint.ProtoReflect.Descriptor instead.
+func (*NetWorthPoint) Descriptor() ([]byte, []int) {
+	return file_arian_v1_dashboard_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *NetWorthPoint) GetDate() *date.Date {
+	if x != nil {
+		return x.Date
+	}
+	return nil
+}
+
+func (x *NetWorthPoint) GetNetWorth() *money.Money {
+	if x != nil {
+		return x.NetWorth
+	}
+	return nil
+}
+
 var File_arian_v1_dashboard_proto protoreflect.FileDescriptor
 
 const file_arian_v1_dashboard_proto_rawDesc = "" +
@@ -654,7 +706,10 @@ const file_arian_v1_dashboard_proto_rawDesc = "" +
 	"\f_category_id\"\xa6\x01\n" +
 	"\x16CategorySpendingTotals\x12D\n" +
 	"\x14current_period_total\x18\x01 \x01(\v2\x12.google.type.MoneyR\x12currentPeriodTotal\x12F\n" +
-	"\x15previous_period_total\x18\x02 \x01(\v2\x12.google.type.MoneyR\x13previousPeriodTotalB\x85\x01\n" +
+	"\x15previous_period_total\x18\x02 \x01(\v2\x12.google.type.MoneyR\x13previousPeriodTotal\"g\n" +
+	"\rNetWorthPoint\x12%\n" +
+	"\x04date\x18\x01 \x01(\v2\x11.google.type.DateR\x04date\x12/\n" +
+	"\tnet_worth\x18\x02 \x01(\v2\x12.google.type.MoneyR\bnetWorthB\x85\x01\n" +
 	"\fcom.arian.v1B\x0eDashboardProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
@@ -669,7 +724,7 @@ func file_arian_v1_dashboard_proto_rawDescGZIP() []byte {
 	return file_arian_v1_dashboard_proto_rawDescData
 }
 
-var file_arian_v1_dashboard_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_arian_v1_dashboard_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_arian_v1_dashboard_proto_goTypes = []any{
 	(*TrendPoint)(nil),                 // 0: arian.v1.TrendPoint
 	(*MonthlyComparison)(nil),          // 1: arian.v1.MonthlyComparison
@@ -680,33 +735,36 @@ var file_arian_v1_dashboard_proto_goTypes = []any{
 	(*PeriodSpending)(nil),             // 6: arian.v1.PeriodSpending
 	(*CategorySpendingComparison)(nil), // 7: arian.v1.CategorySpendingComparison
 	(*CategorySpendingTotals)(nil),     // 8: arian.v1.CategorySpendingTotals
-	(*date.Date)(nil),                  // 9: google.type.Date
-	(*money.Money)(nil),                // 10: google.type.Money
+	(*NetWorthPoint)(nil),              // 9: arian.v1.NetWorthPoint
+	(*date.Date)(nil),                  // 10: google.type.Date
+	(*money.Money)(nil),                // 11: google.type.Money
 }
 var file_arian_v1_dashboard_proto_depIdxs = []int32{
-	9,  // 0: arian.v1.TrendPoint.date:type_name -> google.type.Date
-	10, // 1: arian.v1.TrendPoint.income:type_name -> google.type.Money
-	10, // 2: arian.v1.TrendPoint.expenses:type_name -> google.type.Money
-	10, // 3: arian.v1.MonthlyComparison.income:type_name -> google.type.Money
-	10, // 4: arian.v1.MonthlyComparison.expenses:type_name -> google.type.Money
-	10, // 5: arian.v1.MonthlyComparison.net:type_name -> google.type.Money
-	10, // 6: arian.v1.DashboardSummary.total_income:type_name -> google.type.Money
-	10, // 7: arian.v1.DashboardSummary.total_expenses:type_name -> google.type.Money
-	10, // 8: arian.v1.TopCategory.total_amount:type_name -> google.type.Money
-	10, // 9: arian.v1.TopMerchant.total_amount:type_name -> google.type.Money
-	10, // 10: arian.v1.TopMerchant.avg_amount:type_name -> google.type.Money
-	9,  // 11: arian.v1.PeriodInfo.start_date:type_name -> google.type.Date
-	9,  // 12: arian.v1.PeriodInfo.end_date:type_name -> google.type.Date
-	10, // 13: arian.v1.PeriodSpending.amount:type_name -> google.type.Money
+	10, // 0: arian.v1.TrendPoint.date:type_name -> google.type.Date
+	11, // 1: arian.v1.TrendPoint.income:type_name -> google.type.Money
+	11, // 2: arian.v1.TrendPoint.expenses:type_name -> google.type.Money
+	11, // 3: arian.v1.MonthlyComparison.income:type_name -> google.type.Money
+	11, // 4: arian.v1.MonthlyComparison.expenses:type_name -> google.type.Money
+	11, // 5: arian.v1.MonthlyComparison.net:type_name -> google.type.Money
+	11, // 6: arian.v1.DashboardSummary.total_income:type_name -> google.type.Money
+	11, // 7: arian.v1.DashboardSummary.total_expenses:type_name -> google.type.Money
+	11, // 8: arian.v1.TopCategory.total_amount:type_name -> google.type.Money
+	11, // 9: arian.v1.TopMerchant.total_amount:type_name -> google.type.Money
+	11, // 10: arian.v1.TopMerchant.avg_amount:type_name -> google.type.Money
+	10, // 11: arian.v1.PeriodInfo.start_date:type_name -> google.type.Date
+	10, // 12: arian.v1.PeriodInfo.end_date:type_name -> google.type.Date
+	11, // 13: arian.v1.PeriodSpending.amount:type_name -> google.type.Money
 	6,  // 14: arian.v1.CategorySpendingComparison.current_period:type_name -> arian.v1.PeriodSpending
 	6,  // 15: arian.v1.CategorySpendingComparison.previous_period:type_name -> arian.v1.PeriodSpending
-	10, // 16: arian.v1.CategorySpendingTotals.current_period_total:type_name -> google.type.Money
-	10, // 17: arian.v1.CategorySpendingTotals.previous_period_total:type_name -> google.type.Money
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	11, // 16: arian.v1.CategorySpendingTotals.current_period_total:type_name -> google.type.Money
+	11, // 17: arian.v1.CategorySpendingTotals.previous_period_total:type_name -> google.type.Money
+	10, // 18: arian.v1.NetWorthPoint.date:type_name -> google.type.Date
+	11, // 19: arian.v1.NetWorthPoint.net_worth:type_name -> google.type.Money
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_arian_v1_dashboard_proto_init() }
@@ -722,7 +780,7 @@ func file_arian_v1_dashboard_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_dashboard_proto_rawDesc), len(file_arian_v1_dashboard_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
