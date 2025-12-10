@@ -107,12 +107,12 @@ func (s *Server) SetAccountAnchor(ctx context.Context, req *connect.Request[pb.S
 		return nil, status.Error(codes.Internal, "failed to convert money to bytes")
 	}
 
-	params := sqlc.UpdateAccountParams{
+	params := sqlc.SetAccountAnchorParams{
 		ID:            req.Msg.GetId(),
 		AnchorBalance: balanceBytes,
 	}
 
-	_, err = s.services.Accounts.Update(ctx, params)
+	err = s.services.Accounts.SetAnchor(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}

@@ -193,6 +193,7 @@ func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorPar
 	err = s.triggerBalanceRecalculation(ctx, params.ID)
 	if err != nil {
 		s.log.Warn("Failed to recalculate balances after anchor update", "account_id", params.ID, "error", err)
+		return err
 	}
 
 	return nil
