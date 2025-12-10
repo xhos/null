@@ -68,26 +68,6 @@ sql:
               import: 'ariand/internal/types'
               type: 'Money'
               pointer: true
-          - column: 'receipts.total_amount'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-          - column: 'receipts.tax_amount'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-          - column: 'receipt_items.unit_price'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-          - column: 'receipt_items.line_total'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
 
           # pg json to go json
           - db_type: 'pg_catalog.jsonb'
@@ -139,15 +119,3 @@ sql:
             go_type:
               import: 'ariand/internal/gen/arian/v1'
               type: 'CategorizationStatus'
-          - column: 'receipts.engine'
-            go_type:
-              import: 'ariand/internal/gen/arian/v1'
-              type: 'ReceiptEngine'
-          - column: 'receipts.parse_status'
-            go_type:
-              import: 'ariand/internal/gen/arian/v1'
-              type: 'ReceiptParseStatus'
-          - column: 'receipts.link_status'
-            go_type:
-              import: 'ariand/internal/gen/arian/v1'
-              type: 'ReceiptLinkStatus'

@@ -350,19 +350,3 @@ func (s *Server) IdentifyMerchant(ctx context.Context, req *connect.Request[pb.I
 		Merchant: merchant,
 	}), nil
 }
-
-func (s *Server) SetTransactionReceipt(ctx context.Context, req *connect.Request[pb.SetTransactionReceiptRequest]) (*connect.Response[pb.SetTransactionReceiptResponse], error) {
-	params := sqlc.SetTransactionReceiptParams{
-		ID:        req.Msg.GetTransactionId(),
-		ReceiptID: req.Msg.GetReceiptId(),
-	}
-
-	err := s.services.Transactions.SetTransactionReceipt(ctx, params)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.SetTransactionReceiptResponse{
-		AffectedRows: 1,
-	}), nil
-}

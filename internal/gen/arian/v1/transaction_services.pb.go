@@ -1825,102 +1825,6 @@ func (x *IdentifyMerchantResponse) GetMerchant() string {
 	return ""
 }
 
-type SetTransactionReceiptRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TransactionId int64                  `protobuf:"varint,1,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
-	ReceiptId     int64                  `protobuf:"varint,2,opt,name=receipt_id,json=receiptId,proto3" json:"receipt_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetTransactionReceiptRequest) Reset() {
-	*x = SetTransactionReceiptRequest{}
-	mi := &file_arian_v1_transaction_services_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetTransactionReceiptRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetTransactionReceiptRequest) ProtoMessage() {}
-
-func (x *SetTransactionReceiptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_transaction_services_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetTransactionReceiptRequest.ProtoReflect.Descriptor instead.
-func (*SetTransactionReceiptRequest) Descriptor() ([]byte, []int) {
-	return file_arian_v1_transaction_services_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *SetTransactionReceiptRequest) GetTransactionId() int64 {
-	if x != nil {
-		return x.TransactionId
-	}
-	return 0
-}
-
-func (x *SetTransactionReceiptRequest) GetReceiptId() int64 {
-	if x != nil {
-		return x.ReceiptId
-	}
-	return 0
-}
-
-type SetTransactionReceiptResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AffectedRows  int64                  `protobuf:"varint,1,opt,name=affected_rows,json=affectedRows,proto3" json:"affected_rows,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetTransactionReceiptResponse) Reset() {
-	*x = SetTransactionReceiptResponse{}
-	mi := &file_arian_v1_transaction_services_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetTransactionReceiptResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetTransactionReceiptResponse) ProtoMessage() {}
-
-func (x *SetTransactionReceiptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_arian_v1_transaction_services_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetTransactionReceiptResponse.ProtoReflect.Descriptor instead.
-func (*SetTransactionReceiptResponse) Descriptor() ([]byte, []int) {
-	return file_arian_v1_transaction_services_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *SetTransactionReceiptResponse) GetAffectedRows() int64 {
-	if x != nil {
-		return x.AffectedRows
-	}
-	return 0
-}
-
 var File_arian_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_arian_v1_transaction_services_proto_rawDesc = "" +
@@ -2142,13 +2046,7 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12.\n" +
 	"\x0etransaction_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\"6\n" +
 	"\x18IdentifyMerchantResponse\x12\x1a\n" +
-	"\bmerchant\x18\x01 \x01(\tR\bmerchant\"v\n" +
-	"\x1cSetTransactionReceiptRequest\x12.\n" +
-	"\x0etransaction_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\x12&\n" +
-	"\n" +
-	"receipt_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\treceiptId\"D\n" +
-	"\x1dSetTransactionReceiptResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows2\xbb\f\n" +
+	"\bmerchant\x18\x01 \x01(\tR\bmerchant2\xd1\v\n" +
 	"\x12TransactionService\x12Y\n" +
 	"\x10ListTransactions\x12!.arian.v1.ListTransactionsRequest\x1a\".arian.v1.ListTransactionsResponse\x12S\n" +
 	"\x0eGetTransaction\x12\x1f.arian.v1.GetTransactionRequest\x1a .arian.v1.GetTransactionResponse\x12\\\n" +
@@ -2163,8 +2061,7 @@ const file_arian_v1_transaction_services_proto_rawDesc = "" +
 	"\x1aBulkCategorizeTransactions\x12+.arian.v1.BulkCategorizeTransactionsRequest\x1a,.arian.v1.BulkCategorizeTransactionsResponse\x12}\n" +
 	"\x1cGetTransactionCountByAccount\x12-.arian.v1.GetTransactionCountByAccountRequest\x1a..arian.v1.GetTransactionCountByAccountResponse\x12t\n" +
 	"\x19FindCandidateTransactions\x12*.arian.v1.FindCandidateTransactionsRequest\x1a+.arian.v1.FindCandidateTransactionsResponse\x12Y\n" +
-	"\x10IdentifyMerchant\x12!.arian.v1.IdentifyMerchantRequest\x1a\".arian.v1.IdentifyMerchantResponse\x12h\n" +
-	"\x15SetTransactionReceipt\x12&.arian.v1.SetTransactionReceiptRequest\x1a'.arian.v1.SetTransactionReceiptResponseB\x8f\x01\n" +
+	"\x10IdentifyMerchant\x12!.arian.v1.IdentifyMerchantRequest\x1a\".arian.v1.IdentifyMerchantResponseB\x8f\x01\n" +
 	"\fcom.arian.v1B\x18TransactionServicesProtoP\x01Z$ariand/internal/gen/arian/v1;arianv1\xa2\x02\x03AXX\xaa\x02\bArian.V1\xca\x02\bArian\\V1\xe2\x02\x14Arian\\V1\\GPBMetadata\xea\x02\tArian::V1b\x06proto3"
 
 var (
@@ -2179,7 +2076,7 @@ func file_arian_v1_transaction_services_proto_rawDescGZIP() []byte {
 	return file_arian_v1_transaction_services_proto_rawDescData
 }
 
-var file_arian_v1_transaction_services_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_arian_v1_transaction_services_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_arian_v1_transaction_services_proto_goTypes = []any{
 	(*ListTransactionsRequest)(nil),              // 0: arian.v1.ListTransactionsRequest
 	(*ListTransactionsResponse)(nil),             // 1: arian.v1.ListTransactionsResponse
@@ -2209,55 +2106,53 @@ var file_arian_v1_transaction_services_proto_goTypes = []any{
 	(*FindCandidateTransactionsResponse)(nil),    // 25: arian.v1.FindCandidateTransactionsResponse
 	(*IdentifyMerchantRequest)(nil),              // 26: arian.v1.IdentifyMerchantRequest
 	(*IdentifyMerchantResponse)(nil),             // 27: arian.v1.IdentifyMerchantResponse
-	(*SetTransactionReceiptRequest)(nil),         // 28: arian.v1.SetTransactionReceiptRequest
-	(*SetTransactionReceiptResponse)(nil),        // 29: arian.v1.SetTransactionReceiptResponse
-	(*timestamppb.Timestamp)(nil),                // 30: google.protobuf.Timestamp
-	(*Cursor)(nil),                               // 31: arian.v1.Cursor
-	(*money.Money)(nil),                          // 32: google.type.Money
-	(TransactionDirection)(0),                    // 33: arian.v1.TransactionDirection
-	(*TimeOfDay)(nil),                            // 34: arian.v1.TimeOfDay
-	(*Transaction)(nil),                          // 35: arian.v1.Transaction
-	(*fieldmaskpb.FieldMask)(nil),                // 36: google.protobuf.FieldMask
-	(*TransactionWithScore)(nil),                 // 37: arian.v1.TransactionWithScore
-	(*TransactionCountByAccount)(nil),            // 38: arian.v1.TransactionCountByAccount
+	(*timestamppb.Timestamp)(nil),                // 28: google.protobuf.Timestamp
+	(*Cursor)(nil),                               // 29: arian.v1.Cursor
+	(*money.Money)(nil),                          // 30: google.type.Money
+	(TransactionDirection)(0),                    // 31: arian.v1.TransactionDirection
+	(*TimeOfDay)(nil),                            // 32: arian.v1.TimeOfDay
+	(*Transaction)(nil),                          // 33: arian.v1.Transaction
+	(*fieldmaskpb.FieldMask)(nil),                // 34: google.protobuf.FieldMask
+	(*TransactionWithScore)(nil),                 // 35: arian.v1.TransactionWithScore
+	(*TransactionCountByAccount)(nil),            // 36: arian.v1.TransactionCountByAccount
 }
 var file_arian_v1_transaction_services_proto_depIdxs = []int32{
-	30, // 0: arian.v1.ListTransactionsRequest.start_date:type_name -> google.protobuf.Timestamp
-	30, // 1: arian.v1.ListTransactionsRequest.end_date:type_name -> google.protobuf.Timestamp
-	31, // 2: arian.v1.ListTransactionsRequest.cursor:type_name -> arian.v1.Cursor
-	32, // 3: arian.v1.ListTransactionsRequest.amount_min:type_name -> google.type.Money
-	32, // 4: arian.v1.ListTransactionsRequest.amount_max:type_name -> google.type.Money
-	33, // 5: arian.v1.ListTransactionsRequest.direction:type_name -> arian.v1.TransactionDirection
-	34, // 6: arian.v1.ListTransactionsRequest.time_of_day_start:type_name -> arian.v1.TimeOfDay
-	34, // 7: arian.v1.ListTransactionsRequest.time_of_day_end:type_name -> arian.v1.TimeOfDay
-	35, // 8: arian.v1.ListTransactionsResponse.transactions:type_name -> arian.v1.Transaction
-	31, // 9: arian.v1.ListTransactionsResponse.next_cursor:type_name -> arian.v1.Cursor
-	35, // 10: arian.v1.GetTransactionResponse.transaction:type_name -> arian.v1.Transaction
-	30, // 11: arian.v1.CreateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
-	32, // 12: arian.v1.CreateTransactionRequest.tx_amount:type_name -> google.type.Money
-	33, // 13: arian.v1.CreateTransactionRequest.direction:type_name -> arian.v1.TransactionDirection
-	32, // 14: arian.v1.CreateTransactionRequest.foreign_amount:type_name -> google.type.Money
-	35, // 15: arian.v1.CreateTransactionResponse.transaction:type_name -> arian.v1.Transaction
-	36, // 16: arian.v1.UpdateTransactionRequest.update_mask:type_name -> google.protobuf.FieldMask
-	30, // 17: arian.v1.UpdateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
-	32, // 18: arian.v1.UpdateTransactionRequest.tx_amount:type_name -> google.type.Money
-	33, // 19: arian.v1.UpdateTransactionRequest.direction:type_name -> arian.v1.TransactionDirection
-	32, // 20: arian.v1.UpdateTransactionRequest.foreign_amount:type_name -> google.type.Money
-	35, // 21: arian.v1.UpdateTransactionResponse.transaction:type_name -> arian.v1.Transaction
-	35, // 22: arian.v1.CategorizeTransactionResponse.transaction:type_name -> arian.v1.Transaction
-	37, // 23: arian.v1.SearchTransactionsResponse.transactions:type_name -> arian.v1.TransactionWithScore
-	30, // 24: arian.v1.GetTransactionsByAccountRequest.start_date:type_name -> google.protobuf.Timestamp
-	30, // 25: arian.v1.GetTransactionsByAccountRequest.end_date:type_name -> google.protobuf.Timestamp
-	31, // 26: arian.v1.GetTransactionsByAccountRequest.cursor:type_name -> arian.v1.Cursor
-	35, // 27: arian.v1.GetTransactionsByAccountResponse.transactions:type_name -> arian.v1.Transaction
-	31, // 28: arian.v1.GetTransactionsByAccountResponse.next_cursor:type_name -> arian.v1.Cursor
-	31, // 29: arian.v1.GetUncategorizedTransactionsRequest.cursor:type_name -> arian.v1.Cursor
-	35, // 30: arian.v1.GetUncategorizedTransactionsResponse.transactions:type_name -> arian.v1.Transaction
-	31, // 31: arian.v1.GetUncategorizedTransactionsResponse.next_cursor:type_name -> arian.v1.Cursor
-	38, // 32: arian.v1.GetTransactionCountByAccountResponse.counts:type_name -> arian.v1.TransactionCountByAccount
-	30, // 33: arian.v1.FindCandidateTransactionsRequest.purchase_date:type_name -> google.protobuf.Timestamp
-	32, // 34: arian.v1.FindCandidateTransactionsRequest.total_amount:type_name -> google.type.Money
-	37, // 35: arian.v1.FindCandidateTransactionsResponse.candidates:type_name -> arian.v1.TransactionWithScore
+	28, // 0: arian.v1.ListTransactionsRequest.start_date:type_name -> google.protobuf.Timestamp
+	28, // 1: arian.v1.ListTransactionsRequest.end_date:type_name -> google.protobuf.Timestamp
+	29, // 2: arian.v1.ListTransactionsRequest.cursor:type_name -> arian.v1.Cursor
+	30, // 3: arian.v1.ListTransactionsRequest.amount_min:type_name -> google.type.Money
+	30, // 4: arian.v1.ListTransactionsRequest.amount_max:type_name -> google.type.Money
+	31, // 5: arian.v1.ListTransactionsRequest.direction:type_name -> arian.v1.TransactionDirection
+	32, // 6: arian.v1.ListTransactionsRequest.time_of_day_start:type_name -> arian.v1.TimeOfDay
+	32, // 7: arian.v1.ListTransactionsRequest.time_of_day_end:type_name -> arian.v1.TimeOfDay
+	33, // 8: arian.v1.ListTransactionsResponse.transactions:type_name -> arian.v1.Transaction
+	29, // 9: arian.v1.ListTransactionsResponse.next_cursor:type_name -> arian.v1.Cursor
+	33, // 10: arian.v1.GetTransactionResponse.transaction:type_name -> arian.v1.Transaction
+	28, // 11: arian.v1.CreateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
+	30, // 12: arian.v1.CreateTransactionRequest.tx_amount:type_name -> google.type.Money
+	31, // 13: arian.v1.CreateTransactionRequest.direction:type_name -> arian.v1.TransactionDirection
+	30, // 14: arian.v1.CreateTransactionRequest.foreign_amount:type_name -> google.type.Money
+	33, // 15: arian.v1.CreateTransactionResponse.transaction:type_name -> arian.v1.Transaction
+	34, // 16: arian.v1.UpdateTransactionRequest.update_mask:type_name -> google.protobuf.FieldMask
+	28, // 17: arian.v1.UpdateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
+	30, // 18: arian.v1.UpdateTransactionRequest.tx_amount:type_name -> google.type.Money
+	31, // 19: arian.v1.UpdateTransactionRequest.direction:type_name -> arian.v1.TransactionDirection
+	30, // 20: arian.v1.UpdateTransactionRequest.foreign_amount:type_name -> google.type.Money
+	33, // 21: arian.v1.UpdateTransactionResponse.transaction:type_name -> arian.v1.Transaction
+	33, // 22: arian.v1.CategorizeTransactionResponse.transaction:type_name -> arian.v1.Transaction
+	35, // 23: arian.v1.SearchTransactionsResponse.transactions:type_name -> arian.v1.TransactionWithScore
+	28, // 24: arian.v1.GetTransactionsByAccountRequest.start_date:type_name -> google.protobuf.Timestamp
+	28, // 25: arian.v1.GetTransactionsByAccountRequest.end_date:type_name -> google.protobuf.Timestamp
+	29, // 26: arian.v1.GetTransactionsByAccountRequest.cursor:type_name -> arian.v1.Cursor
+	33, // 27: arian.v1.GetTransactionsByAccountResponse.transactions:type_name -> arian.v1.Transaction
+	29, // 28: arian.v1.GetTransactionsByAccountResponse.next_cursor:type_name -> arian.v1.Cursor
+	29, // 29: arian.v1.GetUncategorizedTransactionsRequest.cursor:type_name -> arian.v1.Cursor
+	33, // 30: arian.v1.GetUncategorizedTransactionsResponse.transactions:type_name -> arian.v1.Transaction
+	29, // 31: arian.v1.GetUncategorizedTransactionsResponse.next_cursor:type_name -> arian.v1.Cursor
+	36, // 32: arian.v1.GetTransactionCountByAccountResponse.counts:type_name -> arian.v1.TransactionCountByAccount
+	28, // 33: arian.v1.FindCandidateTransactionsRequest.purchase_date:type_name -> google.protobuf.Timestamp
+	30, // 34: arian.v1.FindCandidateTransactionsRequest.total_amount:type_name -> google.type.Money
+	35, // 35: arian.v1.FindCandidateTransactionsResponse.candidates:type_name -> arian.v1.TransactionWithScore
 	0,  // 36: arian.v1.TransactionService.ListTransactions:input_type -> arian.v1.ListTransactionsRequest
 	2,  // 37: arian.v1.TransactionService.GetTransaction:input_type -> arian.v1.GetTransactionRequest
 	4,  // 38: arian.v1.TransactionService.CreateTransaction:input_type -> arian.v1.CreateTransactionRequest
@@ -2272,24 +2167,22 @@ var file_arian_v1_transaction_services_proto_depIdxs = []int32{
 	22, // 47: arian.v1.TransactionService.GetTransactionCountByAccount:input_type -> arian.v1.GetTransactionCountByAccountRequest
 	24, // 48: arian.v1.TransactionService.FindCandidateTransactions:input_type -> arian.v1.FindCandidateTransactionsRequest
 	26, // 49: arian.v1.TransactionService.IdentifyMerchant:input_type -> arian.v1.IdentifyMerchantRequest
-	28, // 50: arian.v1.TransactionService.SetTransactionReceipt:input_type -> arian.v1.SetTransactionReceiptRequest
-	1,  // 51: arian.v1.TransactionService.ListTransactions:output_type -> arian.v1.ListTransactionsResponse
-	3,  // 52: arian.v1.TransactionService.GetTransaction:output_type -> arian.v1.GetTransactionResponse
-	5,  // 53: arian.v1.TransactionService.CreateTransaction:output_type -> arian.v1.CreateTransactionResponse
-	7,  // 54: arian.v1.TransactionService.UpdateTransaction:output_type -> arian.v1.UpdateTransactionResponse
-	9,  // 55: arian.v1.TransactionService.DeleteTransaction:output_type -> arian.v1.DeleteTransactionResponse
-	21, // 56: arian.v1.TransactionService.BulkDeleteTransactions:output_type -> arian.v1.BulkDeleteTransactionsResponse
-	11, // 57: arian.v1.TransactionService.CategorizeTransaction:output_type -> arian.v1.CategorizeTransactionResponse
-	13, // 58: arian.v1.TransactionService.SearchTransactions:output_type -> arian.v1.SearchTransactionsResponse
-	15, // 59: arian.v1.TransactionService.GetTransactionsByAccount:output_type -> arian.v1.GetTransactionsByAccountResponse
-	17, // 60: arian.v1.TransactionService.GetUncategorizedTransactions:output_type -> arian.v1.GetUncategorizedTransactionsResponse
-	19, // 61: arian.v1.TransactionService.BulkCategorizeTransactions:output_type -> arian.v1.BulkCategorizeTransactionsResponse
-	23, // 62: arian.v1.TransactionService.GetTransactionCountByAccount:output_type -> arian.v1.GetTransactionCountByAccountResponse
-	25, // 63: arian.v1.TransactionService.FindCandidateTransactions:output_type -> arian.v1.FindCandidateTransactionsResponse
-	27, // 64: arian.v1.TransactionService.IdentifyMerchant:output_type -> arian.v1.IdentifyMerchantResponse
-	29, // 65: arian.v1.TransactionService.SetTransactionReceipt:output_type -> arian.v1.SetTransactionReceiptResponse
-	51, // [51:66] is the sub-list for method output_type
-	36, // [36:51] is the sub-list for method input_type
+	1,  // 50: arian.v1.TransactionService.ListTransactions:output_type -> arian.v1.ListTransactionsResponse
+	3,  // 51: arian.v1.TransactionService.GetTransaction:output_type -> arian.v1.GetTransactionResponse
+	5,  // 52: arian.v1.TransactionService.CreateTransaction:output_type -> arian.v1.CreateTransactionResponse
+	7,  // 53: arian.v1.TransactionService.UpdateTransaction:output_type -> arian.v1.UpdateTransactionResponse
+	9,  // 54: arian.v1.TransactionService.DeleteTransaction:output_type -> arian.v1.DeleteTransactionResponse
+	21, // 55: arian.v1.TransactionService.BulkDeleteTransactions:output_type -> arian.v1.BulkDeleteTransactionsResponse
+	11, // 56: arian.v1.TransactionService.CategorizeTransaction:output_type -> arian.v1.CategorizeTransactionResponse
+	13, // 57: arian.v1.TransactionService.SearchTransactions:output_type -> arian.v1.SearchTransactionsResponse
+	15, // 58: arian.v1.TransactionService.GetTransactionsByAccount:output_type -> arian.v1.GetTransactionsByAccountResponse
+	17, // 59: arian.v1.TransactionService.GetUncategorizedTransactions:output_type -> arian.v1.GetUncategorizedTransactionsResponse
+	19, // 60: arian.v1.TransactionService.BulkCategorizeTransactions:output_type -> arian.v1.BulkCategorizeTransactionsResponse
+	23, // 61: arian.v1.TransactionService.GetTransactionCountByAccount:output_type -> arian.v1.GetTransactionCountByAccountResponse
+	25, // 62: arian.v1.TransactionService.FindCandidateTransactions:output_type -> arian.v1.FindCandidateTransactionsResponse
+	27, // 63: arian.v1.TransactionService.IdentifyMerchant:output_type -> arian.v1.IdentifyMerchantResponse
+	50, // [50:64] is the sub-list for method output_type
+	36, // [36:50] is the sub-list for method input_type
 	36, // [36:36] is the sub-list for extension type_name
 	36, // [36:36] is the sub-list for extension extendee
 	0,  // [0:36] is the sub-list for field type_name
@@ -2318,7 +2211,7 @@ func file_arian_v1_transaction_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arian_v1_transaction_services_proto_rawDesc), len(file_arian_v1_transaction_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   30,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

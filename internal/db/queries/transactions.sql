@@ -113,8 +113,7 @@ insert into
     user_notes,
     foreign_amount,
     exchange_rate,
-    suggestions,
-    receipt_id
+    suggestions
   )
 select
   sqlc.narg('email_id')::text,
@@ -131,8 +130,7 @@ select
   sqlc.narg('user_notes')::text,
   sqlc.narg('foreign_amount')::jsonb,
   sqlc.narg('exchange_rate')::double precision,
-  sqlc.narg('suggestions')::text [],
-  sqlc.narg('receipt_id')::bigint
+  sqlc.narg('suggestions')::text []
 from
   accounts a
   left join account_users au on a.id = au.account_id
@@ -161,7 +159,6 @@ set
   foreign_amount = coalesce(sqlc.narg('foreign_amount')::jsonb, foreign_amount),
   exchange_rate = coalesce(sqlc.narg('exchange_rate')::double precision, exchange_rate),
   suggestions = coalesce(sqlc.narg('suggestions')::text[], suggestions),
-  receipt_id = coalesce(sqlc.narg('receipt_id')::bigint, receipt_id),
   category_manually_set = coalesce(sqlc.narg('category_manually_set')::boolean, category_manually_set),
   merchant_manually_set = coalesce(sqlc.narg('merchant_manually_set')::boolean, merchant_manually_set)
 where
@@ -198,15 +195,6 @@ where
   )
 returning
   account_id;
-
--- name: SetTransactionReceipt :execrows
-update
-  transactions
-set
-  receipt_id = sqlc.arg(receipt_id)::bigint
-where
-  id = sqlc.arg(id)::bigint
-  and receipt_id is null;
 
 -- name: CategorizeTransactionAtomic :one
 update
@@ -443,7 +431,6 @@ where
     a.owner_id = sqlc.arg(user_id)::uuid
     or au.user_id is not null
   )
-  and t.receipt_id is null
   and t.tx_direction = 2
   and t.tx_date >= (sqlc.arg(date)::date - interval '60 days')
   and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between sqlc.arg(total)::double precision and (sqlc.arg(total)::double precision * 1.20)

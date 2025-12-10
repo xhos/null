@@ -43,42 +43,6 @@ type Category struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
-type Receipt struct {
-	ID             int64                    `db:"id" json:"id"`
-	Engine         arian.ReceiptEngine      `db:"engine" json:"engine"`
-	ParseStatus    arian.ReceiptParseStatus `db:"parse_status" json:"parse_status"`
-	LinkStatus     arian.ReceiptLinkStatus  `db:"link_status" json:"link_status"`
-	MatchIds       []int64                  `db:"match_ids" json:"match_ids"`
-	Merchant       *string                  `db:"merchant" json:"merchant"`
-	PurchaseDate   *time.Time               `db:"purchase_date" json:"purchase_date"`
-	TotalAmount    *types.Money             `db:"total_amount" json:"total_amount"`
-	TaxAmount      *types.Money             `db:"tax_amount" json:"tax_amount"`
-	RawPayload     []byte                   `db:"raw_payload" json:"raw_payload"`
-	CanonicalData  []byte                   `db:"canonical_data" json:"canonical_data"`
-	ImageUrl       *string                  `db:"image_url" json:"image_url"`
-	ImageSha256    []byte                   `db:"image_sha256" json:"image_sha256"`
-	Lat            *float64                 `db:"lat" json:"lat"`
-	Lon            *float64                 `db:"lon" json:"lon"`
-	LocationSource *string                  `db:"location_source" json:"location_source"`
-	LocationLabel  *string                  `db:"location_label" json:"location_label"`
-	CreatedAt      time.Time                `db:"created_at" json:"created_at"`
-	UpdatedAt      time.Time                `db:"updated_at" json:"updated_at"`
-}
-
-type ReceiptItem struct {
-	ID           int64        `db:"id" json:"id"`
-	ReceiptID    int64        `db:"receipt_id" json:"receipt_id"`
-	LineNo       *int32       `db:"line_no" json:"line_no"`
-	Name         string       `db:"name" json:"name"`
-	Qty          *int32       `db:"qty" json:"qty"`
-	UnitPrice    *types.Money `db:"unit_price" json:"unit_price"`
-	LineTotal    *types.Money `db:"line_total" json:"line_total"`
-	Sku          *string      `db:"sku" json:"sku"`
-	CategoryHint *string      `db:"category_hint" json:"category_hint"`
-	CreatedAt    time.Time    `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time    `db:"updated_at" json:"updated_at"`
-}
-
 type Transaction struct {
 	ID                  int64                      `db:"id" json:"id"`
 	AccountID           int64                      `db:"account_id" json:"account_id"`
@@ -94,7 +58,6 @@ type Transaction struct {
 	UserNotes           *string                    `db:"user_notes" json:"user_notes"`
 	ForeignAmount       *types.Money               `db:"foreign_amount" json:"foreign_amount"`
 	ExchangeRate        *float64                   `db:"exchange_rate" json:"exchange_rate"`
-	ReceiptID           *int64                     `db:"receipt_id" json:"receipt_id"`
 	CreatedAt           time.Time                  `db:"created_at" json:"created_at"`
 	UpdatedAt           time.Time                  `db:"updated_at" json:"updated_at"`
 	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`

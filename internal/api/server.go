@@ -26,7 +26,6 @@ func NewServer(services *service.Services, logger *log.Logger) *Server {
 		"arian.v1.CategoryService",
 		"arian.v1.RuleService",
 		"arian.v1.DashboardService",
-		"arian.v1.ReceiptService",
 		"arian.v1.BackupService",
 	)
 
@@ -75,7 +74,6 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 		"arian.v1.CategoryService",
 		"arian.v1.RuleService",
 		"arian.v1.DashboardService",
-		"arian.v1.ReceiptService",
 		"arian.v1.BackupService",
 	)
 	reflectPath, reflectHandler := grpcreflect.NewHandlerV1(reflector)
@@ -104,9 +102,6 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	mux.Handle(path, handler)
 
 	path, handler = arianv1connect.NewDashboardServiceHandler(s, interceptors)
-	mux.Handle(path, handler)
-
-	path, handler = arianv1connect.NewReceiptServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
 	path, handler = arianv1connect.NewBackupServiceHandler(s, interceptors)

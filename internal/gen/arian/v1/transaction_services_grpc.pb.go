@@ -33,7 +33,6 @@ const (
 	TransactionService_GetTransactionCountByAccount_FullMethodName = "/arian.v1.TransactionService/GetTransactionCountByAccount"
 	TransactionService_FindCandidateTransactions_FullMethodName    = "/arian.v1.TransactionService/FindCandidateTransactions"
 	TransactionService_IdentifyMerchant_FullMethodName             = "/arian.v1.TransactionService/IdentifyMerchant"
-	TransactionService_SetTransactionReceipt_FullMethodName        = "/arian.v1.TransactionService/SetTransactionReceipt"
 )
 
 // TransactionServiceClient is the client API for TransactionService service.
@@ -54,7 +53,6 @@ type TransactionServiceClient interface {
 	GetTransactionCountByAccount(ctx context.Context, in *GetTransactionCountByAccountRequest, opts ...grpc.CallOption) (*GetTransactionCountByAccountResponse, error)
 	FindCandidateTransactions(ctx context.Context, in *FindCandidateTransactionsRequest, opts ...grpc.CallOption) (*FindCandidateTransactionsResponse, error)
 	IdentifyMerchant(ctx context.Context, in *IdentifyMerchantRequest, opts ...grpc.CallOption) (*IdentifyMerchantResponse, error)
-	SetTransactionReceipt(ctx context.Context, in *SetTransactionReceiptRequest, opts ...grpc.CallOption) (*SetTransactionReceiptResponse, error)
 }
 
 type transactionServiceClient struct {
@@ -205,16 +203,6 @@ func (c *transactionServiceClient) IdentifyMerchant(ctx context.Context, in *Ide
 	return out, nil
 }
 
-func (c *transactionServiceClient) SetTransactionReceipt(ctx context.Context, in *SetTransactionReceiptRequest, opts ...grpc.CallOption) (*SetTransactionReceiptResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetTransactionReceiptResponse)
-	err := c.cc.Invoke(ctx, TransactionService_SetTransactionReceipt_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // TransactionServiceServer is the server API for TransactionService service.
 // All implementations must embed UnimplementedTransactionServiceServer
 // for forward compatibility.
@@ -233,7 +221,6 @@ type TransactionServiceServer interface {
 	GetTransactionCountByAccount(context.Context, *GetTransactionCountByAccountRequest) (*GetTransactionCountByAccountResponse, error)
 	FindCandidateTransactions(context.Context, *FindCandidateTransactionsRequest) (*FindCandidateTransactionsResponse, error)
 	IdentifyMerchant(context.Context, *IdentifyMerchantRequest) (*IdentifyMerchantResponse, error)
-	SetTransactionReceipt(context.Context, *SetTransactionReceiptRequest) (*SetTransactionReceiptResponse, error)
 	mustEmbedUnimplementedTransactionServiceServer()
 }
 
@@ -285,9 +272,6 @@ func (UnimplementedTransactionServiceServer) FindCandidateTransactions(context.C
 }
 func (UnimplementedTransactionServiceServer) IdentifyMerchant(context.Context, *IdentifyMerchantRequest) (*IdentifyMerchantResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IdentifyMerchant not implemented")
-}
-func (UnimplementedTransactionServiceServer) SetTransactionReceipt(context.Context, *SetTransactionReceiptRequest) (*SetTransactionReceiptResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetTransactionReceipt not implemented")
 }
 func (UnimplementedTransactionServiceServer) mustEmbedUnimplementedTransactionServiceServer() {}
 func (UnimplementedTransactionServiceServer) testEmbeddedByValue()                            {}
@@ -562,24 +546,6 @@ func _TransactionService_IdentifyMerchant_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TransactionService_SetTransactionReceipt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetTransactionReceiptRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TransactionServiceServer).SetTransactionReceipt(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: TransactionService_SetTransactionReceipt_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TransactionServiceServer).SetTransactionReceipt(ctx, req.(*SetTransactionReceiptRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // TransactionService_ServiceDesc is the grpc.ServiceDesc for TransactionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -642,10 +608,6 @@ var TransactionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IdentifyMerchant",
 			Handler:    _TransactionService_IdentifyMerchant_Handler,
-		},
-		{
-			MethodName: "SetTransactionReceipt",
-			Handler:    _TransactionService_SetTransactionReceipt_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

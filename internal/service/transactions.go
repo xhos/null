@@ -29,7 +29,6 @@ type TransactionService interface {
 	BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error
 	GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountRow, error)
 	FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsParams) ([]sqlc.FindCandidateTransactionsRow, error)
-	SetTransactionReceipt(ctx context.Context, params sqlc.SetTransactionReceiptParams) error
 	CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
 	IdentifyMerchantForTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
 	SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.Transaction, error)
@@ -249,14 +248,6 @@ func (s *txnSvc) FindCandidateTransactions(ctx context.Context, params sqlc.Find
 		return nil, wrapErr("TransactionService.FindCandidateTransactions", err)
 	}
 	return candidates, nil
-}
-
-func (s *txnSvc) SetTransactionReceipt(ctx context.Context, params sqlc.SetTransactionReceiptParams) error {
-	_, err := s.queries.SetTransactionReceipt(ctx, params)
-	if err != nil {
-		return wrapErr("TransactionService.SetTransactionReceipt", err)
-	}
-	return nil
 }
 
 func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error {

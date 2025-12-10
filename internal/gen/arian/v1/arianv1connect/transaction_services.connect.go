@@ -75,9 +75,6 @@ const (
 	// TransactionServiceIdentifyMerchantProcedure is the fully-qualified name of the
 	// TransactionService's IdentifyMerchant RPC.
 	TransactionServiceIdentifyMerchantProcedure = "/arian.v1.TransactionService/IdentifyMerchant"
-	// TransactionServiceSetTransactionReceiptProcedure is the fully-qualified name of the
-	// TransactionService's SetTransactionReceipt RPC.
-	TransactionServiceSetTransactionReceiptProcedure = "/arian.v1.TransactionService/SetTransactionReceipt"
 )
 
 // TransactionServiceClient is a client for the arian.v1.TransactionService service.
@@ -96,7 +93,6 @@ type TransactionServiceClient interface {
 	GetTransactionCountByAccount(context.Context, *connect.Request[v1.GetTransactionCountByAccountRequest]) (*connect.Response[v1.GetTransactionCountByAccountResponse], error)
 	FindCandidateTransactions(context.Context, *connect.Request[v1.FindCandidateTransactionsRequest]) (*connect.Response[v1.FindCandidateTransactionsResponse], error)
 	IdentifyMerchant(context.Context, *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error)
-	SetTransactionReceipt(context.Context, *connect.Request[v1.SetTransactionReceiptRequest]) (*connect.Response[v1.SetTransactionReceiptResponse], error)
 }
 
 // NewTransactionServiceClient constructs a client for the arian.v1.TransactionService service. By
@@ -194,12 +190,6 @@ func NewTransactionServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(transactionServiceMethods.ByName("IdentifyMerchant")),
 			connect.WithClientOptions(opts...),
 		),
-		setTransactionReceipt: connect.NewClient[v1.SetTransactionReceiptRequest, v1.SetTransactionReceiptResponse](
-			httpClient,
-			baseURL+TransactionServiceSetTransactionReceiptProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("SetTransactionReceipt")),
-			connect.WithClientOptions(opts...),
-		),
 	}
 }
 
@@ -219,7 +209,6 @@ type transactionServiceClient struct {
 	getTransactionCountByAccount *connect.Client[v1.GetTransactionCountByAccountRequest, v1.GetTransactionCountByAccountResponse]
 	findCandidateTransactions    *connect.Client[v1.FindCandidateTransactionsRequest, v1.FindCandidateTransactionsResponse]
 	identifyMerchant             *connect.Client[v1.IdentifyMerchantRequest, v1.IdentifyMerchantResponse]
-	setTransactionReceipt        *connect.Client[v1.SetTransactionReceiptRequest, v1.SetTransactionReceiptResponse]
 }
 
 // ListTransactions calls arian.v1.TransactionService.ListTransactions.
@@ -292,11 +281,6 @@ func (c *transactionServiceClient) IdentifyMerchant(ctx context.Context, req *co
 	return c.identifyMerchant.CallUnary(ctx, req)
 }
 
-// SetTransactionReceipt calls arian.v1.TransactionService.SetTransactionReceipt.
-func (c *transactionServiceClient) SetTransactionReceipt(ctx context.Context, req *connect.Request[v1.SetTransactionReceiptRequest]) (*connect.Response[v1.SetTransactionReceiptResponse], error) {
-	return c.setTransactionReceipt.CallUnary(ctx, req)
-}
-
 // TransactionServiceHandler is an implementation of the arian.v1.TransactionService service.
 type TransactionServiceHandler interface {
 	ListTransactions(context.Context, *connect.Request[v1.ListTransactionsRequest]) (*connect.Response[v1.ListTransactionsResponse], error)
@@ -313,7 +297,6 @@ type TransactionServiceHandler interface {
 	GetTransactionCountByAccount(context.Context, *connect.Request[v1.GetTransactionCountByAccountRequest]) (*connect.Response[v1.GetTransactionCountByAccountResponse], error)
 	FindCandidateTransactions(context.Context, *connect.Request[v1.FindCandidateTransactionsRequest]) (*connect.Response[v1.FindCandidateTransactionsResponse], error)
 	IdentifyMerchant(context.Context, *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error)
-	SetTransactionReceipt(context.Context, *connect.Request[v1.SetTransactionReceiptRequest]) (*connect.Response[v1.SetTransactionReceiptResponse], error)
 }
 
 // NewTransactionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -407,12 +390,6 @@ func NewTransactionServiceHandler(svc TransactionServiceHandler, opts ...connect
 		connect.WithSchema(transactionServiceMethods.ByName("IdentifyMerchant")),
 		connect.WithHandlerOptions(opts...),
 	)
-	transactionServiceSetTransactionReceiptHandler := connect.NewUnaryHandler(
-		TransactionServiceSetTransactionReceiptProcedure,
-		svc.SetTransactionReceipt,
-		connect.WithSchema(transactionServiceMethods.ByName("SetTransactionReceipt")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/arian.v1.TransactionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransactionServiceListTransactionsProcedure:
@@ -443,8 +420,6 @@ func NewTransactionServiceHandler(svc TransactionServiceHandler, opts ...connect
 			transactionServiceFindCandidateTransactionsHandler.ServeHTTP(w, r)
 		case TransactionServiceIdentifyMerchantProcedure:
 			transactionServiceIdentifyMerchantHandler.ServeHTTP(w, r)
-		case TransactionServiceSetTransactionReceiptProcedure:
-			transactionServiceSetTransactionReceiptHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -508,8 +483,4 @@ func (UnimplementedTransactionServiceHandler) FindCandidateTransactions(context.
 
 func (UnimplementedTransactionServiceHandler) IdentifyMerchant(context.Context, *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.IdentifyMerchant is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) SetTransactionReceipt(context.Context, *connect.Request[v1.SetTransactionReceiptRequest]) (*connect.Response[v1.SetTransactionReceiptResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.SetTransactionReceipt is not implemented"))
 }

@@ -194,7 +194,7 @@ func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRu
 
 const getTransactionsForRuleApplication = `-- name: GetTransactionsForRuleApplication :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.receipt_id, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
@@ -233,7 +233,6 @@ func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg Get
 			&i.UserNotes,
 			&i.ForeignAmount,
 			&i.ExchangeRate,
-			&i.ReceiptID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CategoryManuallySet,

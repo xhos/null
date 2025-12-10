@@ -4,7 +4,6 @@ import (
 	"flag"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/log"
 )
@@ -15,9 +14,6 @@ type Config struct {
 
 	DatabaseURL   string // database connection URL
 	BetterAuthURL string // better-auth service URL
-
-	ReceiptParserURL     string        // receipt parser service URL
-	ReceiptParserTimeout time.Duration // timeout for receipt parser requests
 
 	ExchangeAPIURL string // exchange rate API URL
 
@@ -62,23 +58,9 @@ func Load() Config {
 		panic("DATABASE_URL environment variable is required")
 	}
 
-	receiptParserURL := os.Getenv("ARIAN_RECEIPTS_URL")
-	if receiptParserURL == "" {
-		panic("ARIAN_RECEIPTS_URL environment variable is required")
-	}
-
 	exchangeAPIURL := os.Getenv("EXCHANGE_API_URL")
 	if exchangeAPIURL == "" {
 		panic("EXCHANGE_API_URL environment variable is required")
-	}
-
-	timeoutStr := os.Getenv("RECEIPT_PARSER_TIMEOUT")
-	if timeoutStr == "" {
-		timeoutStr = "30s"
-	}
-	receiptParserTimeout, err := time.ParseDuration(timeoutStr)
-	if err != nil {
-		panic("invalid RECEIPT_PARSER_TIMEOUT value: must be a valid duration like '30s', '1m'")
 	}
 
 	logLevel, err := log.ParseLevel(os.Getenv("LOG_LEVEL"))
@@ -92,14 +74,12 @@ func Load() Config {
 	}
 
 	return Config{
-		Address:              parseAddress(*address),
-		APIKey:               apiKey,
-		DatabaseURL:          databaseURL,
-		BetterAuthURL:        betterAuthURL,
-		ReceiptParserURL:     receiptParserURL,
-		ReceiptParserTimeout: receiptParserTimeout,
-		ExchangeAPIURL:       exchangeAPIURL,
-		LogLevel:             logLevel,
-		LogFormat:            logFormat,
+		Address:        parseAddress(*address),
+		APIKey:         apiKey,
+		DatabaseURL:    databaseURL,
+		BetterAuthURL:  betterAuthURL,
+		ExchangeAPIURL: exchangeAPIURL,
+		LogLevel:       logLevel,
+		LogFormat:      logFormat,
 	}
 }
