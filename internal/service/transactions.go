@@ -1,7 +1,6 @@
 package service
 
 import (
-	"ariand/internal/ai"
 	"ariand/internal/db/sqlc"
 	"ariand/internal/types"
 	"context"
@@ -17,9 +16,7 @@ import (
 )
 
 const (
-	defaultAIProvider = "openai"
-	defaultAIModel    = "gpt-4o-mini"
-	maxDescQLength    = 100
+	maxDescQLength = 100
 )
 
 type TransactionService interface {
@@ -45,11 +42,10 @@ type txnSvc struct {
 	log     *log.Logger
 	catSvc  CategoryService
 	ruleSvc RuleService
-	aiMgr   *ai.Manager
 }
 
-func newTxnSvc(queries *sqlc.Queries, lg *log.Logger, catSvc CategoryService, ruleSvc RuleService, aiMgr *ai.Manager) TransactionService {
-	return &txnSvc{queries: queries, log: lg, catSvc: catSvc, ruleSvc: ruleSvc, aiMgr: aiMgr}
+func newTxnSvc(queries *sqlc.Queries, lg *log.Logger, catSvc CategoryService, ruleSvc RuleService) TransactionService {
+	return &txnSvc{queries: queries, log: lg, catSvc: catSvc, ruleSvc: ruleSvc}
 }
 
 type categorizationResult struct {
@@ -336,29 +332,9 @@ func (s *txnSvc) IdentifyMerchantForTransaction(ctx context.Context, userID uuid
 		return fmt.Errorf("transaction has no description to analyze: %w", ErrValidation)
 	}
 
-	if s.aiMgr == nil {
-		return fmt.Errorf("AI manager not available: %w", ErrValidation)
-	}
-
-	// get a provider from the manager
-	provider, err := s.aiMgr.GetProvider(defaultAIProvider, defaultAIModel)
-	if err != nil {
-		return wrapErr("IdentifyMerchantForTransaction.GetProvider", err)
-	}
-
-	merchant, err := provider.ExtractMerchant(ctx, *tx.TxDesc)
-	if err != nil {
-		return wrapErr("IdentifyMerchantForTransaction.ExtractMerchant", err)
-	}
-
-	if merchant == "" {
-		return nil // no merchant identified
-	}
-
 	params := sqlc.UpdateTransactionParams{
-		ID:       txID,
-		UserID:   userID,
-		Merchant: &merchant,
+		ID:     txID,
+		UserID: userID,
 	}
 
 	_, err = s.queries.UpdateTransaction(ctx, params)
@@ -400,32 +376,7 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 		}
 	}
 
-	// 2. fallback to AI if available
-	if s.aiMgr != nil {
-		if provider, err := s.aiMgr.GetProvider(defaultAIProvider, defaultAIModel); err == nil {
-			s.log.Info("falling back to AI for categorization", "txID", tx.ID)
-
-			categories, err := s.catSvc.List(ctx, userID)
-			if err != nil {
-				return nil, wrapErr("determineCategory.List", err)
-			}
-			slugs := make([]string, len(categories))
-			for i, cat := range categories {
-				slugs[i] = cat.Slug
-			}
-			categorySlug, _, suggestions, err := provider.CategorizeTransaction(ctx, *tx, slugs)
-			if err != nil {
-				return nil, wrapErr("determineCategory.CategorizeTransaction", err)
-			}
-			return &categorizationResult{
-				CategorySlug: categorySlug,
-				Suggestions:  suggestions,
-				Status:       "ai",
-			}, nil
-		}
-	}
-
-	// 3. not found
+	// not found
 	return &categorizationResult{CategorySlug: "", Status: "failed", Suggestions: []string{}}, nil
 }
 
@@ -629,15 +580,6 @@ func (s *txnSvc) calculateBalanceAfter(ctx context.Context, accountID int64, txD
 	}
 
 	return balanceBytes.([]byte), nil
-}
-
-// recalculateSubsequentBalances updates balance_after for transactions after a given date/id
-func (s *txnSvc) recalculateSubsequentBalances(ctx context.Context, accountID int64, fromDate time.Time, fromID int64) error {
-	return s.queries.RecalculateBalancesAfterTransaction(ctx, sqlc.RecalculateBalancesAfterTransactionParams{
-		AccountID: accountID,
-		FromDate:  fromDate,
-		FromID:    fromID,
-	})
 }
 
 // equalBytes compares two byte slices

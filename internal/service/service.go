@@ -1,7 +1,6 @@
 package service
 
 import (
-	"ariand/internal/ai"
 	"ariand/internal/config"
 	"ariand/internal/db"
 	"ariand/internal/receiptparser"
@@ -23,7 +22,7 @@ type Services struct {
 	Backup       BackupService
 }
 
-func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager) (*Services, error) {
+func New(database *db.DB, lg *log.Logger, cfg *config.Config) (*Services, error) {
 	queries := database.Queries
 	catSvc := newCatSvc(queries, lg.WithPrefix("cat"))
 
@@ -48,7 +47,7 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config, aiMgr *ai.Manager)
 	ruleSvc := newCatRuleSvc(queries, lg.WithPrefix("rules"))
 
 	return &Services{
-		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, ruleSvc, aiMgr),
+		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, ruleSvc),
 		Categories:   catSvc,
 		Rules:        ruleSvc,
 		Accounts:     newAcctSvc(queries, lg.WithPrefix("acct")),

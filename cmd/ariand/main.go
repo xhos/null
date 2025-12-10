@@ -1,8 +1,6 @@
 package main
 
 import (
-	"ariand/internal/ai"
-	_ "ariand/internal/ai/gollm"
 	api "ariand/internal/api"
 	"ariand/internal/api/middleware"
 	"ariand/internal/config"
@@ -63,11 +61,8 @@ func main() {
 	defer store.Close()
 	logger.Info("database connection established")
 
-	// ----- ai manager -------------
-	aiManager := ai.GetManager()
-
 	// ----- services ---------------
-	services, err := service.New(store, logger, &cfg, aiManager)
+	services, err := service.New(store, logger, &cfg)
 	if err != nil {
 		logger.Fatal("failed to create services", "error", err)
 	}
