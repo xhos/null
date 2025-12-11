@@ -6,7 +6,6 @@ import (
 	"ariand/internal/config"
 	"ariand/internal/db"
 	"ariand/internal/service"
-	"ariand/internal/version"
 	"io"
 	"net/http"
 	"os"
@@ -43,8 +42,6 @@ func main() {
 			Level:           cfg.LogLevel,
 			Formatter:       formatter,
 		})
-
-	logger.Info("starting ariand", "version", version.Full())
 
 	// ----- migrations -------------
 	logger.Info("running database migrations")
