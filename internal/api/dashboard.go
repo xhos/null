@@ -10,7 +10,6 @@ import (
 
 	"connectrpc.com/connect"
 	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[pb.GetDashboardSummaryRequest]) (*connect.Response[pb.GetDashboardSummaryResponse], error) {
@@ -120,8 +119,8 @@ func (s *Server) GetAccountSummary(ctx context.Context, req *connect.Request[pb.
 	}
 
 	return connect.NewResponse(&pb.GetAccountSummaryResponse{
-		Summary: toProtoDashboardSummaryFromAccount(accountSummary.Summary),
-		Trends:  mapSlice(accountSummary.Trends, toProtoTrendPointFromAccount),
+		Summary: toProtoDashboardSummary(accountSummary.Summary),
+		Trends:  mapSlice(accountSummary.Trends, toProtoTrendPoint),
 	}), nil
 }
 
@@ -239,8 +238,8 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 	// Build a map to merge current and previous period data
 	type MergedSpending struct {
 		CategoryID    *int64
-		Slug          *string
-		Color         *string
+		Slug          string
+		Color         string
 		CurrentCents  int64
 		CurrentCount  int64
 		PreviousCents int64
@@ -252,12 +251,12 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 	// Add current period data
 	for i := range result.Current {
 		row := &result.Current[i]
-		key := categoryKeyToString(row.CategoryID)
+		key := row.Slug
 		merged[key] = &MergedSpending{
-			CategoryID:    row.CategoryID,
-			Slug:          row.CategorySlug,
-			Color:         row.CategoryColor,
-			CurrentCents:  row.TotalCents,
+			CategoryID:    nil, // Not available in GetTopCategoriesRow
+			Slug:          row.Slug,
+			Color:         row.Color,
+			CurrentCents:  row.TotalAmountCents,
 			CurrentCount:  row.TransactionCount,
 			PreviousCents: 0,
 			PreviousCount: 0,
@@ -267,19 +266,19 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 	// Merge previous period data
 	for i := range result.Previous {
 		row := &result.Previous[i]
-		key := categoryKeyToString(row.CategoryID)
+		key := row.Slug
 		if existing, ok := merged[key]; ok {
-			existing.PreviousCents = row.TotalCents
+			existing.PreviousCents = row.TotalAmountCents
 			existing.PreviousCount = row.TransactionCount
 		} else {
 			// Category exists in previous but not current
 			merged[key] = &MergedSpending{
-				CategoryID:    row.CategoryID,
-				Slug:          row.CategorySlug,
-				Color:         row.CategoryColor,
+				CategoryID:    nil, // Not available
+				Slug:          row.Slug,
+				Color:         row.Color,
 				CurrentCents:  0,
 				CurrentCount:  0,
-				PreviousCents: row.TotalCents,
+				PreviousCents: row.TotalAmountCents,
 				PreviousCount: row.TransactionCount,
 			}
 		}
@@ -319,8 +318,8 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 			item := &pb.CategorySpendingItem{
 				Category: &pb.Category{
 					Id:    *spending.CategoryID,
-					Slug:  *spending.Slug,
-					Color: *spending.Color,
+					Slug:  spending.Slug,
+					Color: spending.Color,
 				},
 				Spending: comparison,
 			}
@@ -445,12 +444,8 @@ func (s *Server) GetNetWorthHistory(ctx context.Context, req *connect.Request[pb
 	dataPoints := make([]*pb.NetWorthPoint, len(history))
 	for i, point := range history {
 		dataPoints[i] = &pb.NetWorthPoint{
-			Date: stringToDate(point.Date),
-			NetWorth: &money.Money{
-				CurrencyCode: primaryCurrency,
-				Units:        point.NetWorthUnits,
-				Nanos:        point.NetWorthNanos,
-			},
+			Date:     stringToDate(point.Date),
+			NetWorth: centsToMoney(point.NetWorthCents, primaryCurrency),
 		}
 	}
 

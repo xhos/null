@@ -299,10 +299,10 @@ func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Req
 	}
 
 	params := sqlc.FindCandidateTransactionsParams{
-		UserID:   userID,
-		Merchant: req.Msg.GetMerchant(),
-		Date:     timestampToDate(req.Msg.PurchaseDate),
-		Total:    totalAmount,
+		UserID:     userID,
+		Merchant:   req.Msg.GetMerchant(),
+		Date:       timestampToDate(req.Msg.PurchaseDate),
+		TotalCents: int64(totalAmount * 100), // Convert dollars to cents
 	}
 
 	candidates, err := s.services.Transactions.FindCandidateTransactions(ctx, params)

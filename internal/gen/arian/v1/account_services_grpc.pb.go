@@ -25,8 +25,6 @@ const (
 	AccountService_UpdateAccount_FullMethodName       = "/arian.v1.AccountService/UpdateAccount"
 	AccountService_DeleteAccount_FullMethodName       = "/arian.v1.AccountService/DeleteAccount"
 	AccountService_SetAccountAnchor_FullMethodName    = "/arian.v1.AccountService/SetAccountAnchor"
-	AccountService_GetAccountBalance_FullMethodName   = "/arian.v1.AccountService/GetAccountBalance"
-	AccountService_GetAnchorBalance_FullMethodName    = "/arian.v1.AccountService/GetAnchorBalance"
 	AccountService_GetAccountsCount_FullMethodName    = "/arian.v1.AccountService/GetAccountsCount"
 	AccountService_SyncAccountBalances_FullMethodName = "/arian.v1.AccountService/SyncAccountBalances"
 )
@@ -41,8 +39,6 @@ type AccountServiceClient interface {
 	UpdateAccount(ctx context.Context, in *UpdateAccountRequest, opts ...grpc.CallOption) (*UpdateAccountResponse, error)
 	DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*DeleteAccountResponse, error)
 	SetAccountAnchor(ctx context.Context, in *SetAccountAnchorRequest, opts ...grpc.CallOption) (*SetAccountAnchorResponse, error)
-	GetAccountBalance(ctx context.Context, in *GetAccountBalanceRequest, opts ...grpc.CallOption) (*GetAccountBalanceResponse, error)
-	GetAnchorBalance(ctx context.Context, in *GetAnchorBalanceRequest, opts ...grpc.CallOption) (*GetAnchorBalanceResponse, error)
 	GetAccountsCount(ctx context.Context, in *GetAccountsCountRequest, opts ...grpc.CallOption) (*GetAccountsCountResponse, error)
 	SyncAccountBalances(ctx context.Context, in *SyncAccountBalancesRequest, opts ...grpc.CallOption) (*SyncAccountBalancesResponse, error)
 }
@@ -115,26 +111,6 @@ func (c *accountServiceClient) SetAccountAnchor(ctx context.Context, in *SetAcco
 	return out, nil
 }
 
-func (c *accountServiceClient) GetAccountBalance(ctx context.Context, in *GetAccountBalanceRequest, opts ...grpc.CallOption) (*GetAccountBalanceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAccountBalanceResponse)
-	err := c.cc.Invoke(ctx, AccountService_GetAccountBalance_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accountServiceClient) GetAnchorBalance(ctx context.Context, in *GetAnchorBalanceRequest, opts ...grpc.CallOption) (*GetAnchorBalanceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAnchorBalanceResponse)
-	err := c.cc.Invoke(ctx, AccountService_GetAnchorBalance_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *accountServiceClient) GetAccountsCount(ctx context.Context, in *GetAccountsCountRequest, opts ...grpc.CallOption) (*GetAccountsCountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAccountsCountResponse)
@@ -165,8 +141,6 @@ type AccountServiceServer interface {
 	UpdateAccount(context.Context, *UpdateAccountRequest) (*UpdateAccountResponse, error)
 	DeleteAccount(context.Context, *DeleteAccountRequest) (*DeleteAccountResponse, error)
 	SetAccountAnchor(context.Context, *SetAccountAnchorRequest) (*SetAccountAnchorResponse, error)
-	GetAccountBalance(context.Context, *GetAccountBalanceRequest) (*GetAccountBalanceResponse, error)
-	GetAnchorBalance(context.Context, *GetAnchorBalanceRequest) (*GetAnchorBalanceResponse, error)
 	GetAccountsCount(context.Context, *GetAccountsCountRequest) (*GetAccountsCountResponse, error)
 	SyncAccountBalances(context.Context, *SyncAccountBalancesRequest) (*SyncAccountBalancesResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
@@ -196,12 +170,6 @@ func (UnimplementedAccountServiceServer) DeleteAccount(context.Context, *DeleteA
 }
 func (UnimplementedAccountServiceServer) SetAccountAnchor(context.Context, *SetAccountAnchorRequest) (*SetAccountAnchorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetAccountAnchor not implemented")
-}
-func (UnimplementedAccountServiceServer) GetAccountBalance(context.Context, *GetAccountBalanceRequest) (*GetAccountBalanceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAccountBalance not implemented")
-}
-func (UnimplementedAccountServiceServer) GetAnchorBalance(context.Context, *GetAnchorBalanceRequest) (*GetAnchorBalanceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAnchorBalance not implemented")
 }
 func (UnimplementedAccountServiceServer) GetAccountsCount(context.Context, *GetAccountsCountRequest) (*GetAccountsCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccountsCount not implemented")
@@ -338,42 +306,6 @@ func _AccountService_SetAccountAnchor_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_GetAccountBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAccountBalanceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountServiceServer).GetAccountBalance(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountService_GetAccountBalance_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).GetAccountBalance(ctx, req.(*GetAccountBalanceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AccountService_GetAnchorBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAnchorBalanceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountServiceServer).GetAnchorBalance(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AccountService_GetAnchorBalance_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).GetAnchorBalance(ctx, req.(*GetAnchorBalanceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AccountService_GetAccountsCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAccountsCountRequest)
 	if err := dec(in); err != nil {
@@ -440,14 +372,6 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAccountAnchor",
 			Handler:    _AccountService_SetAccountAnchor_Handler,
-		},
-		{
-			MethodName: "GetAccountBalance",
-			Handler:    _AccountService_GetAccountBalance_Handler,
-		},
-		{
-			MethodName: "GetAnchorBalance",
-			Handler:    _AccountService_GetAnchorBalance_Handler,
 		},
 		{
 			MethodName: "GetAccountsCount",

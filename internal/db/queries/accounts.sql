@@ -34,8 +34,8 @@ insert into
     bank,
     account_type,
     alias,
-    anchor_balance,
-    balance,
+    anchor_balance_cents,
+    anchor_currency,
     main_currency,
     colors
   )
@@ -46,9 +46,9 @@ values
     @bank::text,
     @account_type::smallint,
     sqlc.narg('alias')::text,
-    @anchor_balance::jsonb,
-    @anchor_balance::jsonb,
-    @main_currency::text,
+    @anchor_balance_cents::bigint,
+    @anchor_currency::char(3),
+    @main_currency::char(3),
     @colors::text []
   )
 returning
@@ -63,9 +63,9 @@ set
   account_type = coalesce(sqlc.narg('account_type')::smallint, account_type),
   alias = coalesce(sqlc.narg('alias')::text, alias),
   anchor_date = coalesce(sqlc.narg('anchor_date')::date, anchor_date),
-  anchor_balance = coalesce(sqlc.narg('anchor_balance')::jsonb, anchor_balance),
-  balance = coalesce(sqlc.narg('balance')::jsonb, balance),
-  main_currency = coalesce(sqlc.narg('main_currency')::text, main_currency),
+  anchor_balance_cents = coalesce(sqlc.narg('anchor_balance_cents')::bigint, anchor_balance_cents),
+  anchor_currency = coalesce(sqlc.narg('anchor_currency')::char(3), anchor_currency),
+  main_currency = coalesce(sqlc.narg('main_currency')::char(3), main_currency),
   colors = coalesce(sqlc.narg('colors')::text [], colors)
 where
   id = @id::bigint
@@ -84,13 +84,24 @@ update
   accounts
 set
   anchor_date = now()::date,
-  anchor_balance = @anchor_balance::jsonb
+  anchor_balance_cents = @anchor_balance_cents::bigint,
+  anchor_currency = @anchor_currency::char(3)
+where
+  id = @id::bigint;
+
+-- name: GetAccountAnchorBalance :one
+select
+  anchor_balance_cents,
+  anchor_currency
+from
+  accounts
 where
   id = @id::bigint;
 
 -- name: GetAccountBalance :one
 select
-  balance_after
+  balance_after_cents,
+  balance_currency
 from
   transactions
 where
@@ -100,22 +111,6 @@ order by
   id desc
 limit
   1;
-
--- name: GetAccountBalanceSimple :one
-select
-  balance
-from
-  accounts
-where
-  id = @account_id::bigint;
-
--- name: GetAccountAnchorBalance :one
-select
-  anchor_balance
-from
-  accounts
-where
-  id = @id::bigint;
 
 -- name: CheckUserAccountAccess :one
 select

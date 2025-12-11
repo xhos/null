@@ -2,17 +2,14 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
-	"ariand/internal/types"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 const (
@@ -86,16 +83,6 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		return 0, fmt.Errorf("TransactionService.Create: %w", err)
 	}
 
-	// calculate balance_after if not provided
-	needsBalanceCalculation := len(params.BalanceAfter) == 0
-	if needsBalanceCalculation {
-		balanceAfter, err := s.calculateBalanceAfter(ctx, params.AccountID, params.TxDate, params.TxAmount, params.TxDirection)
-		if err != nil {
-			return 0, wrapErr("TransactionService.Create.CalculateBalance", err)
-		}
-		params.BalanceAfter = balanceAfter
-	}
-
 	id, err := s.queries.CreateTransaction(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.Create", err)
@@ -115,11 +102,7 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		s.applyRulesToTransaction(ctx, params.UserID, id)
 	}
 
-	// recalculate all account balances to ensure consistency
-	err = s.queries.SyncAccountBalances(ctx, params.AccountID)
-	if err != nil {
-		s.log.Warn("Failed to sync account balances after transaction creation", "account_id", params.AccountID, "error", err)
-	}
+	// Balance recalculation is now handled by database queries automatically via window functions
 
 	return id, nil
 }
@@ -146,7 +129,7 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	}
 
 	// apply rules if relevant fields changed and aren't manually set
-	fieldsChangedForRules := params.TxDesc != nil || params.Merchant != nil || params.TxAmount != nil
+	fieldsChangedForRules := params.TxDesc != nil || params.Merchant != nil || params.TxAmountCents != nil
 	shouldApplyRules := fieldsChangedForRules &&
 		(!tx.CategoryManuallySet || !tx.MerchantManuallySet)
 
@@ -155,22 +138,13 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 	}
 
 	// check if amount, date, or direction changed - if so, recalculate balances
-	var amountChanged bool
-	if params.TxAmount != nil && tx.TxAmount != nil {
-		existingBytes, _ := tx.TxAmount.Value()
-		if existingBytesSlice, ok := existingBytes.([]byte); ok {
-			amountChanged = !equalBytes(params.TxAmount, existingBytesSlice)
-		}
-	}
-
+	amountChanged := params.TxAmountCents != nil && *params.TxAmountCents != tx.TxAmountCents
 	dateChanged := params.TxDate != nil && !params.TxDate.Equal(tx.TxDate)
 	directionChanged := params.TxDirection != nil && int16(*params.TxDirection) != int16(tx.TxDirection)
 
 	if amountChanged || dateChanged || directionChanged {
-		err = s.queries.SyncAccountBalances(ctx, accountID)
-		if err != nil {
-			s.log.Warn("Failed to sync account balances after transaction update", "account_id", accountID, "error", err)
-		}
+		// Balance recalculation is now handled by database queries automatically
+		s.log.Debug("Transaction modified, balances will be recalculated by DB", "account_id", accountID)
 	}
 
 	return nil
@@ -194,11 +168,8 @@ func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionParams
 		return 0, wrapErr("TransactionService.Delete", err)
 	}
 
-	// recalculate all account balances to ensure consistency
-	err = s.queries.SyncAccountBalances(ctx, tx.AccountID)
-	if err != nil {
-		s.log.Warn("Failed to sync account balances after transaction deletion", "account_id", tx.AccountID, "error", err)
-	}
+	// Balance recalculation is now handled by database queries automatically
+	s.log.Debug("Transaction deleted, balances will be recalculated by DB", "account_id", tx.AccountID)
 
 	return accountID, nil
 }
@@ -215,13 +186,8 @@ func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransacti
 		return wrapErr("TransactionService.BulkDelete", err)
 	}
 
-	// Recalculate balances for all affected accounts
-	for _, accountID := range affectedAccounts {
-		err = s.queries.SyncAccountBalances(ctx, accountID)
-		if err != nil {
-			s.log.Warn("Failed to sync account balances after bulk deletion", "account_id", accountID, "error", err)
-		}
-	}
+	// Balance recalculation is now handled by database queries automatically
+	s.log.Debug("Bulk deleted transactions, balances will be recalculated by DB", "affected_accounts", len(affectedAccounts))
 
 	return nil
 }
@@ -348,12 +314,19 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 				if m.ID == tx.ID || m.CategoryID == nil || m.TxDesc == nil {
 					continue
 				}
-				// require amounts to exist before comparing
-				if tx.TxAmount == nil || m.TxAmount == nil {
-					continue
+
+				// Check if amounts are within 20% of each other
+				amountDiff := tx.TxAmountCents - m.TxAmountCents
+				if amountDiff < 0 {
+					amountDiff = -amountDiff
 				}
-				if similarity(desc, strings.ToLower(*m.TxDesc)) >= 0.7 &&
-					amountClose(tx.TxAmount, m.TxAmount, 0.20) {
+				maxAmount := tx.TxAmountCents
+				if m.TxAmountCents > maxAmount {
+					maxAmount = m.TxAmountCents
+				}
+				withinTolerance := maxAmount == 0 || float64(amountDiff) <= float64(maxAmount)*0.20
+
+				if similarity(desc, strings.ToLower(*m.TxDesc)) >= 0.7 && withinTolerance {
 					// fetch category to get slug
 					category, err := s.catSvc.Get(ctx, userID, *m.CategoryID)
 					if err != nil {
@@ -373,16 +346,8 @@ func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sq
 
 // validateCreateParams validates transaction creation parameters
 func (s *txnSvc) validateCreateParams(params sqlc.CreateTransactionParams) error {
-	if len(params.TxAmount) == 0 {
-		return fmt.Errorf("tx_amount cannot be empty: %w", ErrValidation)
-	}
-
-	// Try to parse the JSONB amount to validate it's not zero
-	var m types.Money
-	if err := m.Scan(params.TxAmount); err == nil {
-		if m.Units == 0 && m.Nanos == 0 {
-			return fmt.Errorf("tx_amount cannot be zero: %w", ErrValidation)
-		}
+	if params.TxAmountCents == 0 {
+		return fmt.Errorf("tx_amount cannot be zero: %w", ErrValidation)
 	}
 
 	switch params.TxDirection {
@@ -468,109 +433,6 @@ func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.U
 
 func boolPtr(b bool) *bool {
 	return &b
-}
-
-// amountClose reports whether a and b are within tolerance
-// (e.g. 0.2 == 20%) of each other.
-func amountClose(a, b *types.Money, tolerance float64) bool {
-	if tolerance < 0 || a == nil || b == nil {
-		return false
-	}
-
-	// Convert to float64 for comparison
-	aFloat := float64(a.Units) + float64(a.Nanos)/1e9
-	bFloat := float64(b.Units) + float64(b.Nanos)/1e9
-
-	if aFloat == bFloat {
-		return true
-	}
-
-	// Calculate tolerance
-	maxMag := aFloat
-	if bFloat > aFloat {
-		maxMag = bFloat
-	}
-	if maxMag < 0 {
-		maxMag = -maxMag
-	}
-
-	limit := maxMag * tolerance
-	diff := aFloat - bFloat
-	if diff < 0 {
-		diff = -diff
-	}
-
-	return diff <= limit
-}
-
-// calculateBalanceAfter computes the balance after a new transaction
-func (s *txnSvc) calculateBalanceAfter(ctx context.Context, accountID int64, txDate time.Time, txAmount []byte, txDirection int16) ([]byte, error) {
-	anchorBalance, err := s.queries.GetAccountAnchorBalance(ctx, accountID)
-	if err != nil {
-		return nil, err
-	}
-
-	var txMoney types.Money
-	if err := txMoney.Scan(txAmount); err != nil {
-		return nil, err
-	}
-
-	// get sum of all transactions before this one
-	rows, err := s.queries.ListTransactions(ctx, sqlc.ListTransactionsParams{
-		UserID:     uuid.Nil, // will be filtered by account access
-		AccountIds: []int64{accountID},
-		End:        &txDate,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// calculate running total up to this transaction
-	var runningTotal int64 = anchorBalance.Units
-	for _, row := range rows {
-		if row.TxDate.After(txDate) {
-			break
-		}
-		if row.TxDate.Equal(txDate) {
-			// for same date, we need to be careful about ordering
-			// for now, assume this new transaction comes after existing ones
-			break
-		}
-
-		var rowMoney types.Money
-		if err := rowMoney.Scan(row.TxAmount); err != nil {
-			continue
-		}
-
-		if row.TxDirection == 1 {
-			runningTotal += rowMoney.Units
-		} else {
-			runningTotal -= rowMoney.Units
-		}
-	}
-
-	// apply this transaction
-	if txDirection == 1 {
-		runningTotal += txMoney.Units
-	} else {
-		runningTotal -= txMoney.Units
-	}
-
-	// create balance_after JSON
-	balanceAfter := &types.Money{
-		Money: money.Money{
-			CurrencyCode: txMoney.CurrencyCode,
-			Units:        runningTotal,
-			Nanos:        0, // simplified for now
-		},
-	}
-
-	balanceBytes, err := balanceAfter.Value()
-	if err != nil {
-		return nil, err
-	}
-
-	return balanceBytes.([]byte), nil
 }
 
 // equalBytes compares two byte slices

@@ -2,13 +2,21 @@ package backup
 
 import (
 	"ariand/internal/db/sqlc"
-	"ariand/internal/types"
 	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
+	"google.golang.org/genproto/googleapis/type/money"
 )
+
+// moneyToCents converts google.type.Money to cents
+func moneyToCents(m *money.Money) int64 {
+	if m == nil {
+		return 0
+	}
+	return m.Units*100 + int64(m.Nanos)/10_000_000
+}
 
 func importCategories(ctx context.Context, db *sqlc.Queries, userID uuid.UUID, categories []CategoryData) error {
 	for _, cat := range categories {
@@ -66,9 +74,10 @@ func importAccounts(ctx context.Context, db *sqlc.Queries, userID uuid.UUID, acc
 			return fmt.Errorf("invalid account_type for %q: %w", acc.Name, err)
 		}
 
-		anchorBalanceBytes, err := types.ToBytes(acc.AnchorBalance)
-		if err != nil {
-			return fmt.Errorf("failed to convert anchor_balance for %q: %w", acc.Name, err)
+		anchorCents := moneyToCents(acc.AnchorBalance)
+		anchorCurrency := "CAD"
+		if acc.AnchorBalance != nil && acc.AnchorBalance.CurrencyCode != "" {
+			anchorCurrency = acc.AnchorBalance.CurrencyCode
 		}
 
 		colors := acc.Colors
@@ -77,14 +86,15 @@ func importAccounts(ctx context.Context, db *sqlc.Queries, userID uuid.UUID, acc
 		}
 
 		_, err = db.CreateAccount(ctx, sqlc.CreateAccountParams{
-			OwnerID:       userID,
-			Name:          acc.Name,
-			Bank:          acc.Bank,
-			AccountType:   int16(accountType),
-			Alias:         acc.Alias,
-			AnchorBalance: anchorBalanceBytes,
-			MainCurrency:  acc.MainCurrency,
-			Colors:        colors,
+			OwnerID:            userID,
+			Name:               acc.Name,
+			Bank:               acc.Bank,
+			AccountType:        int16(accountType),
+			Alias:              acc.Alias,
+			AnchorBalanceCents: anchorCents,
+			AnchorCurrency:     anchorCurrency,
+			MainCurrency:       acc.MainCurrency,
+			Colors:             colors,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create account %q: %w", acc.Name, err)
@@ -120,25 +130,28 @@ func importTransactions(ctx context.Context, db *sqlc.Queries, userID uuid.UUID,
 			return fmt.Errorf("invalid tx_direction: %w", err)
 		}
 
-		txAmountBytes, err := types.ToBytes(tx.TxAmount)
-		if err != nil {
-			return fmt.Errorf("failed to convert tx_amount: %w", err)
+		txCents := moneyToCents(tx.TxAmount)
+		txCurrency := "CAD"
+		if tx.TxAmount != nil && tx.TxAmount.CurrencyCode != "" {
+			txCurrency = tx.TxAmount.CurrencyCode
 		}
 
-		var balanceAfterBytes []byte
+		var balanceAfterCents *int64
+		var balanceCurrency *string
 		if tx.BalanceAfter != nil {
-			balanceAfterBytes, err = types.ToBytes(tx.BalanceAfter)
-			if err != nil {
-				return fmt.Errorf("failed to convert balance_after: %w", err)
-			}
+			cents := moneyToCents(tx.BalanceAfter)
+			currency := tx.BalanceAfter.CurrencyCode
+			balanceAfterCents = &cents
+			balanceCurrency = &currency
 		}
 
-		var foreignAmountBytes []byte
+		var foreignAmountCents *int64
+		var foreignCurrency *string
 		if tx.ForeignAmount != nil {
-			foreignAmountBytes, err = types.ToBytes(tx.ForeignAmount)
-			if err != nil {
-				return fmt.Errorf("failed to convert foreign_amount: %w", err)
-			}
+			cents := moneyToCents(tx.ForeignAmount)
+			currency := tx.ForeignAmount.CurrencyCode
+			foreignAmountCents = &cents
+			foreignCurrency = &currency
 		}
 
 		var categoryID *int64
@@ -158,16 +171,19 @@ func importTransactions(ctx context.Context, db *sqlc.Queries, userID uuid.UUID,
 			UserID:              userID,
 			AccountID:           accountID,
 			TxDate:              tx.TxDate,
-			TxAmount:            txAmountBytes,
+			TxAmountCents:       txCents,
+			TxCurrency:          txCurrency,
 			TxDirection:         int16(txDirection),
 			TxDesc:              tx.TxDesc,
-			BalanceAfter:        balanceAfterBytes,
+			BalanceAfterCents:   balanceAfterCents,
+			BalanceCurrency:     balanceCurrency,
 			Merchant:            tx.Merchant,
 			CategoryID:          categoryID,
 			CategoryManuallySet: &categoryManuallySet,
 			MerchantManuallySet: &merchantManuallySet,
 			UserNotes:           tx.UserNotes,
-			ForeignAmount:       foreignAmountBytes,
+			ForeignAmountCents:  foreignAmountCents,
+			ForeignCurrency:     foreignCurrency,
 			ExchangeRate:        tx.ExchangeRate,
 		})
 		if err != nil {

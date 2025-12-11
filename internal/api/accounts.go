@@ -3,12 +3,9 @@ package api
 import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
-	"ariand/internal/types"
 	"context"
 
 	"connectrpc.com/connect"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListAccountsRequest]) (*connect.Response[pb.ListAccountsResponse], error) {
@@ -93,43 +90,23 @@ func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.Dele
 }
 
 func (s *Server) SetAccountAnchor(ctx context.Context, req *connect.Request[pb.SetAccountAnchorRequest]) (*connect.Response[pb.SetAccountAnchorResponse], error) {
-	// Convert money to MoneyWrapper and then to JSONB bytes
-	wrapper := types.Wrap(req.Msg.GetBalance())
-	jsonBytes, err := wrapper.Value()
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	var balanceBytes []byte
-	if bytes, ok := jsonBytes.([]byte); ok {
-		balanceBytes = bytes
-	} else {
-		return nil, status.Error(codes.Internal, "failed to convert money to bytes")
-	}
+	balance := req.Msg.GetBalance()
+	cents := moneyToCents(balance)
+	currency := balance.GetCurrencyCode()
 
 	params := sqlc.SetAccountAnchorParams{
-		ID:            req.Msg.GetId(),
-		AnchorBalance: balanceBytes,
+		ID:                 req.Msg.GetId(),
+		AnchorBalanceCents: cents,
+		AnchorCurrency:     currency,
 	}
 
-	err = s.services.Accounts.SetAnchor(ctx, params)
+	err := s.services.Accounts.SetAnchor(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	return connect.NewResponse(&pb.SetAccountAnchorResponse{
 		AffectedRows: 1,
-	}), nil
-}
-
-func (s *Server) GetAccountBalance(ctx context.Context, req *connect.Request[pb.GetAccountBalanceRequest]) (*connect.Response[pb.GetAccountBalanceResponse], error) {
-	balance, err := s.services.Accounts.GetBalance(ctx, req.Msg.GetId())
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetAccountBalanceResponse{
-		Balance: balance,
 	}), nil
 }
 
@@ -154,16 +131,4 @@ func (s *Server) SyncAccountBalances(ctx context.Context, req *connect.Request[p
 	s.log.Info("SyncAccountBalances called", "account_id", req.Msg.GetAccountId())
 
 	return connect.NewResponse(&pb.SyncAccountBalancesResponse{}), nil
-}
-
-func (s *Server) GetAnchorBalance(ctx context.Context, req *connect.Request[pb.GetAnchorBalanceRequest]) (*connect.Response[pb.GetAnchorBalanceResponse], error) {
-	anchorBalance, err := s.services.Accounts.GetAnchorBalance(ctx, req.Msg.GetId())
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetAnchorBalanceResponse{
-		AnchorBalance: anchorBalance,
-		Currency:      anchorBalance.GetCurrencyCode(),
-	}), nil
 }

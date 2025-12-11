@@ -29,12 +29,12 @@ where
     or t.tx_date <= sqlc.narg('end')::timestamptz
   )
   and (
-    sqlc.narg('amount_min')::double precision is null
-    or (t.tx_amount ->> 'units')::bigint >= sqlc.narg('amount_min')::double precision
+    sqlc.narg('amount_min_cents')::bigint is null
+    or t.tx_amount_cents >= sqlc.narg('amount_min_cents')::bigint
   )
   and (
-    sqlc.narg('amount_max')::double precision is null
-    or (t.tx_amount ->> 'units')::bigint <= sqlc.narg('amount_max')::double precision
+    sqlc.narg('amount_max_cents')::bigint is null
+    or t.tx_amount_cents <= sqlc.narg('amount_max_cents')::bigint
   )
   and (
     sqlc.narg('direction')::smallint is null
@@ -58,7 +58,7 @@ where
   )
   and (
     sqlc.narg('currency')::char(3) is null
-    or t.tx_amount ->> 'currency_code' = sqlc.narg('currency')::char(3)
+    or t.tx_currency = sqlc.narg('currency')::char(3)
   )
   and (
     sqlc.narg('tod_start')::time is null
@@ -102,16 +102,19 @@ insert into
     email_id,
     account_id,
     tx_date,
-    tx_amount,
+    tx_amount_cents,
+    tx_currency,
     tx_direction,
     tx_desc,
-    balance_after,
+    balance_after_cents,
+    balance_currency,
     category_id,
     category_manually_set,
     merchant,
     merchant_manually_set,
     user_notes,
-    foreign_amount,
+    foreign_amount_cents,
+    foreign_currency,
     exchange_rate,
     suggestions
   )
@@ -119,16 +122,19 @@ select
   sqlc.narg('email_id')::text,
   sqlc.arg(account_id)::bigint,
   sqlc.arg(tx_date)::timestamptz,
-  sqlc.arg(tx_amount)::jsonb,
+  sqlc.arg(tx_amount_cents)::bigint,
+  sqlc.arg(tx_currency)::char(3),
   sqlc.arg(tx_direction)::smallint,
   sqlc.narg('tx_desc')::text,
-  sqlc.narg('balance_after')::jsonb,
+  sqlc.narg('balance_after_cents')::bigint,
+  sqlc.narg('balance_currency')::char(3),
   sqlc.narg('category_id')::bigint,
   sqlc.narg('category_manually_set')::boolean,
   sqlc.narg('merchant')::text,
   sqlc.narg('merchant_manually_set')::boolean,
   sqlc.narg('user_notes')::text,
-  sqlc.narg('foreign_amount')::jsonb,
+  sqlc.narg('foreign_amount_cents')::bigint,
+  sqlc.narg('foreign_currency')::char(3),
   sqlc.narg('exchange_rate')::double precision,
   sqlc.narg('suggestions')::text []
 from
@@ -150,13 +156,15 @@ update
 set
   email_id = coalesce(sqlc.narg('email_id')::text, email_id),
   tx_date = coalesce(sqlc.narg('tx_date')::timestamptz, tx_date),
-  tx_amount = coalesce(sqlc.narg('tx_amount')::jsonb, tx_amount),
+  tx_amount_cents = coalesce(sqlc.narg('tx_amount_cents')::bigint, tx_amount_cents),
+  tx_currency = coalesce(sqlc.narg('tx_currency')::char(3), tx_currency),
   tx_direction = coalesce(sqlc.narg('tx_direction')::smallint, tx_direction),
   tx_desc = coalesce(sqlc.narg('tx_desc')::text, tx_desc),
   category_id = coalesce(sqlc.narg('category_id')::bigint, category_id),
   merchant = coalesce(sqlc.narg('merchant')::text, merchant),
   user_notes = coalesce(sqlc.narg('user_notes')::text, user_notes),
-  foreign_amount = coalesce(sqlc.narg('foreign_amount')::jsonb, foreign_amount),
+  foreign_amount_cents = coalesce(sqlc.narg('foreign_amount_cents')::bigint, foreign_amount_cents),
+  foreign_currency = coalesce(sqlc.narg('foreign_currency')::char(3), foreign_currency),
   exchange_rate = coalesce(sqlc.narg('exchange_rate')::double precision, exchange_rate),
   suggestions = coalesce(sqlc.narg('suggestions')::text[], suggestions),
   category_manually_set = coalesce(sqlc.narg('category_manually_set')::boolean, category_manually_set),
@@ -205,7 +213,7 @@ set
   suggestions = sqlc.arg(suggestions)::text []
 where
   id = sqlc.arg(id)::bigint
-  and category_manually_set = false -- Only update if not manually set
+  and category_manually_set = false
   and account_id in (
     select
       a.id
@@ -226,7 +234,7 @@ update
   transactions
 set
   category_id = sqlc.arg(category_id)::bigint,
-  category_manually_set = true -- manual categorization
+  category_manually_set = true
 where
   id = ANY(sqlc.arg(transaction_ids)::bigint [])
   and account_id in (
@@ -277,146 +285,6 @@ group by
 order by
   transaction_count desc;
 
--- name: RecalculateBalancesAfterTransaction :exec
--- Recalculate balance_after for all transactions after a given date/id
-with transaction_deltas as (
-  select
-    id,
-    SUM(
-      case
-        when tx_direction = 1 then (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        else -(
-          (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        )
-      end
-    ) OVER (
-      partition BY account_id
-      order by
-        tx_date,
-        id
-    ) as running_delta
-  from
-    transactions
-  where
-    account_id = @account_id::bigint
-    and (
-      tx_date > @from_date::timestamptz
-      or (
-        tx_date = @from_date::timestamptz
-        and id >= @from_id::bigint
-      )
-    )
-),
-anchor_point as (
-  select
-    a.anchor_balance,
-    COALESCE(
-      SUM(
-        case
-          when t.tx_direction = 1 then (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          else -(
-            (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          )
-        end
-      ),
-      0.0
-    ) as delta_at_anchor
-  from
-    accounts a
-    left join transactions t on t.account_id = a.id
-    and t.tx_date < a.anchor_date
-  where
-    a.id = @account_id::bigint
-  group by
-    a.id,
-    a.anchor_balance
-)
-update
-  transactions
-set
-  balance_after = jsonb_build_object(
-    'currency_code',
-    tx_amount ->> 'currency_code',
-    'units',
-    (
-      (ap.anchor_balance ->> 'units')::bigint + td.running_delta - ap.delta_at_anchor
-    )::bigint,
-    'nanos',
-    0
-  )
-from
-  transaction_deltas td,
-  anchor_point ap
-where
-  transactions.id = td.id
-  and transactions.account_id = @account_id::bigint;
-
--- name: SyncAccountBalances :exec
-with transaction_deltas as (
-  select
-    id,
-    SUM(
-      case
-        when tx_direction = 1 then (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        else -(
-          (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        )
-      end
-    ) OVER (
-      partition BY account_id
-      order by
-        tx_date,
-        id
-    ) as running_delta
-  from
-    transactions
-  where
-    account_id = sqlc.arg(account_id)::bigint
-),
-anchor_point as (
-  select
-    a.anchor_balance,
-    COALESCE(
-      SUM(
-        case
-          when t.tx_direction = 1 then (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          else -(
-            (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          )
-        end
-      ),
-      0.0
-    ) as delta_at_anchor
-  from
-    accounts a
-    left join transactions t on t.account_id = a.id
-    and t.tx_date < a.anchor_date
-  where
-    a.id = sqlc.arg(account_id)::bigint
-  group by
-    a.id,
-    a.anchor_balance
-)
-update
-  transactions
-set
-  balance_after = jsonb_build_object(
-    'currency_code',
-    tx_amount ->> 'currency_code',
-    'units',
-    (
-      (ap.anchor_balance ->> 'units')::bigint + td.running_delta - ap.delta_at_anchor
-    )::bigint,
-    'nanos',
-    0
-  )
-from
-  transaction_deltas td,
-  anchor_point ap
-where
-  transactions.id = td.id
-  and transactions.account_id = sqlc.arg(account_id)::bigint;
-
 -- name: FindCandidateTransactions :many
 select
   t.*,
@@ -433,7 +301,7 @@ where
   )
   and t.tx_direction = 2
   and t.tx_date >= (sqlc.arg(date)::date - interval '60 days')
-  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between sqlc.arg(total)::double precision and (sqlc.arg(total)::double precision * 1.20)
+  and t.tx_amount_cents between sqlc.arg(total_cents)::bigint and (sqlc.arg(total_cents)::bigint * 120 / 100)
   and similarity(t.tx_desc::text, sqlc.arg(merchant)::text) > 0.3
 order by
   merchant_score desc

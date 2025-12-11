@@ -5,7 +5,6 @@ import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/service"
-	"ariand/internal/types"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -71,25 +70,22 @@ func timestampToDate(ts *timestamppb.Timestamp) time.Time {
 
 // ==================== MONEY CONVERSION HELPERS ====================
 
-// Convert cents (int64) to money.Money with proper units and nanos
-func centsToMoney(cents int64, currency string) *money.Money {
-	if currency == "" {
-		currency = "USD"
+// moneyToCents converts google.type.Money to cents
+func moneyToCents(m *money.Money) int64 {
+	if m == nil {
+		return 0
 	}
+	return m.Units*100 + int64(m.Nanos)/10_000_000
+}
+
+// centsToMoney converts cents to google.type.Money
+func centsToMoney(cents int64, currency string) *money.Money {
 	return &money.Money{
 		CurrencyCode: currency,
 		Units:        cents / 100,
-		Nanos:        int32((cents % 100) * 10000000),
+		Nanos:        int32((cents % 100) * 10_000_000),
 	}
 }
-
-// Helper to get currency or default
-// func getCurrencyOrDefault(currency *string) string {
-// 	if currency != nil {
-// 		return *currency
-// 	}
-// 	return "USD"
-// }
 
 // ==================== LEGACY HELPERS ====================
 
@@ -133,12 +129,10 @@ func buildUpdateAccountParams(req *pb.UpdateAccountRequest) sqlc.UpdateAccountPa
 		params.AnchorDate = &t
 	}
 	if req.AnchorBalance != nil {
-		balanceBytes, err := types.ToBytes(req.AnchorBalance)
-		if err != nil {
-			// This should be handled at the calling site, but for now we'll use zero bytes
-			balanceBytes = []byte{}
-		}
-		params.AnchorBalance = balanceBytes
+		cents := moneyToCents(req.AnchorBalance)
+		currency := req.AnchorBalance.CurrencyCode
+		params.AnchorBalanceCents = &cents
+		params.AnchorCurrency = &currency
 	}
 	if req.MainCurrency != nil {
 		params.MainCurrency = req.MainCurrency
@@ -164,8 +158,7 @@ func toProtoAccount(a *sqlc.Account) *pb.Account {
 		Type:          a.AccountType,
 		Alias:         a.Alias,
 		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
-		AnchorBalance: types.Unwrap(a.AnchorBalance),
-		Balance:       types.Unwrap(types.FromBytes(a.Balance)),
+		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
 		MainCurrency:  a.MainCurrency,
 		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
@@ -179,16 +172,15 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 		return sqlc.CreateAccountParams{}, err
 	}
 
-	balanceBytes, err := types.ToBytes(req.GetAnchorBalance())
-	if err != nil {
-		return sqlc.CreateAccountParams{}, err
+	anchorBalance := req.GetAnchorBalance()
+	anchorCents := moneyToCents(anchorBalance)
+	anchorCurrency := "CAD"
+	if anchorBalance != nil && anchorBalance.CurrencyCode != "" {
+		anchorCurrency = anchorBalance.CurrencyCode
 	}
 
 	// Default to CAD if main_currency is empty
 	mainCurrency := req.GetMainCurrency()
-	if mainCurrency == "" {
-		mainCurrency = "CAD"
-	}
 
 	// Default colors if not provided, validate if provided
 	colors := req.GetColors()
@@ -199,14 +191,15 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 	}
 
 	return sqlc.CreateAccountParams{
-		OwnerID:       userID,
-		Name:          req.GetName(),
-		Bank:          req.GetBank(),
-		AccountType:   int16(req.GetType()),
-		Alias:         req.Alias,
-		AnchorBalance: balanceBytes,
-		MainCurrency:  mainCurrency,
-		Colors:        colors,
+		OwnerID:            userID,
+		Name:               req.GetName(),
+		Bank:               req.GetBank(),
+		AccountType:        int16(req.GetType()),
+		Alias:              req.Alias,
+		AnchorBalanceCents: anchorCents,
+		AnchorCurrency:     anchorCurrency,
+		MainCurrency:       mainCurrency,
+		Colors:             colors,
 	}, nil
 }
 
@@ -347,9 +340,11 @@ func buildListTransactionsParams(userID uuid.UUID, req *pb.ListTransactionsReque
 
 // buildCreateTransactionParams creates sqlc params from proto request
 func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionRequest) (sqlc.CreateTransactionParams, error) {
-	txAmountBytes, err := types.ToBytes(req.TxAmount)
-	if err != nil {
-		return sqlc.CreateTransactionParams{}, err
+	txAmount := req.TxAmount
+	txCents := moneyToCents(txAmount)
+	txCurrency := "CAD"
+	if txAmount != nil && txAmount.CurrencyCode != "" {
+		txCurrency = txAmount.CurrencyCode
 	}
 
 	categoryManuallySet := false
@@ -359,7 +354,8 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 		UserID:              userID,
 		AccountID:           req.GetAccountId(),
 		TxDate:              fromProtoTimestamp(req.TxDate),
-		TxAmount:            txAmountBytes,
+		TxAmountCents:       txCents,
+		TxCurrency:          txCurrency,
 		TxDirection:         int16(req.Direction),
 		TxDesc:              req.Description,
 		Merchant:            req.Merchant,
@@ -382,11 +378,13 @@ func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionReq
 	}
 
 	if req.ForeignAmount != nil {
-		foreignAmountBytes, err := types.ToBytes(req.ForeignAmount)
-		if err != nil {
-			return sqlc.CreateTransactionParams{}, err
+		foreignCents := moneyToCents(req.ForeignAmount)
+		foreignCurrency := req.ForeignAmount.CurrencyCode
+		if foreignCurrency == "" {
+			foreignCurrency = "USD"
 		}
-		params.ForeignAmount = foreignAmountBytes
+		params.ForeignAmountCents = &foreignCents
+		params.ForeignCurrency = &foreignCurrency
 		if req.ExchangeRate != nil {
 			params.ExchangeRate = req.ExchangeRate
 		}
@@ -408,11 +406,10 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 		params.TxDate = &txTime
 	}
 	if req.TxAmount != nil {
-		txAmountBytes, err := types.ToBytes(req.TxAmount)
-		if err != nil {
-			return sqlc.UpdateTransactionParams{}, err
-		}
-		params.TxAmount = txAmountBytes
+		cents := moneyToCents(req.TxAmount)
+		currency := req.TxAmount.CurrencyCode
+		params.TxAmountCents = &cents
+		params.TxCurrency = &currency
 	}
 	if req.Direction != nil {
 		direction := int16(*req.Direction)
@@ -447,11 +444,13 @@ func buildUpdateTransactionParams(userID uuid.UUID, req *pb.UpdateTransactionReq
 		}
 	}
 	if req.ForeignAmount != nil {
-		foreignAmountBytes, err := types.ToBytes(req.ForeignAmount)
-		if err != nil {
-			return sqlc.UpdateTransactionParams{}, err
+		foreignCents := moneyToCents(req.ForeignAmount)
+		foreignCurrency := req.ForeignAmount.CurrencyCode
+		if foreignCurrency == "" {
+			foreignCurrency = "USD"
 		}
-		params.ForeignAmount = foreignAmountBytes
+		params.ForeignAmountCents = &foreignCents
+		params.ForeignCurrency = &foreignCurrency
 	}
 	if req.ExchangeRate != nil {
 		params.ExchangeRate = req.ExchangeRate
@@ -504,7 +503,7 @@ func extractTransactionFields(row interface{}) *transactionFields {
 	case *sqlc.Transaction:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: types.Unwrap(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: centsToMoney(t.TxAmountCents, t.TxCurrency), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
 			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
@@ -512,7 +511,7 @@ func extractTransactionFields(row interface{}) *transactionFields {
 	case *sqlc.FindCandidateTransactionsRow:
 		return &transactionFields{
 			ID: t.ID, EmailID: t.EmailID, AccountID: t.AccountID, TxDate: t.TxDate,
-			TxAmount: types.Unwrap(t.TxAmount), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
+			TxAmount: centsToMoney(t.TxAmountCents, t.TxCurrency), TxDirection: t.TxDirection, TxDesc: t.TxDesc,
 			CategoryID: t.CategoryID, CategoryManuallySet: t.CategoryManuallySet,
 			Merchant: t.Merchant, MerchantManuallySet: t.MerchantManuallySet,
 			UserNotes: t.UserNotes, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
@@ -620,19 +619,7 @@ func toProtoTrendPoint(trend *sqlc.GetDashboardTrendsRow) *pb.TrendPoint {
 	}
 }
 
-func toProtoTrendPointFromAccount(trend *sqlc.GetDashboardTrendsForAccountRow) *pb.TrendPoint {
-	if trend == nil {
-		return nil
-	}
-
-	// parse the date string to time.Time for conversion
-	trendDate, _ := time.Parse("2006-01-02", trend.Date)
-	return &pb.TrendPoint{
-		Date:     timeToDate(trendDate),
-		Income:   centsToMoney(trend.IncomeCents, "CAD"),
-		Expenses: centsToMoney(trend.ExpenseCents, "CAD"),
-	}
-}
+// Removed toProtoTrendPointFromAccount - uses general GetDashboardTrendsRow now
 
 func toProtoMonthlyComparison(comp *sqlc.GetMonthlyComparisonRow) *pb.MonthlyComparison {
 	if comp == nil {
@@ -684,11 +671,8 @@ func toProtoAccountBalance(account *sqlc.Account) *pb.AccountBalance {
 	}
 
 	// use anchor balance as placeholders for current balance
-	currentBalance := types.Unwrap(account.AnchorBalance)
-	currency := "CAD" // default currency
-	if currentBalance != nil {
-		currency = currentBalance.CurrencyCode
-	}
+	currentBalance := centsToMoney(account.AnchorBalanceCents, account.AnchorCurrency)
+	currency := account.AnchorCurrency
 
 	return &pb.AccountBalance{
 		Id:             account.ID,
@@ -713,19 +697,7 @@ func toProtoDashboardSummary(summary *sqlc.GetDashboardSummaryRow) *pb.Dashboard
 	}
 }
 
-func toProtoDashboardSummaryFromAccount(summary *sqlc.GetDashboardSummaryForAccountRow) *pb.DashboardSummary {
-	if summary == nil {
-		return nil
-	}
-
-	return &pb.DashboardSummary{
-		TotalAccounts:             summary.TotalAccounts,
-		TotalTransactions:         summary.TotalTransactions,
-		TotalIncome:               centsToMoney(summary.TotalIncomeCents, "CAD"),
-		TotalExpenses:             centsToMoney(summary.TotalExpenseCents, "CAD"),
-		UncategorizedTransactions: summary.UncategorizedTransactions,
-	}
-}
+// Removed toProtoDashboardSummaryFromAccount - uses general GetDashboardSummaryRow now
 
 // ==================== HELPER FUNCTIONS ====================
 // helper function to convert google.type.Date to time.Time

@@ -51,12 +51,6 @@ const (
 	// AccountServiceSetAccountAnchorProcedure is the fully-qualified name of the AccountService's
 	// SetAccountAnchor RPC.
 	AccountServiceSetAccountAnchorProcedure = "/arian.v1.AccountService/SetAccountAnchor"
-	// AccountServiceGetAccountBalanceProcedure is the fully-qualified name of the AccountService's
-	// GetAccountBalance RPC.
-	AccountServiceGetAccountBalanceProcedure = "/arian.v1.AccountService/GetAccountBalance"
-	// AccountServiceGetAnchorBalanceProcedure is the fully-qualified name of the AccountService's
-	// GetAnchorBalance RPC.
-	AccountServiceGetAnchorBalanceProcedure = "/arian.v1.AccountService/GetAnchorBalance"
 	// AccountServiceGetAccountsCountProcedure is the fully-qualified name of the AccountService's
 	// GetAccountsCount RPC.
 	AccountServiceGetAccountsCountProcedure = "/arian.v1.AccountService/GetAccountsCount"
@@ -73,8 +67,6 @@ type AccountServiceClient interface {
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 	SetAccountAnchor(context.Context, *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error)
-	GetAccountBalance(context.Context, *connect.Request[v1.GetAccountBalanceRequest]) (*connect.Response[v1.GetAccountBalanceResponse], error)
-	GetAnchorBalance(context.Context, *connect.Request[v1.GetAnchorBalanceRequest]) (*connect.Response[v1.GetAnchorBalanceResponse], error)
 	GetAccountsCount(context.Context, *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error)
 	SyncAccountBalances(context.Context, *connect.Request[v1.SyncAccountBalancesRequest]) (*connect.Response[v1.SyncAccountBalancesResponse], error)
 }
@@ -126,18 +118,6 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(accountServiceMethods.ByName("SetAccountAnchor")),
 			connect.WithClientOptions(opts...),
 		),
-		getAccountBalance: connect.NewClient[v1.GetAccountBalanceRequest, v1.GetAccountBalanceResponse](
-			httpClient,
-			baseURL+AccountServiceGetAccountBalanceProcedure,
-			connect.WithSchema(accountServiceMethods.ByName("GetAccountBalance")),
-			connect.WithClientOptions(opts...),
-		),
-		getAnchorBalance: connect.NewClient[v1.GetAnchorBalanceRequest, v1.GetAnchorBalanceResponse](
-			httpClient,
-			baseURL+AccountServiceGetAnchorBalanceProcedure,
-			connect.WithSchema(accountServiceMethods.ByName("GetAnchorBalance")),
-			connect.WithClientOptions(opts...),
-		),
 		getAccountsCount: connect.NewClient[v1.GetAccountsCountRequest, v1.GetAccountsCountResponse](
 			httpClient,
 			baseURL+AccountServiceGetAccountsCountProcedure,
@@ -161,8 +141,6 @@ type accountServiceClient struct {
 	updateAccount       *connect.Client[v1.UpdateAccountRequest, v1.UpdateAccountResponse]
 	deleteAccount       *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
 	setAccountAnchor    *connect.Client[v1.SetAccountAnchorRequest, v1.SetAccountAnchorResponse]
-	getAccountBalance   *connect.Client[v1.GetAccountBalanceRequest, v1.GetAccountBalanceResponse]
-	getAnchorBalance    *connect.Client[v1.GetAnchorBalanceRequest, v1.GetAnchorBalanceResponse]
 	getAccountsCount    *connect.Client[v1.GetAccountsCountRequest, v1.GetAccountsCountResponse]
 	syncAccountBalances *connect.Client[v1.SyncAccountBalancesRequest, v1.SyncAccountBalancesResponse]
 }
@@ -197,16 +175,6 @@ func (c *accountServiceClient) SetAccountAnchor(ctx context.Context, req *connec
 	return c.setAccountAnchor.CallUnary(ctx, req)
 }
 
-// GetAccountBalance calls arian.v1.AccountService.GetAccountBalance.
-func (c *accountServiceClient) GetAccountBalance(ctx context.Context, req *connect.Request[v1.GetAccountBalanceRequest]) (*connect.Response[v1.GetAccountBalanceResponse], error) {
-	return c.getAccountBalance.CallUnary(ctx, req)
-}
-
-// GetAnchorBalance calls arian.v1.AccountService.GetAnchorBalance.
-func (c *accountServiceClient) GetAnchorBalance(ctx context.Context, req *connect.Request[v1.GetAnchorBalanceRequest]) (*connect.Response[v1.GetAnchorBalanceResponse], error) {
-	return c.getAnchorBalance.CallUnary(ctx, req)
-}
-
 // GetAccountsCount calls arian.v1.AccountService.GetAccountsCount.
 func (c *accountServiceClient) GetAccountsCount(ctx context.Context, req *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error) {
 	return c.getAccountsCount.CallUnary(ctx, req)
@@ -225,8 +193,6 @@ type AccountServiceHandler interface {
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 	SetAccountAnchor(context.Context, *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error)
-	GetAccountBalance(context.Context, *connect.Request[v1.GetAccountBalanceRequest]) (*connect.Response[v1.GetAccountBalanceResponse], error)
-	GetAnchorBalance(context.Context, *connect.Request[v1.GetAnchorBalanceRequest]) (*connect.Response[v1.GetAnchorBalanceResponse], error)
 	GetAccountsCount(context.Context, *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error)
 	SyncAccountBalances(context.Context, *connect.Request[v1.SyncAccountBalancesRequest]) (*connect.Response[v1.SyncAccountBalancesResponse], error)
 }
@@ -274,18 +240,6 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 		connect.WithSchema(accountServiceMethods.ByName("SetAccountAnchor")),
 		connect.WithHandlerOptions(opts...),
 	)
-	accountServiceGetAccountBalanceHandler := connect.NewUnaryHandler(
-		AccountServiceGetAccountBalanceProcedure,
-		svc.GetAccountBalance,
-		connect.WithSchema(accountServiceMethods.ByName("GetAccountBalance")),
-		connect.WithHandlerOptions(opts...),
-	)
-	accountServiceGetAnchorBalanceHandler := connect.NewUnaryHandler(
-		AccountServiceGetAnchorBalanceProcedure,
-		svc.GetAnchorBalance,
-		connect.WithSchema(accountServiceMethods.ByName("GetAnchorBalance")),
-		connect.WithHandlerOptions(opts...),
-	)
 	accountServiceGetAccountsCountHandler := connect.NewUnaryHandler(
 		AccountServiceGetAccountsCountProcedure,
 		svc.GetAccountsCount,
@@ -312,10 +266,6 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 			accountServiceDeleteAccountHandler.ServeHTTP(w, r)
 		case AccountServiceSetAccountAnchorProcedure:
 			accountServiceSetAccountAnchorHandler.ServeHTTP(w, r)
-		case AccountServiceGetAccountBalanceProcedure:
-			accountServiceGetAccountBalanceHandler.ServeHTTP(w, r)
-		case AccountServiceGetAnchorBalanceProcedure:
-			accountServiceGetAnchorBalanceHandler.ServeHTTP(w, r)
 		case AccountServiceGetAccountsCountProcedure:
 			accountServiceGetAccountsCountHandler.ServeHTTP(w, r)
 		case AccountServiceSyncAccountBalancesProcedure:
@@ -351,14 +301,6 @@ func (UnimplementedAccountServiceHandler) DeleteAccount(context.Context, *connec
 
 func (UnimplementedAccountServiceHandler) SetAccountAnchor(context.Context, *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.SetAccountAnchor is not implemented"))
-}
-
-func (UnimplementedAccountServiceHandler) GetAccountBalance(context.Context, *connect.Request[v1.GetAccountBalanceRequest]) (*connect.Response[v1.GetAccountBalanceResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.GetAccountBalance is not implemented"))
-}
-
-func (UnimplementedAccountServiceHandler) GetAnchorBalance(context.Context, *connect.Request[v1.GetAnchorBalanceRequest]) (*connect.Response[v1.GetAnchorBalanceResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.GetAnchorBalance is not implemented"))
 }
 
 func (UnimplementedAccountServiceHandler) GetAccountsCount(context.Context, *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error) {

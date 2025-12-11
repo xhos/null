@@ -3,13 +3,22 @@ package backup
 import (
 	"ariand/internal/db/sqlc"
 	arian "ariand/internal/gen/arian/v1"
-	"ariand/internal/types"
 	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
+	"google.golang.org/genproto/googleapis/type/money"
 )
+
+// centsToMoney converts cents to google.type.Money
+func centsToMoney(cents int64, currency string) *money.Money {
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        cents / 100,
+		Nanos:        int32((cents % 100) * 10_000_000),
+	}
+}
 
 func exportCategories(ctx context.Context, db *sqlc.Queries, userID uuid.UUID) ([]CategoryData, error) {
 	categories, err := db.ListCategories(ctx, userID)
@@ -49,9 +58,7 @@ func exportAccounts(ctx context.Context, db *sqlc.Queries, userID uuid.UUID) ([]
 			data.AnchorDate = &acc.AnchorDate
 		}
 
-		if acc.AnchorBalance != nil {
-			data.AnchorBalance = types.Unwrap(acc.AnchorBalance)
-		}
+		data.AnchorBalance = centsToMoney(acc.AnchorBalanceCents, acc.AnchorCurrency)
 
 		result[i] = data
 	}
@@ -85,7 +92,7 @@ func exportTransactions(ctx context.Context, db *sqlc.Queries, userID uuid.UUID)
 		data := TransactionData{
 			AccountName:  accountName,
 			TxDate:       tx.TxDate,
-			TxAmount:     types.Unwrap(tx.TxAmount),
+			TxAmount:     centsToMoney(tx.TxAmountCents, tx.TxCurrency),
 			TxDirection:  formatTransactionDirection(arian.TransactionDirection(tx.TxDirection)),
 			TxDesc:       tx.TxDesc,
 			Merchant:     tx.Merchant,
@@ -93,12 +100,12 @@ func exportTransactions(ctx context.Context, db *sqlc.Queries, userID uuid.UUID)
 			ExchangeRate: tx.ExchangeRate,
 		}
 
-		if tx.BalanceAfter != nil {
-			data.BalanceAfter = types.Unwrap(tx.BalanceAfter)
+		if tx.BalanceAfterCents != nil && tx.BalanceCurrency != nil {
+			data.BalanceAfter = centsToMoney(*tx.BalanceAfterCents, *tx.BalanceCurrency)
 		}
 
-		if tx.ForeignAmount != nil {
-			data.ForeignAmount = types.Unwrap(tx.ForeignAmount)
+		if tx.ForeignAmountCents != nil && tx.ForeignCurrency != nil {
+			data.ForeignAmount = centsToMoney(*tx.ForeignAmountCents, *tx.ForeignCurrency)
 		}
 
 		if tx.CategoryID != nil {

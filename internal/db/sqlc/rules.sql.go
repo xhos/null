@@ -60,7 +60,7 @@ func (q *Queries) BulkApplyRuleToTransactions(ctx context.Context, arg BulkApply
 const createRule = `-- name: CreateRule :one
 insert into transaction_rules (user_id, rule_name, category_id, conditions, merchant)
 values ($1::uuid, $2::text, $3::bigint, $4::jsonb, $5::text)
-returning rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
+returning rule_id, user_id, rule_name, category_id, merchant, conditions, logic_operator, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied
 `
 
 type CreateRuleParams struct {
@@ -85,7 +85,9 @@ func (q *Queries) CreateRule(ctx context.Context, arg CreateRuleParams) (Transac
 		&i.UserID,
 		&i.RuleName,
 		&i.CategoryID,
+		&i.Merchant,
 		&i.Conditions,
+		&i.LogicOperator,
 		&i.IsActive,
 		&i.PriorityOrder,
 		&i.RuleSource,
@@ -93,7 +95,6 @@ func (q *Queries) CreateRule(ctx context.Context, arg CreateRuleParams) (Transac
 		&i.UpdatedAt,
 		&i.LastAppliedAt,
 		&i.TimesApplied,
-		&i.Merchant,
 	)
 	return i, err
 }
@@ -118,7 +119,7 @@ func (q *Queries) DeleteRule(ctx context.Context, arg DeleteRuleParams) (int64, 
 }
 
 const getActiveRules = `-- name: GetActiveRules :many
-select rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
+select rule_id, user_id, rule_name, category_id, merchant, conditions, logic_operator, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied
 from transaction_rules
 where user_id = $1::uuid
   and (is_active is null or is_active = true)
@@ -139,7 +140,9 @@ func (q *Queries) GetActiveRules(ctx context.Context, userID uuid.UUID) ([]Trans
 			&i.UserID,
 			&i.RuleName,
 			&i.CategoryID,
+			&i.Merchant,
 			&i.Conditions,
+			&i.LogicOperator,
 			&i.IsActive,
 			&i.PriorityOrder,
 			&i.RuleSource,
@@ -147,7 +150,6 @@ func (q *Queries) GetActiveRules(ctx context.Context, userID uuid.UUID) ([]Trans
 			&i.UpdatedAt,
 			&i.LastAppliedAt,
 			&i.TimesApplied,
-			&i.Merchant,
 		); err != nil {
 			return nil, err
 		}
@@ -160,7 +162,7 @@ func (q *Queries) GetActiveRules(ctx context.Context, userID uuid.UUID) ([]Trans
 }
 
 const getRule = `-- name: GetRule :one
-select rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
+select rule_id, user_id, rule_name, category_id, merchant, conditions, logic_operator, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied
 from transaction_rules
 where rule_id = $1::uuid
   and user_id = $2::uuid
@@ -179,7 +181,9 @@ func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRu
 		&i.UserID,
 		&i.RuleName,
 		&i.CategoryID,
+		&i.Merchant,
 		&i.Conditions,
+		&i.LogicOperator,
 		&i.IsActive,
 		&i.PriorityOrder,
 		&i.RuleSource,
@@ -187,14 +191,13 @@ func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRu
 		&i.UpdatedAt,
 		&i.LastAppliedAt,
 		&i.TimesApplied,
-		&i.Merchant,
 	)
 	return i, err
 }
 
 const getTransactionsForRuleApplication = `-- name: GetTransactionsForRuleApplication :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
@@ -223,20 +226,23 @@ func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg Get
 			&i.AccountID,
 			&i.EmailID,
 			&i.TxDate,
-			&i.TxAmount,
+			&i.TxAmountCents,
+			&i.TxCurrency,
 			&i.TxDirection,
 			&i.TxDesc,
-			&i.BalanceAfter,
+			&i.BalanceAfterCents,
+			&i.BalanceCurrency,
 			&i.Merchant,
 			&i.CategoryID,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
 			&i.Suggestions,
 			&i.UserNotes,
-			&i.ForeignAmount,
+			&i.ForeignAmountCents,
+			&i.ForeignCurrency,
 			&i.ExchangeRate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.CategoryManuallySet,
-			&i.MerchantManuallySet,
 		); err != nil {
 			return nil, err
 		}
@@ -249,7 +255,7 @@ func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg Get
 }
 
 const listRules = `-- name: ListRules :many
-select rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
+select rule_id, user_id, rule_name, category_id, merchant, conditions, logic_operator, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied
 from transaction_rules
 where user_id = $1::uuid
 order by priority_order, created_at
@@ -269,7 +275,9 @@ func (q *Queries) ListRules(ctx context.Context, userID uuid.UUID) ([]Transactio
 			&i.UserID,
 			&i.RuleName,
 			&i.CategoryID,
+			&i.Merchant,
 			&i.Conditions,
+			&i.LogicOperator,
 			&i.IsActive,
 			&i.PriorityOrder,
 			&i.RuleSource,
@@ -277,7 +285,6 @@ func (q *Queries) ListRules(ctx context.Context, userID uuid.UUID) ([]Transactio
 			&i.UpdatedAt,
 			&i.LastAppliedAt,
 			&i.TimesApplied,
-			&i.Merchant,
 		); err != nil {
 			return nil, err
 		}
@@ -301,7 +308,7 @@ set
   updated_at = now()
 where rule_id = $7::uuid
   and user_id = $8::uuid
-returning rule_id, user_id, rule_name, category_id, conditions, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied, merchant
+returning rule_id, user_id, rule_name, category_id, merchant, conditions, logic_operator, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied
 `
 
 type UpdateRuleParams struct {
@@ -332,7 +339,9 @@ func (q *Queries) UpdateRule(ctx context.Context, arg UpdateRuleParams) (Transac
 		&i.UserID,
 		&i.RuleName,
 		&i.CategoryID,
+		&i.Merchant,
 		&i.Conditions,
+		&i.LogicOperator,
 		&i.IsActive,
 		&i.PriorityOrder,
 		&i.RuleSource,
@@ -340,7 +349,6 @@ func (q *Queries) UpdateRule(ctx context.Context, arg UpdateRuleParams) (Transac
 		&i.UpdatedAt,
 		&i.LastAppliedAt,
 		&i.TimesApplied,
-		&i.Merchant,
 	)
 	return i, err
 }

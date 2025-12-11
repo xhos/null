@@ -8,24 +8,23 @@ import (
 	"time"
 
 	arian "ariand/internal/gen/arian/v1"
-	"ariand/internal/types"
 	"github.com/google/uuid"
 )
 
 type Account struct {
-	ID            int64             `db:"id" json:"id"`
-	OwnerID       uuid.UUID         `db:"owner_id" json:"owner_id"`
-	Name          string            `db:"name" json:"name"`
-	Bank          string            `db:"bank" json:"bank"`
-	AccountType   arian.AccountType `db:"account_type" json:"account_type"`
-	Alias         *string           `db:"alias" json:"alias"`
-	AnchorDate    time.Time         `db:"anchor_date" json:"anchor_date"`
-	AnchorBalance *types.Money      `db:"anchor_balance" json:"anchor_balance"`
-	CreatedAt     time.Time         `db:"created_at" json:"created_at"`
-	UpdatedAt     time.Time         `db:"updated_at" json:"updated_at"`
-	MainCurrency  string            `db:"main_currency" json:"main_currency"`
-	Colors        []string          `db:"colors" json:"colors"`
-	Balance       []byte            `db:"balance" json:"balance"`
+	ID                 int64             `db:"id" json:"id"`
+	OwnerID            uuid.UUID         `db:"owner_id" json:"owner_id"`
+	Name               string            `db:"name" json:"name"`
+	Bank               string            `db:"bank" json:"bank"`
+	AccountType        arian.AccountType `db:"account_type" json:"account_type"`
+	Alias              *string           `db:"alias" json:"alias"`
+	AnchorDate         time.Time         `db:"anchor_date" json:"anchor_date"`
+	AnchorBalanceCents int64             `db:"anchor_balance_cents" json:"anchor_balance_cents"`
+	AnchorCurrency     string            `db:"anchor_currency" json:"anchor_currency"`
+	MainCurrency       string            `db:"main_currency" json:"main_currency"`
+	Colors             []string          `db:"colors" json:"colors"`
+	CreatedAt          time.Time         `db:"created_at" json:"created_at"`
+	UpdatedAt          time.Time         `db:"updated_at" json:"updated_at"`
 }
 
 type AccountUser struct {
@@ -48,20 +47,23 @@ type Transaction struct {
 	AccountID           int64                      `db:"account_id" json:"account_id"`
 	EmailID             *string                    `db:"email_id" json:"email_id"`
 	TxDate              time.Time                  `db:"tx_date" json:"tx_date"`
-	TxAmount            *types.Money               `db:"tx_amount" json:"tx_amount"`
+	TxAmountCents       int64                      `db:"tx_amount_cents" json:"tx_amount_cents"`
+	TxCurrency          string                     `db:"tx_currency" json:"tx_currency"`
 	TxDirection         arian.TransactionDirection `db:"tx_direction" json:"tx_direction"`
 	TxDesc              *string                    `db:"tx_desc" json:"tx_desc"`
-	BalanceAfter        *types.Money               `db:"balance_after" json:"balance_after"`
+	BalanceAfterCents   *int64                     `db:"balance_after_cents" json:"balance_after_cents"`
+	BalanceCurrency     *string                    `db:"balance_currency" json:"balance_currency"`
 	Merchant            *string                    `db:"merchant" json:"merchant"`
 	CategoryID          *int64                     `db:"category_id" json:"category_id"`
+	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
+	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
 	Suggestions         []string                   `db:"suggestions" json:"suggestions"`
 	UserNotes           *string                    `db:"user_notes" json:"user_notes"`
-	ForeignAmount       *types.Money               `db:"foreign_amount" json:"foreign_amount"`
+	ForeignAmountCents  *int64                     `db:"foreign_amount_cents" json:"foreign_amount_cents"`
+	ForeignCurrency     *string                    `db:"foreign_currency" json:"foreign_currency"`
 	ExchangeRate        *float64                   `db:"exchange_rate" json:"exchange_rate"`
 	CreatedAt           time.Time                  `db:"created_at" json:"created_at"`
 	UpdatedAt           time.Time                  `db:"updated_at" json:"updated_at"`
-	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
-	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
 }
 
 type TransactionRule struct {
@@ -69,7 +71,9 @@ type TransactionRule struct {
 	UserID        uuid.UUID  `db:"user_id" json:"user_id"`
 	RuleName      string     `db:"rule_name" json:"rule_name"`
 	CategoryID    *int64     `db:"category_id" json:"category_id"`
+	Merchant      *string    `db:"merchant" json:"merchant"`
 	Conditions    []byte     `db:"conditions" json:"conditions"`
+	LogicOperator string     `db:"logic_operator" json:"logic_operator"`
 	IsActive      *bool      `db:"is_active" json:"is_active"`
 	PriorityOrder int32      `db:"priority_order" json:"priority_order"`
 	RuleSource    string     `db:"rule_source" json:"rule_source"`
@@ -77,7 +81,6 @@ type TransactionRule struct {
 	UpdatedAt     time.Time  `db:"updated_at" json:"updated_at"`
 	LastAppliedAt *time.Time `db:"last_applied_at" json:"last_applied_at"`
 	TimesApplied  *int32     `db:"times_applied" json:"times_applied"`
-	Merchant      *string    `db:"merchant" json:"merchant"`
 }
 
 type User struct {
@@ -85,8 +88,8 @@ type User struct {
 	Email            string    `db:"email" json:"email"`
 	DisplayName      *string   `db:"display_name" json:"display_name"`
 	DefaultAccountID *int64    `db:"default_account_id" json:"default_account_id"`
-	CreatedAt        time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
 	PrimaryCurrency  string    `db:"primary_currency" json:"primary_currency"`
 	Timezone         string    `db:"timezone" json:"timezone"`
+	CreatedAt        time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
 }

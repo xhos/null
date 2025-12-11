@@ -2,7 +2,6 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
-	"ariand/internal/types"
 	"context"
 	"fmt"
 	"time"
@@ -12,8 +11,8 @@ import (
 )
 
 type AccountSummary struct {
-	Summary *sqlc.GetDashboardSummaryForAccountRow
-	Trends  []sqlc.GetDashboardTrendsForAccountRow
+	Summary *sqlc.GetDashboardSummaryRow
+	Trends  []sqlc.GetDashboardTrendsRow
 }
 
 type PeriodType int
@@ -41,8 +40,8 @@ type PeriodInfo struct {
 type CategorySpendingResult struct {
 	CurrentPeriod  PeriodInfo
 	PreviousPeriod PeriodInfo
-	Current        []sqlc.GetCategorySpendingForPeriodRow
-	Previous       []sqlc.GetCategorySpendingForPeriodRow
+	Current        []sqlc.GetTopCategoriesRow
+	Previous       []sqlc.GetTopCategoriesRow
 }
 
 type NetWorthHistoryParams struct {
@@ -87,30 +86,21 @@ func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, 
 		return nil, wrapErr("DashboardService.Balance", err)
 	}
 
-	total := money.Money{CurrencyCode: primaryCurrency, Units: 0, Nanos: 0}
+	totalCents := int64(0)
 
 	for _, balance := range balances {
-		hasBalance := len(balance.CurrentBalance) > 0
-		if !hasBalance {
-			continue
-		}
-
-		var m types.Money
-		if err := m.Scan(balance.CurrentBalance); err != nil {
-			continue
-		}
-
-		if types.IsPositive(&m.Money) {
+		if balance.BalanceCents > 0 {
 			// TODO: Convert to primary currency if different
 			// For now, assume all accounts are in same currency
-			total, err = types.AddMoney(&total, &m.Money)
-			if err != nil {
-				return nil, wrapErr("DashboardService.Balance.AddMoney", err)
-			}
+			totalCents += balance.BalanceCents
 		}
 	}
 
-	return &total, nil
+	return &money.Money{
+		CurrencyCode: primaryCurrency,
+		Units:        totalCents / 100,
+		Nanos:        int32((totalCents % 100) * 10_000_000),
+	}, nil
 }
 
 func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
@@ -124,30 +114,21 @@ func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, err
 		return nil, wrapErr("DashboardService.Debt", err)
 	}
 
-	total := money.Money{CurrencyCode: primaryCurrency, Units: 0, Nanos: 0}
+	totalCents := int64(0)
 
 	for _, balance := range balances {
-		hasBalance := len(balance.CurrentBalance) > 0
-		if !hasBalance {
-			continue
-		}
-
-		var m types.Money
-		if err := m.Scan(balance.CurrentBalance); err != nil {
-			continue
-		}
-
-		if types.IsNegative(&m.Money) {
-			absoluteAmount := types.Negate(&m.Money)
+		if balance.BalanceCents < 0 {
 			// TODO: Convert to primary currency if different
-			total, err = types.AddMoney(&total, &absoluteAmount)
-			if err != nil {
-				return nil, wrapErr("DashboardService.Debt.AddMoney", err)
-			}
+			// Negate to get positive debt amount
+			totalCents += -balance.BalanceCents
 		}
 	}
 
-	return &total, nil
+	return &money.Money{
+		CurrencyCode: primaryCurrency,
+		Units:        totalCents / 100,
+		Nanos:        int32((totalCents % 100) * 10_000_000),
+	}, nil
 }
 
 func (s *dashSvc) Trends(ctx context.Context, params sqlc.GetDashboardTrendsParams) ([]sqlc.GetDashboardTrendsRow, error) {
@@ -201,27 +182,18 @@ func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Mone
 		return nil, wrapErr("DashboardService.NetBalance", err)
 	}
 
-	total := money.Money{CurrencyCode: primaryCurrency, Units: 0, Nanos: 0}
+	totalCents := int64(0)
 
 	for _, balance := range balances {
-		hasBalance := len(balance.CurrentBalance) > 0
-		if !hasBalance {
-			continue
-		}
-
-		var m types.Money
-		if err := m.Scan(balance.CurrentBalance); err != nil {
-			continue
-		}
-
 		// TODO: Convert to primary currency if different
-		total, err = types.AddMoney(&total, &m.Money)
-		if err != nil {
-			return nil, wrapErr("DashboardService.NetBalance.AddMoney", err)
-		}
+		totalCents += balance.BalanceCents
 	}
 
-	return &total, nil
+	return &money.Money{
+		CurrencyCode: primaryCurrency,
+		Units:        totalCents / 100,
+		Nanos:        int32((totalCents % 100) * 10_000_000),
+	}, nil
 }
 
 func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error) {
@@ -253,24 +225,23 @@ func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accou
 		end = &parsed
 	}
 
-	summaryParams := sqlc.GetDashboardSummaryForAccountParams{
-		UserID:    userID,
-		AccountID: accountID,
-		Start:     start,
-		End:       end,
+	// Use general summary and trends (account-specific queries removed)
+	summaryParams := sqlc.GetDashboardSummaryParams{
+		UserID: userID,
+		Start:  start,
+		End:    end,
 	}
-	summary, err := s.queries.GetDashboardSummaryForAccount(ctx, summaryParams)
+	summary, err := s.queries.GetDashboardSummary(ctx, summaryParams)
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetAccountSummary", err)
 	}
 
-	trendsParams := sqlc.GetDashboardTrendsForAccountParams{
-		UserID:    userID,
-		AccountID: accountID,
-		Start:     start,
-		End:       end,
+	trendsParams := sqlc.GetDashboardTrendsParams{
+		UserID: userID,
+		Start:  start,
+		End:    end,
 	}
-	trends, err := s.queries.GetDashboardTrendsForAccount(ctx, trendsParams)
+	trends, err := s.queries.GetDashboardTrends(ctx, trendsParams)
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetAccountSummary.GetTrends", err)
 	}
@@ -380,21 +351,23 @@ func (s *dashSvc) GetCategorySpendingComparison(
 			fmt.Errorf("invalid period type"))
 	}
 
-	// Query current period
-	current, err := s.queries.GetCategorySpendingForPeriod(ctx, sqlc.GetCategorySpendingForPeriodParams{
-		UserID:    params.UserID,
-		StartDate: currentStart,
-		EndDate:   currentEnd,
+	// Use top categories as proxy for category spending (GetCategorySpendingForPeriod removed)
+	current, err := s.queries.GetTopCategories(ctx, sqlc.GetTopCategoriesParams{
+		UserID: params.UserID,
+		Start:  &currentStart,
+		End:    &currentEnd,
+		Limit:  int32Ptr(20),
 	})
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetCategorySpendingComparison.Current", err)
 	}
 
 	// Query previous period
-	previous, err := s.queries.GetCategorySpendingForPeriod(ctx, sqlc.GetCategorySpendingForPeriodParams{
-		UserID:    params.UserID,
-		StartDate: previousStart,
-		EndDate:   previousEnd,
+	previous, err := s.queries.GetTopCategories(ctx, sqlc.GetTopCategoriesParams{
+		UserID: params.UserID,
+		Start:  &previousStart,
+		End:    &previousEnd,
+		Limit:  int32Ptr(20),
 	})
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetCategorySpendingComparison.Previous", err)

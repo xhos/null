@@ -9,7 +9,6 @@ import (
 	"context"
 	"time"
 
-	"ariand/internal/types"
 	"github.com/google/uuid"
 )
 
@@ -51,8 +50,8 @@ insert into
     bank,
     account_type,
     alias,
-    anchor_balance,
-    balance,
+    anchor_balance_cents,
+    anchor_currency,
     main_currency,
     colors
   )
@@ -63,24 +62,25 @@ values
     $3::text,
     $4::smallint,
     $5::text,
-    $6::jsonb,
-    $6::jsonb,
-    $7::text,
-    $8::text []
+    $6::bigint,
+    $7::char(3),
+    $8::char(3),
+    $9::text []
   )
 returning
-  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors, balance
+  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance_cents, anchor_currency, main_currency, colors, created_at, updated_at
 `
 
 type CreateAccountParams struct {
-	OwnerID       uuid.UUID `db:"owner_id" json:"owner_id"`
-	Name          string    `db:"name" json:"name"`
-	Bank          string    `db:"bank" json:"bank"`
-	AccountType   int16     `db:"account_type" json:"account_type"`
-	Alias         *string   `db:"alias" json:"alias"`
-	AnchorBalance []byte    `db:"anchor_balance" json:"anchor_balance"`
-	MainCurrency  string    `db:"main_currency" json:"main_currency"`
-	Colors        []string  `db:"colors" json:"colors"`
+	OwnerID            uuid.UUID `db:"owner_id" json:"owner_id"`
+	Name               string    `db:"name" json:"name"`
+	Bank               string    `db:"bank" json:"bank"`
+	AccountType        int16     `db:"account_type" json:"account_type"`
+	Alias              *string   `db:"alias" json:"alias"`
+	AnchorBalanceCents int64     `db:"anchor_balance_cents" json:"anchor_balance_cents"`
+	AnchorCurrency     string    `db:"anchor_currency" json:"anchor_currency"`
+	MainCurrency       string    `db:"main_currency" json:"main_currency"`
+	Colors             []string  `db:"colors" json:"colors"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
@@ -90,7 +90,8 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		arg.Bank,
 		arg.AccountType,
 		arg.Alias,
-		arg.AnchorBalance,
+		arg.AnchorBalanceCents,
+		arg.AnchorCurrency,
 		arg.MainCurrency,
 		arg.Colors,
 	)
@@ -103,12 +104,12 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.AccountType,
 		&i.Alias,
 		&i.AnchorDate,
-		&i.AnchorBalance,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.AnchorBalanceCents,
+		&i.AnchorCurrency,
 		&i.MainCurrency,
 		&i.Colors,
-		&i.Balance,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -136,7 +137,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) (i
 
 const getAccount = `-- name: GetAccount :one
 select
-  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance, a.created_at, a.updated_at, a.main_currency, a.colors, a.balance
+  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -165,35 +166,42 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (Account
 		&i.AccountType,
 		&i.Alias,
 		&i.AnchorDate,
-		&i.AnchorBalance,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.AnchorBalanceCents,
+		&i.AnchorCurrency,
 		&i.MainCurrency,
 		&i.Colors,
-		&i.Balance,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getAccountAnchorBalance = `-- name: GetAccountAnchorBalance :one
 select
-  anchor_balance
+  anchor_balance_cents,
+  anchor_currency
 from
   accounts
 where
   id = $1::bigint
 `
 
-func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (*types.Money, error) {
+type GetAccountAnchorBalanceRow struct {
+	AnchorBalanceCents int64  `db:"anchor_balance_cents" json:"anchor_balance_cents"`
+	AnchorCurrency     string `db:"anchor_currency" json:"anchor_currency"`
+}
+
+func (q *Queries) GetAccountAnchorBalance(ctx context.Context, id int64) (GetAccountAnchorBalanceRow, error) {
 	row := q.db.QueryRow(ctx, getAccountAnchorBalance, id)
-	var anchor_balance *types.Money
-	err := row.Scan(&anchor_balance)
-	return anchor_balance, err
+	var i GetAccountAnchorBalanceRow
+	err := row.Scan(&i.AnchorBalanceCents, &i.AnchorCurrency)
+	return i, err
 }
 
 const getAccountBalance = `-- name: GetAccountBalance :one
 select
-  balance_after
+  balance_after_cents,
+  balance_currency
 from
   transactions
 where
@@ -205,27 +213,16 @@ limit
   1
 `
 
-func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (*types.Money, error) {
-	row := q.db.QueryRow(ctx, getAccountBalance, accountID)
-	var balance_after *types.Money
-	err := row.Scan(&balance_after)
-	return balance_after, err
+type GetAccountBalanceRow struct {
+	BalanceAfterCents *int64  `db:"balance_after_cents" json:"balance_after_cents"`
+	BalanceCurrency   *string `db:"balance_currency" json:"balance_currency"`
 }
 
-const getAccountBalanceSimple = `-- name: GetAccountBalanceSimple :one
-select
-  balance
-from
-  accounts
-where
-  id = $1::bigint
-`
-
-func (q *Queries) GetAccountBalanceSimple(ctx context.Context, accountID int64) ([]byte, error) {
-	row := q.db.QueryRow(ctx, getAccountBalanceSimple, accountID)
-	var balance []byte
-	err := row.Scan(&balance)
-	return balance, err
+func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (GetAccountBalanceRow, error) {
+	row := q.db.QueryRow(ctx, getAccountBalance, accountID)
+	var i GetAccountBalanceRow
+	err := row.Scan(&i.BalanceAfterCents, &i.BalanceCurrency)
+	return i, err
 }
 
 const getUserAccountsCount = `-- name: GetUserAccountsCount :one
@@ -249,7 +246,7 @@ func (q *Queries) GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (i
 
 const listAccounts = `-- name: ListAccounts :many
 select
-  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance, a.created_at, a.updated_at, a.main_currency, a.colors, a.balance
+  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -279,12 +276,12 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]Account
 			&i.AccountType,
 			&i.Alias,
 			&i.AnchorDate,
-			&i.AnchorBalance,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.AnchorBalanceCents,
+			&i.AnchorCurrency,
 			&i.MainCurrency,
 			&i.Colors,
-			&i.Balance,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -301,18 +298,20 @@ update
   accounts
 set
   anchor_date = now()::date,
-  anchor_balance = $1::jsonb
+  anchor_balance_cents = $1::bigint,
+  anchor_currency = $2::char(3)
 where
-  id = $2::bigint
+  id = $3::bigint
 `
 
 type SetAccountAnchorParams struct {
-	AnchorBalance []byte `db:"anchor_balance" json:"anchor_balance"`
-	ID            int64  `db:"id" json:"id"`
+	AnchorBalanceCents int64  `db:"anchor_balance_cents" json:"anchor_balance_cents"`
+	AnchorCurrency     string `db:"anchor_currency" json:"anchor_currency"`
+	ID                 int64  `db:"id" json:"id"`
 }
 
 func (q *Queries) SetAccountAnchor(ctx context.Context, arg SetAccountAnchorParams) (int64, error) {
-	result, err := q.db.Exec(ctx, setAccountAnchor, arg.AnchorBalance, arg.ID)
+	result, err := q.db.Exec(ctx, setAccountAnchor, arg.AnchorBalanceCents, arg.AnchorCurrency, arg.ID)
 	if err != nil {
 		return 0, err
 	}
@@ -328,27 +327,27 @@ set
   account_type = coalesce($3::smallint, account_type),
   alias = coalesce($4::text, alias),
   anchor_date = coalesce($5::date, anchor_date),
-  anchor_balance = coalesce($6::jsonb, anchor_balance),
-  balance = coalesce($7::jsonb, balance),
-  main_currency = coalesce($8::text, main_currency),
+  anchor_balance_cents = coalesce($6::bigint, anchor_balance_cents),
+  anchor_currency = coalesce($7::char(3), anchor_currency),
+  main_currency = coalesce($8::char(3), main_currency),
   colors = coalesce($9::text [], colors)
 where
   id = $10::bigint
 returning
-  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance, created_at, updated_at, main_currency, colors, balance
+  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance_cents, anchor_currency, main_currency, colors, created_at, updated_at
 `
 
 type UpdateAccountParams struct {
-	Name          *string    `db:"name" json:"name"`
-	Bank          *string    `db:"bank" json:"bank"`
-	AccountType   *int16     `db:"account_type" json:"account_type"`
-	Alias         *string    `db:"alias" json:"alias"`
-	AnchorDate    *time.Time `db:"anchor_date" json:"anchor_date"`
-	AnchorBalance []byte     `db:"anchor_balance" json:"anchor_balance"`
-	Balance       []byte     `db:"balance" json:"balance"`
-	MainCurrency  *string    `db:"main_currency" json:"main_currency"`
-	Colors        []string   `db:"colors" json:"colors"`
-	ID            int64      `db:"id" json:"id"`
+	Name               *string    `db:"name" json:"name"`
+	Bank               *string    `db:"bank" json:"bank"`
+	AccountType        *int16     `db:"account_type" json:"account_type"`
+	Alias              *string    `db:"alias" json:"alias"`
+	AnchorDate         *time.Time `db:"anchor_date" json:"anchor_date"`
+	AnchorBalanceCents *int64     `db:"anchor_balance_cents" json:"anchor_balance_cents"`
+	AnchorCurrency     *string    `db:"anchor_currency" json:"anchor_currency"`
+	MainCurrency       *string    `db:"main_currency" json:"main_currency"`
+	Colors             []string   `db:"colors" json:"colors"`
+	ID                 int64      `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
@@ -358,8 +357,8 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		arg.AccountType,
 		arg.Alias,
 		arg.AnchorDate,
-		arg.AnchorBalance,
-		arg.Balance,
+		arg.AnchorBalanceCents,
+		arg.AnchorCurrency,
 		arg.MainCurrency,
 		arg.Colors,
 		arg.ID,
@@ -373,12 +372,12 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		&i.AccountType,
 		&i.Alias,
 		&i.AnchorDate,
-		&i.AnchorBalance,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.AnchorBalanceCents,
+		&i.AnchorCurrency,
 		&i.MainCurrency,
 		&i.Colors,
-		&i.Balance,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	arian "ariand/internal/gen/arian/v1"
-	"ariand/internal/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -20,7 +19,7 @@ update
   transactions
 set
   category_id = $1::bigint,
-  category_manually_set = true -- manual categorization
+  category_manually_set = true
 where
   id = ANY($2::bigint [])
   and account_id in (
@@ -90,7 +89,7 @@ set
   suggestions = $3::text []
 where
   id = $4::bigint
-  and category_manually_set = false -- Only update if not manually set
+  and category_manually_set = false
   and account_id in (
     select
       a.id
@@ -139,16 +138,19 @@ insert into
     email_id,
     account_id,
     tx_date,
-    tx_amount,
+    tx_amount_cents,
+    tx_currency,
     tx_direction,
     tx_desc,
-    balance_after,
+    balance_after_cents,
+    balance_currency,
     category_id,
     category_manually_set,
     merchant,
     merchant_manually_set,
     user_notes,
-    foreign_amount,
+    foreign_amount_cents,
+    foreign_currency,
     exchange_rate,
     suggestions
   )
@@ -156,26 +158,29 @@ select
   $1::text,
   $2::bigint,
   $3::timestamptz,
-  $4::jsonb,
-  $5::smallint,
-  $6::text,
-  $7::jsonb,
+  $4::bigint,
+  $5::char(3),
+  $6::smallint,
+  $7::text,
   $8::bigint,
-  $9::boolean,
-  $10::text,
+  $9::char(3),
+  $10::bigint,
   $11::boolean,
   $12::text,
-  $13::jsonb,
-  $14::double precision,
-  $15::text []
+  $13::boolean,
+  $14::text,
+  $15::bigint,
+  $16::char(3),
+  $17::double precision,
+  $18::text []
 from
   accounts a
   left join account_users au on a.id = au.account_id
-  and au.user_id = $16::uuid
+  and au.user_id = $19::uuid
 where
   a.id = $2::bigint
   and (
-    a.owner_id = $16::uuid
+    a.owner_id = $19::uuid
     or au.user_id is not null
   )
 returning
@@ -186,16 +191,19 @@ type CreateTransactionParams struct {
 	EmailID             *string   `db:"email_id" json:"email_id"`
 	AccountID           int64     `db:"account_id" json:"account_id"`
 	TxDate              time.Time `db:"tx_date" json:"tx_date"`
-	TxAmount            []byte    `db:"tx_amount" json:"tx_amount"`
+	TxAmountCents       int64     `db:"tx_amount_cents" json:"tx_amount_cents"`
+	TxCurrency          string    `db:"tx_currency" json:"tx_currency"`
 	TxDirection         int16     `db:"tx_direction" json:"tx_direction"`
 	TxDesc              *string   `db:"tx_desc" json:"tx_desc"`
-	BalanceAfter        []byte    `db:"balance_after" json:"balance_after"`
+	BalanceAfterCents   *int64    `db:"balance_after_cents" json:"balance_after_cents"`
+	BalanceCurrency     *string   `db:"balance_currency" json:"balance_currency"`
 	CategoryID          *int64    `db:"category_id" json:"category_id"`
 	CategoryManuallySet *bool     `db:"category_manually_set" json:"category_manually_set"`
 	Merchant            *string   `db:"merchant" json:"merchant"`
 	MerchantManuallySet *bool     `db:"merchant_manually_set" json:"merchant_manually_set"`
 	UserNotes           *string   `db:"user_notes" json:"user_notes"`
-	ForeignAmount       []byte    `db:"foreign_amount" json:"foreign_amount"`
+	ForeignAmountCents  *int64    `db:"foreign_amount_cents" json:"foreign_amount_cents"`
+	ForeignCurrency     *string   `db:"foreign_currency" json:"foreign_currency"`
 	ExchangeRate        *float64  `db:"exchange_rate" json:"exchange_rate"`
 	Suggestions         []string  `db:"suggestions" json:"suggestions"`
 	UserID              uuid.UUID `db:"user_id" json:"user_id"`
@@ -206,16 +214,19 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.EmailID,
 		arg.AccountID,
 		arg.TxDate,
-		arg.TxAmount,
+		arg.TxAmountCents,
+		arg.TxCurrency,
 		arg.TxDirection,
 		arg.TxDesc,
-		arg.BalanceAfter,
+		arg.BalanceAfterCents,
+		arg.BalanceCurrency,
 		arg.CategoryID,
 		arg.CategoryManuallySet,
 		arg.Merchant,
 		arg.MerchantManuallySet,
 		arg.UserNotes,
-		arg.ForeignAmount,
+		arg.ForeignAmountCents,
+		arg.ForeignCurrency,
 		arg.ExchangeRate,
 		arg.Suggestions,
 		arg.UserID,
@@ -259,7 +270,7 @@ func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionPa
 
 const findCandidateTransactions = `-- name: FindCandidateTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set,
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at,
   similarity(t.tx_desc::text, $1::text) as merchant_score
 from
   transactions t
@@ -273,7 +284,7 @@ where
   )
   and t.tx_direction = 2
   and t.tx_date >= ($3::date - interval '60 days')
-  and (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0 between $4::double precision and ($4::double precision * 1.20)
+  and t.tx_amount_cents between $4::bigint and ($4::bigint * 120 / 100)
   and similarity(t.tx_desc::text, $1::text) > 0.3
 order by
   merchant_score desc
@@ -282,10 +293,10 @@ limit
 `
 
 type FindCandidateTransactionsParams struct {
-	Merchant string    `db:"merchant" json:"merchant"`
-	UserID   uuid.UUID `db:"user_id" json:"user_id"`
-	Date     time.Time `db:"date" json:"date"`
-	Total    float64   `db:"total" json:"total"`
+	Merchant   string    `db:"merchant" json:"merchant"`
+	UserID     uuid.UUID `db:"user_id" json:"user_id"`
+	Date       time.Time `db:"date" json:"date"`
+	TotalCents int64     `db:"total_cents" json:"total_cents"`
 }
 
 type FindCandidateTransactionsRow struct {
@@ -293,20 +304,23 @@ type FindCandidateTransactionsRow struct {
 	AccountID           int64                      `db:"account_id" json:"account_id"`
 	EmailID             *string                    `db:"email_id" json:"email_id"`
 	TxDate              time.Time                  `db:"tx_date" json:"tx_date"`
-	TxAmount            *types.Money               `db:"tx_amount" json:"tx_amount"`
+	TxAmountCents       int64                      `db:"tx_amount_cents" json:"tx_amount_cents"`
+	TxCurrency          string                     `db:"tx_currency" json:"tx_currency"`
 	TxDirection         arian.TransactionDirection `db:"tx_direction" json:"tx_direction"`
 	TxDesc              *string                    `db:"tx_desc" json:"tx_desc"`
-	BalanceAfter        *types.Money               `db:"balance_after" json:"balance_after"`
+	BalanceAfterCents   *int64                     `db:"balance_after_cents" json:"balance_after_cents"`
+	BalanceCurrency     *string                    `db:"balance_currency" json:"balance_currency"`
 	Merchant            *string                    `db:"merchant" json:"merchant"`
 	CategoryID          *int64                     `db:"category_id" json:"category_id"`
+	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
+	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
 	Suggestions         []string                   `db:"suggestions" json:"suggestions"`
 	UserNotes           *string                    `db:"user_notes" json:"user_notes"`
-	ForeignAmount       *types.Money               `db:"foreign_amount" json:"foreign_amount"`
+	ForeignAmountCents  *int64                     `db:"foreign_amount_cents" json:"foreign_amount_cents"`
+	ForeignCurrency     *string                    `db:"foreign_currency" json:"foreign_currency"`
 	ExchangeRate        *float64                   `db:"exchange_rate" json:"exchange_rate"`
 	CreatedAt           time.Time                  `db:"created_at" json:"created_at"`
 	UpdatedAt           time.Time                  `db:"updated_at" json:"updated_at"`
-	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
-	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
 	MerchantScore       float32                    `db:"merchant_score" json:"merchant_score"`
 }
 
@@ -315,7 +329,7 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 		arg.Merchant,
 		arg.UserID,
 		arg.Date,
-		arg.Total,
+		arg.TotalCents,
 	)
 	if err != nil {
 		return nil, err
@@ -329,20 +343,23 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 			&i.AccountID,
 			&i.EmailID,
 			&i.TxDate,
-			&i.TxAmount,
+			&i.TxAmountCents,
+			&i.TxCurrency,
 			&i.TxDirection,
 			&i.TxDesc,
-			&i.BalanceAfter,
+			&i.BalanceAfterCents,
+			&i.BalanceCurrency,
 			&i.Merchant,
 			&i.CategoryID,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
 			&i.Suggestions,
 			&i.UserNotes,
-			&i.ForeignAmount,
+			&i.ForeignAmountCents,
+			&i.ForeignCurrency,
 			&i.ExchangeRate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.CategoryManuallySet,
-			&i.MerchantManuallySet,
 			&i.MerchantScore,
 		); err != nil {
 			return nil, err
@@ -386,7 +403,7 @@ func (q *Queries) GetAccountIDsFromTransactionIDs(ctx context.Context, ids []int
 
 const getTransaction = `-- name: GetTransaction :one
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at
 from
   transactions t
   join accounts a on t.account_id = a.id
@@ -413,20 +430,23 @@ func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) 
 		&i.AccountID,
 		&i.EmailID,
 		&i.TxDate,
-		&i.TxAmount,
+		&i.TxAmountCents,
+		&i.TxCurrency,
 		&i.TxDirection,
 		&i.TxDesc,
-		&i.BalanceAfter,
+		&i.BalanceAfterCents,
+		&i.BalanceCurrency,
 		&i.Merchant,
 		&i.CategoryID,
+		&i.CategoryManuallySet,
+		&i.MerchantManuallySet,
 		&i.Suggestions,
 		&i.UserNotes,
-		&i.ForeignAmount,
+		&i.ForeignAmountCents,
+		&i.ForeignCurrency,
 		&i.ExchangeRate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.CategoryManuallySet,
-		&i.MerchantManuallySet,
 	)
 	return i, err
 }
@@ -479,7 +499,7 @@ func (q *Queries) GetTransactionCountByAccount(ctx context.Context, userID uuid.
 
 const listAllTransactions = `-- name: ListAllTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at
 from
   transactions t
   join accounts a on t.account_id = a.id
@@ -509,20 +529,23 @@ func (q *Queries) ListAllTransactions(ctx context.Context, userID uuid.UUID) ([]
 			&i.AccountID,
 			&i.EmailID,
 			&i.TxDate,
-			&i.TxAmount,
+			&i.TxAmountCents,
+			&i.TxCurrency,
 			&i.TxDirection,
 			&i.TxDesc,
-			&i.BalanceAfter,
+			&i.BalanceAfterCents,
+			&i.BalanceCurrency,
 			&i.Merchant,
 			&i.CategoryID,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
 			&i.Suggestions,
 			&i.UserNotes,
-			&i.ForeignAmount,
+			&i.ForeignAmountCents,
+			&i.ForeignCurrency,
 			&i.ExchangeRate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.CategoryManuallySet,
-			&i.MerchantManuallySet,
 		); err != nil {
 			return nil, err
 		}
@@ -536,7 +559,7 @@ func (q *Queries) ListAllTransactions(ctx context.Context, userID uuid.UUID) ([]
 
 const listTransactions = `-- name: ListTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount, t.tx_direction, t.tx_desc, t.balance_after, t.merchant, t.category_id, t.suggestions, t.user_notes, t.foreign_amount, t.exchange_rate, t.created_at, t.updated_at, t.category_manually_set, t.merchant_manually_set
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at
 from
   transactions t
   join accounts a on t.account_id = a.id
@@ -565,12 +588,12 @@ where
     or t.tx_date <= $5::timestamptz
   )
   and (
-    $6::double precision is null
-    or (t.tx_amount ->> 'units')::bigint >= $6::double precision
+    $6::bigint is null
+    or t.tx_amount_cents >= $6::bigint
   )
   and (
-    $7::double precision is null
-    or (t.tx_amount ->> 'units')::bigint <= $7::double precision
+    $7::bigint is null
+    or t.tx_amount_cents <= $7::bigint
   )
   and (
     $8::smallint is null
@@ -594,7 +617,7 @@ where
   )
   and (
     $13::char(3) is null
-    or t.tx_amount ->> 'currency_code' = $13::char(3)
+    or t.tx_currency = $13::char(3)
   )
   and (
     $14::time is null
@@ -619,23 +642,23 @@ limit
 `
 
 type ListTransactionsParams struct {
-	UserID        uuid.UUID   `db:"user_id" json:"user_id"`
-	CursorDate    *time.Time  `db:"cursor_date" json:"cursor_date"`
-	CursorID      *int64      `db:"cursor_id" json:"cursor_id"`
-	Start         *time.Time  `db:"start" json:"start"`
-	End           *time.Time  `db:"end" json:"end"`
-	AmountMin     *float64    `db:"amount_min" json:"amount_min"`
-	AmountMax     *float64    `db:"amount_max" json:"amount_max"`
-	Direction     *int16      `db:"direction" json:"direction"`
-	AccountIds    []int64     `db:"account_ids" json:"account_ids"`
-	Categories    []string    `db:"categories" json:"categories"`
-	MerchantQ     *string     `db:"merchant_q" json:"merchant_q"`
-	DescQ         *string     `db:"desc_q" json:"desc_q"`
-	Currency      *string     `db:"currency" json:"currency"`
-	TodStart      pgtype.Time `db:"tod_start" json:"tod_start"`
-	TodEnd        pgtype.Time `db:"tod_end" json:"tod_end"`
-	Uncategorized *bool       `db:"uncategorized" json:"uncategorized"`
-	Limit         *int32      `db:"limit" json:"limit"`
+	UserID         uuid.UUID   `db:"user_id" json:"user_id"`
+	CursorDate     *time.Time  `db:"cursor_date" json:"cursor_date"`
+	CursorID       *int64      `db:"cursor_id" json:"cursor_id"`
+	Start          *time.Time  `db:"start" json:"start"`
+	End            *time.Time  `db:"end" json:"end"`
+	AmountMinCents *int64      `db:"amount_min_cents" json:"amount_min_cents"`
+	AmountMaxCents *int64      `db:"amount_max_cents" json:"amount_max_cents"`
+	Direction      *int16      `db:"direction" json:"direction"`
+	AccountIds     []int64     `db:"account_ids" json:"account_ids"`
+	Categories     []string    `db:"categories" json:"categories"`
+	MerchantQ      *string     `db:"merchant_q" json:"merchant_q"`
+	DescQ          *string     `db:"desc_q" json:"desc_q"`
+	Currency       *string     `db:"currency" json:"currency"`
+	TodStart       pgtype.Time `db:"tod_start" json:"tod_start"`
+	TodEnd         pgtype.Time `db:"tod_end" json:"tod_end"`
+	Uncategorized  *bool       `db:"uncategorized" json:"uncategorized"`
+	Limit          *int32      `db:"limit" json:"limit"`
 }
 
 func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {
@@ -645,8 +668,8 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 		arg.CursorID,
 		arg.Start,
 		arg.End,
-		arg.AmountMin,
-		arg.AmountMax,
+		arg.AmountMinCents,
+		arg.AmountMaxCents,
 		arg.Direction,
 		arg.AccountIds,
 		arg.Categories,
@@ -670,20 +693,23 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 			&i.AccountID,
 			&i.EmailID,
 			&i.TxDate,
-			&i.TxAmount,
+			&i.TxAmountCents,
+			&i.TxCurrency,
 			&i.TxDirection,
 			&i.TxDesc,
-			&i.BalanceAfter,
+			&i.BalanceAfterCents,
+			&i.BalanceCurrency,
 			&i.Merchant,
 			&i.CategoryID,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
 			&i.Suggestions,
 			&i.UserNotes,
-			&i.ForeignAmount,
+			&i.ForeignAmountCents,
+			&i.ForeignCurrency,
 			&i.ExchangeRate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.CategoryManuallySet,
-			&i.MerchantManuallySet,
 		); err != nil {
 			return nil, err
 		}
@@ -695,192 +721,36 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 	return items, nil
 }
 
-const recalculateBalancesAfterTransaction = `-- name: RecalculateBalancesAfterTransaction :exec
-with transaction_deltas as (
-  select
-    id,
-    SUM(
-      case
-        when tx_direction = 1 then (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        else -(
-          (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        )
-      end
-    ) OVER (
-      partition BY account_id
-      order by
-        tx_date,
-        id
-    ) as running_delta
-  from
-    transactions
-  where
-    account_id = $1::bigint
-    and (
-      tx_date > $2::timestamptz
-      or (
-        tx_date = $2::timestamptz
-        and id >= $3::bigint
-      )
-    )
-),
-anchor_point as (
-  select
-    a.anchor_balance,
-    COALESCE(
-      SUM(
-        case
-          when t.tx_direction = 1 then (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          else -(
-            (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          )
-        end
-      ),
-      0.0
-    ) as delta_at_anchor
-  from
-    accounts a
-    left join transactions t on t.account_id = a.id
-    and t.tx_date < a.anchor_date
-  where
-    a.id = $1::bigint
-  group by
-    a.id,
-    a.anchor_balance
-)
-update
-  transactions
-set
-  balance_after = jsonb_build_object(
-    'currency_code',
-    tx_amount ->> 'currency_code',
-    'units',
-    (
-      (ap.anchor_balance ->> 'units')::bigint + td.running_delta - ap.delta_at_anchor
-    )::bigint,
-    'nanos',
-    0
-  )
-from
-  transaction_deltas td,
-  anchor_point ap
-where
-  transactions.id = td.id
-  and transactions.account_id = $1::bigint
-`
-
-type RecalculateBalancesAfterTransactionParams struct {
-	AccountID int64     `db:"account_id" json:"account_id"`
-	FromDate  time.Time `db:"from_date" json:"from_date"`
-	FromID    int64     `db:"from_id" json:"from_id"`
-}
-
-// Recalculate balance_after for all transactions after a given date/id
-func (q *Queries) RecalculateBalancesAfterTransaction(ctx context.Context, arg RecalculateBalancesAfterTransactionParams) error {
-	_, err := q.db.Exec(ctx, recalculateBalancesAfterTransaction, arg.AccountID, arg.FromDate, arg.FromID)
-	return err
-}
-
-const syncAccountBalances = `-- name: SyncAccountBalances :exec
-with transaction_deltas as (
-  select
-    id,
-    SUM(
-      case
-        when tx_direction = 1 then (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        else -(
-          (tx_amount ->> 'units')::bigint + (tx_amount ->> 'nanos')::bigint / 1000000000.0
-        )
-      end
-    ) OVER (
-      partition BY account_id
-      order by
-        tx_date,
-        id
-    ) as running_delta
-  from
-    transactions
-  where
-    account_id = $1::bigint
-),
-anchor_point as (
-  select
-    a.anchor_balance,
-    COALESCE(
-      SUM(
-        case
-          when t.tx_direction = 1 then (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          else -(
-            (t.tx_amount ->> 'units')::bigint + (t.tx_amount ->> 'nanos')::bigint / 1000000000.0
-          )
-        end
-      ),
-      0.0
-    ) as delta_at_anchor
-  from
-    accounts a
-    left join transactions t on t.account_id = a.id
-    and t.tx_date < a.anchor_date
-  where
-    a.id = $1::bigint
-  group by
-    a.id,
-    a.anchor_balance
-)
-update
-  transactions
-set
-  balance_after = jsonb_build_object(
-    'currency_code',
-    tx_amount ->> 'currency_code',
-    'units',
-    (
-      (ap.anchor_balance ->> 'units')::bigint + td.running_delta - ap.delta_at_anchor
-    )::bigint,
-    'nanos',
-    0
-  )
-from
-  transaction_deltas td,
-  anchor_point ap
-where
-  transactions.id = td.id
-  and transactions.account_id = $1::bigint
-`
-
-func (q *Queries) SyncAccountBalances(ctx context.Context, accountID int64) error {
-	_, err := q.db.Exec(ctx, syncAccountBalances, accountID)
-	return err
-}
-
 const updateTransaction = `-- name: UpdateTransaction :one
 update
   transactions
 set
   email_id = coalesce($1::text, email_id),
   tx_date = coalesce($2::timestamptz, tx_date),
-  tx_amount = coalesce($3::jsonb, tx_amount),
-  tx_direction = coalesce($4::smallint, tx_direction),
-  tx_desc = coalesce($5::text, tx_desc),
-  category_id = coalesce($6::bigint, category_id),
-  merchant = coalesce($7::text, merchant),
-  user_notes = coalesce($8::text, user_notes),
-  foreign_amount = coalesce($9::jsonb, foreign_amount),
-  exchange_rate = coalesce($10::double precision, exchange_rate),
-  suggestions = coalesce($11::text[], suggestions),
-  category_manually_set = coalesce($12::boolean, category_manually_set),
-  merchant_manually_set = coalesce($13::boolean, merchant_manually_set)
+  tx_amount_cents = coalesce($3::bigint, tx_amount_cents),
+  tx_currency = coalesce($4::char(3), tx_currency),
+  tx_direction = coalesce($5::smallint, tx_direction),
+  tx_desc = coalesce($6::text, tx_desc),
+  category_id = coalesce($7::bigint, category_id),
+  merchant = coalesce($8::text, merchant),
+  user_notes = coalesce($9::text, user_notes),
+  foreign_amount_cents = coalesce($10::bigint, foreign_amount_cents),
+  foreign_currency = coalesce($11::char(3), foreign_currency),
+  exchange_rate = coalesce($12::double precision, exchange_rate),
+  suggestions = coalesce($13::text[], suggestions),
+  category_manually_set = coalesce($14::boolean, category_manually_set),
+  merchant_manually_set = coalesce($15::boolean, merchant_manually_set)
 where
-  id = $14::bigint
+  id = $16::bigint
   and account_id in (
     select
       a.id
     from
       accounts a
       left join account_users au on a.id = au.account_id
-      and au.user_id = $15::uuid
+      and au.user_id = $17::uuid
     where
-      a.owner_id = $15::uuid
+      a.owner_id = $17::uuid
       or au.user_id is not null
   )
 returning
@@ -890,13 +760,15 @@ returning
 type UpdateTransactionParams struct {
 	EmailID             *string    `db:"email_id" json:"email_id"`
 	TxDate              *time.Time `db:"tx_date" json:"tx_date"`
-	TxAmount            []byte     `db:"tx_amount" json:"tx_amount"`
+	TxAmountCents       *int64     `db:"tx_amount_cents" json:"tx_amount_cents"`
+	TxCurrency          *string    `db:"tx_currency" json:"tx_currency"`
 	TxDirection         *int16     `db:"tx_direction" json:"tx_direction"`
 	TxDesc              *string    `db:"tx_desc" json:"tx_desc"`
 	CategoryID          *int64     `db:"category_id" json:"category_id"`
 	Merchant            *string    `db:"merchant" json:"merchant"`
 	UserNotes           *string    `db:"user_notes" json:"user_notes"`
-	ForeignAmount       []byte     `db:"foreign_amount" json:"foreign_amount"`
+	ForeignAmountCents  *int64     `db:"foreign_amount_cents" json:"foreign_amount_cents"`
+	ForeignCurrency     *string    `db:"foreign_currency" json:"foreign_currency"`
 	ExchangeRate        *float64   `db:"exchange_rate" json:"exchange_rate"`
 	Suggestions         []string   `db:"suggestions" json:"suggestions"`
 	CategoryManuallySet *bool      `db:"category_manually_set" json:"category_manually_set"`
@@ -909,13 +781,15 @@ func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionPa
 	row := q.db.QueryRow(ctx, updateTransaction,
 		arg.EmailID,
 		arg.TxDate,
-		arg.TxAmount,
+		arg.TxAmountCents,
+		arg.TxCurrency,
 		arg.TxDirection,
 		arg.TxDesc,
 		arg.CategoryID,
 		arg.Merchant,
 		arg.UserNotes,
-		arg.ForeignAmount,
+		arg.ForeignAmountCents,
+		arg.ForeignCurrency,
 		arg.ExchangeRate,
 		arg.Suggestions,
 		arg.CategoryManuallySet,

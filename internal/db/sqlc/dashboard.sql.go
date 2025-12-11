@@ -9,62 +9,45 @@ import (
 	"context"
 	"time"
 
+	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
 )
 
 const getAccountBalances = `-- name: GetAccountBalances :many
-with balance_deltas as (
-  select
-    t.account_id,
-    SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else -amount_cents(t.tx_amount) end) as delta_cents
-  from transactions t
-  join accounts a on t.account_id = a.id
-  where t.tx_date > a.anchor_date
-  group by t.account_id
-),
-calculated_balances as (
-  select
-    a.id,
-    a.name,
-    a.account_type,
-    a.anchor_balance->>'currency_code' as currency_code,
-    (a.anchor_balance->>'units')::bigint as anchor_units,
-    (a.anchor_balance->>'nanos')::int as anchor_nanos,
-    COALESCE(d.delta_cents, 0) as delta_cents,
-    a.owner_id,
-    au.user_id as shared_user_id
-  from accounts a
-  left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
-  left join balance_deltas d on a.id = d.account_id
-  where (a.owner_id = $1::uuid or au.user_id is not null)
-)
 select
-  cb.id,
-  cb.name,
-  cb.account_type,
-  jsonb_build_object(
-    'currency_code', cb.currency_code,
-    'units', cb.anchor_units + (cb.anchor_nanos + cb.delta_cents * 10000000) / 1000000000 + cb.delta_cents / 100,
-    'nanos', (cb.anchor_nanos + (cb.delta_cents % 100) * 10000000) % 1000000000
-  ) as current_balance
-from calculated_balances cb
+  a.id,
+  a.name,
+  a.account_type,
+  a.anchor_currency as currency,
+  COALESCE(
+    (select t.balance_after_cents
+     from transactions t
+     where t.account_id = a.id
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_balance_cents
+  ) as balance_cents
+from accounts a
+left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
+where (a.owner_id = $1::uuid or au.user_id is not null)
 order by
-  case cb.account_type
-    when 1 then 1  -- ACCOUNT_CHEQUING
-    when 2 then 2  -- ACCOUNT_SAVINGS
-    when 3 then 3  -- ACCOUNT_INVESTMENT
-    when 4 then 4  -- ACCOUNT_OTHER
-    when 5 then 5  -- ACCOUNT_CREDIT_CARD
+  case a.account_type
+    when 1 then 1
+    when 2 then 2
+    when 3 then 3
+    when 4 then 4
+    when 5 then 5
     else 6
   end,
-  cb.anchor_units + (cb.anchor_nanos + cb.delta_cents * 10000000) / 1000000000 + cb.delta_cents / 100 desc
+  balance_cents desc
 `
 
 type GetAccountBalancesRow struct {
-	ID             int64  `db:"id" json:"id"`
-	Name           string `db:"name" json:"name"`
-	AccountType    int16  `db:"account_type" json:"account_type"`
-	CurrentBalance []byte `db:"current_balance" json:"current_balance"`
+	ID           int64             `db:"id" json:"id"`
+	Name         string            `db:"name" json:"name"`
+	AccountType  arian.AccountType `db:"account_type" json:"account_type"`
+	Currency     string            `db:"currency" json:"currency"`
+	BalanceCents int64             `db:"balance_cents" json:"balance_cents"`
 }
 
 func (q *Queries) GetAccountBalances(ctx context.Context, userID uuid.UUID) ([]GetAccountBalancesRow, error) {
@@ -80,68 +63,8 @@ func (q *Queries) GetAccountBalances(ctx context.Context, userID uuid.UUID) ([]G
 			&i.ID,
 			&i.Name,
 			&i.AccountType,
-			&i.CurrentBalance,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getCategorySpendingForPeriod = `-- name: GetCategorySpendingForPeriod :many
-select
-  t.category_id,
-  c.id as category_db_id,
-  c.slug as category_slug,
-  c.color as category_color,
-  COALESCE(SUM(amount_cents(t.tx_amount)), 0)::bigint as total_cents,
-  COUNT(t.id)::bigint as transaction_count
-from transactions t
-join accounts a on t.account_id = a.id
-left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
-left join categories c on t.category_id = c.id
-where (a.owner_id = $1::uuid or au.user_id is not null)
-  and t.tx_direction = 2
-  and t.tx_date >= $2::timestamptz
-  and t.tx_date <= $3::timestamptz
-group by t.category_id, c.id, c.slug, c.color
-`
-
-type GetCategorySpendingForPeriodParams struct {
-	UserID    uuid.UUID `db:"user_id" json:"user_id"`
-	StartDate time.Time `db:"start_date" json:"start_date"`
-	EndDate   time.Time `db:"end_date" json:"end_date"`
-}
-
-type GetCategorySpendingForPeriodRow struct {
-	CategoryID       *int64  `db:"category_id" json:"category_id"`
-	CategoryDbID     *int64  `db:"category_db_id" json:"category_db_id"`
-	CategorySlug     *string `db:"category_slug" json:"category_slug"`
-	CategoryColor    *string `db:"category_color" json:"category_color"`
-	TotalCents       int64   `db:"total_cents" json:"total_cents"`
-	TransactionCount int64   `db:"transaction_count" json:"transaction_count"`
-}
-
-func (q *Queries) GetCategorySpendingForPeriod(ctx context.Context, arg GetCategorySpendingForPeriodParams) ([]GetCategorySpendingForPeriodRow, error) {
-	rows, err := q.db.Query(ctx, getCategorySpendingForPeriod, arg.UserID, arg.StartDate, arg.EndDate)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetCategorySpendingForPeriodRow
-	for rows.Next() {
-		var i GetCategorySpendingForPeriodRow
-		if err := rows.Scan(
-			&i.CategoryID,
-			&i.CategoryDbID,
-			&i.CategorySlug,
-			&i.CategoryColor,
-			&i.TotalCents,
-			&i.TransactionCount,
+			&i.Currency,
+			&i.BalanceCents,
 		); err != nil {
 			return nil, err
 		}
@@ -157,8 +80,8 @@ const getDashboardSummary = `-- name: GetDashboardSummary :one
 select
   COUNT(distinct a.id)::bigint as total_accounts,
   COUNT(t.id)::bigint as total_transactions,
-  COALESCE(SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else 0 end), 0)::bigint as total_income_cents,
-  COALESCE(SUM(case when t.tx_direction = 2 then amount_cents(t.tx_amount) else 0 end), 0)::bigint as total_expense_cents,
+  COALESCE(SUM(case when t.tx_direction = 1 then t.tx_amount_cents else 0 end), 0)::bigint as total_income_cents,
+  COALESCE(SUM(case when t.tx_direction = 2 then t.tx_amount_cents else 0 end), 0)::bigint as total_expense_cents,
   COUNT(distinct case when t.tx_date >= CURRENT_DATE - interval '30 days' then t.id end)::bigint as transactions_last_30_days,
   COUNT(distinct case when t.category_id is null then t.id end)::bigint as uncategorized_transactions
 from accounts a
@@ -198,63 +121,11 @@ func (q *Queries) GetDashboardSummary(ctx context.Context, arg GetDashboardSumma
 	return i, err
 }
 
-const getDashboardSummaryForAccount = `-- name: GetDashboardSummaryForAccount :one
-select
-  COUNT(distinct a.id)::bigint as total_accounts,
-  COUNT(t.id)::bigint as total_transactions,
-  COALESCE(SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else 0 end), 0)::bigint as total_income_cents,
-  COALESCE(SUM(case when t.tx_direction = 2 then amount_cents(t.tx_amount) else 0 end), 0)::bigint as total_expense_cents,
-  COUNT(distinct case when t.tx_date >= CURRENT_DATE - interval '30 days' then t.id end)::bigint as transactions_last_30_days,
-  COUNT(distinct case when t.category_id is null then t.id end)::bigint as uncategorized_transactions
-from accounts a
-left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
-left join transactions t on a.id = t.account_id
-where (a.owner_id = $1::uuid or au.user_id is not null)
-  and a.id = $2::bigint
-  and ($3::timestamptz is null or t.tx_date >= $3::timestamptz)
-  and ($4::timestamptz is null or t.tx_date <= $4::timestamptz)
-`
-
-type GetDashboardSummaryForAccountParams struct {
-	UserID    uuid.UUID  `db:"user_id" json:"user_id"`
-	AccountID int64      `db:"account_id" json:"account_id"`
-	Start     *time.Time `db:"start" json:"start"`
-	End       *time.Time `db:"end" json:"end"`
-}
-
-type GetDashboardSummaryForAccountRow struct {
-	TotalAccounts             int64 `db:"total_accounts" json:"total_accounts"`
-	TotalTransactions         int64 `db:"total_transactions" json:"total_transactions"`
-	TotalIncomeCents          int64 `db:"total_income_cents" json:"total_income_cents"`
-	TotalExpenseCents         int64 `db:"total_expense_cents" json:"total_expense_cents"`
-	TransactionsLast30Days    int64 `db:"transactions_last_30_days" json:"transactions_last_30_days"`
-	UncategorizedTransactions int64 `db:"uncategorized_transactions" json:"uncategorized_transactions"`
-}
-
-func (q *Queries) GetDashboardSummaryForAccount(ctx context.Context, arg GetDashboardSummaryForAccountParams) (GetDashboardSummaryForAccountRow, error) {
-	row := q.db.QueryRow(ctx, getDashboardSummaryForAccount,
-		arg.UserID,
-		arg.AccountID,
-		arg.Start,
-		arg.End,
-	)
-	var i GetDashboardSummaryForAccountRow
-	err := row.Scan(
-		&i.TotalAccounts,
-		&i.TotalTransactions,
-		&i.TotalIncomeCents,
-		&i.TotalExpenseCents,
-		&i.TransactionsLast30Days,
-		&i.UncategorizedTransactions,
-	)
-	return i, err
-}
-
 const getDashboardTrends = `-- name: GetDashboardTrends :many
 select
   to_char(t.tx_date::date, 'YYYY-MM-DD') as date,
-  SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else 0 end)::bigint as income_cents,
-  SUM(case when t.tx_direction = 2 then amount_cents(t.tx_amount) else 0 end)::bigint as expense_cents
+  SUM(case when t.tx_direction = 1 then t.tx_amount_cents else 0 end)::bigint as income_cents,
+  SUM(case when t.tx_direction = 2 then t.tx_amount_cents else 0 end)::bigint as expense_cents
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
@@ -297,66 +168,12 @@ func (q *Queries) GetDashboardTrends(ctx context.Context, arg GetDashboardTrends
 	return items, nil
 }
 
-const getDashboardTrendsForAccount = `-- name: GetDashboardTrendsForAccount :many
-select
-  to_char(t.tx_date::date, 'YYYY-MM-DD') as date,
-  SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else 0 end)::bigint as income_cents,
-  SUM(case when t.tx_direction = 2 then amount_cents(t.tx_amount) else 0 end)::bigint as expense_cents
-from transactions t
-join accounts a on t.account_id = a.id
-left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
-where (a.owner_id = $1::uuid or au.user_id is not null)
-  and a.id = $2::bigint
-  and ($3::timestamptz is null or t.tx_date >= $3::timestamptz)
-  and ($4::timestamptz is null or t.tx_date <= $4::timestamptz)
-group by date
-order by date
-`
-
-type GetDashboardTrendsForAccountParams struct {
-	UserID    uuid.UUID  `db:"user_id" json:"user_id"`
-	AccountID int64      `db:"account_id" json:"account_id"`
-	Start     *time.Time `db:"start" json:"start"`
-	End       *time.Time `db:"end" json:"end"`
-}
-
-type GetDashboardTrendsForAccountRow struct {
-	Date         string `db:"date" json:"date"`
-	IncomeCents  int64  `db:"income_cents" json:"income_cents"`
-	ExpenseCents int64  `db:"expense_cents" json:"expense_cents"`
-}
-
-func (q *Queries) GetDashboardTrendsForAccount(ctx context.Context, arg GetDashboardTrendsForAccountParams) ([]GetDashboardTrendsForAccountRow, error) {
-	rows, err := q.db.Query(ctx, getDashboardTrendsForAccount,
-		arg.UserID,
-		arg.AccountID,
-		arg.Start,
-		arg.End,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetDashboardTrendsForAccountRow
-	for rows.Next() {
-		var i GetDashboardTrendsForAccountRow
-		if err := rows.Scan(&i.Date, &i.IncomeCents, &i.ExpenseCents); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getMonthlyComparison = `-- name: GetMonthlyComparison :many
 select
   to_char(t.tx_date, 'YYYY-MM') as month,
-  SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else 0 end)::bigint as income_cents,
-  SUM(case when t.tx_direction = 2 then amount_cents(t.tx_amount) else 0 end)::bigint as expense_cents,
-  SUM(case when t.tx_direction = 1 then amount_cents(t.tx_amount) else -amount_cents(t.tx_amount) end)::bigint as net_cents
+  SUM(case when t.tx_direction = 1 then t.tx_amount_cents else 0 end)::bigint as income_cents,
+  SUM(case when t.tx_direction = 2 then t.tx_amount_cents else 0 end)::bigint as expense_cents,
+  SUM(case when t.tx_direction = 1 then t.tx_amount_cents else -t.tx_amount_cents end)::bigint as net_cents
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
@@ -419,54 +236,35 @@ with date_series as (
       end
     )::date as period_date
 ),
-user_accounts as (
-  select a.id, a.anchor_date, a.anchor_balance
-  from accounts a
-  left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
-  where (a.owner_id = $4::uuid or au.user_id is not null)
-),
 account_balances_at_date as (
   select
     ds.period_date,
-    ua.id as account_id,
-    ua.anchor_balance->>'currency_code' as currency_code,
-    (ua.anchor_balance->>'units')::bigint as anchor_units,
-    (ua.anchor_balance->>'nanos')::int as anchor_nanos,
+    a.id as account_id,
+    a.anchor_currency,
+    a.anchor_balance_cents +
     COALESCE(
       SUM(
         case when t.tx_direction = 1
-          then amount_cents(t.tx_amount)
-          else -amount_cents(t.tx_amount)
+          then t.tx_amount_cents
+          else -t.tx_amount_cents
         end
       ), 0
-    ) as delta_cents
+    ) as balance_cents
   from date_series ds
-  cross join user_accounts ua
-  left join transactions t on t.account_id = ua.id
-    and t.tx_date > ua.anchor_date
+  cross join accounts a
+  left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
+  left join transactions t on t.account_id = a.id
+    and t.tx_date > a.anchor_date
     and t.tx_date <= ds.period_date
-  group by ds.period_date, ua.id, ua.anchor_balance
-),
-net_worth_per_date as (
-  select
-    ab.period_date,
-    SUM(
-      ab.anchor_units +
-      (ab.anchor_nanos + ab.delta_cents * 10000000) / 1000000000 +
-      ab.delta_cents / 100
-    ) as total_units,
-    SUM(
-      (ab.anchor_nanos + (ab.delta_cents % 100) * 10000000) % 1000000000
-    ) as total_nanos
-  from account_balances_at_date ab
-  group by ab.period_date
+  where (a.owner_id = $4::uuid or au.user_id is not null)
+  group by ds.period_date, a.id, a.anchor_balance_cents, a.anchor_currency
 )
 select
-  to_char(nw.period_date, 'YYYY-MM-DD') as date,
-  (nw.total_units + nw.total_nanos / 1000000000)::bigint as net_worth_units,
-  (nw.total_nanos % 1000000000)::int as net_worth_nanos
-from net_worth_per_date nw
-order by nw.period_date
+  to_char(ab.period_date, 'YYYY-MM-DD') as date,
+  SUM(ab.balance_cents)::bigint as net_worth_cents
+from account_balances_at_date ab
+group by ab.period_date
+order by ab.period_date
 `
 
 type GetNetWorthHistoryParams struct {
@@ -478,8 +276,7 @@ type GetNetWorthHistoryParams struct {
 
 type GetNetWorthHistoryRow struct {
 	Date          string `db:"date" json:"date"`
-	NetWorthUnits int64  `db:"net_worth_units" json:"net_worth_units"`
-	NetWorthNanos int32  `db:"net_worth_nanos" json:"net_worth_nanos"`
+	NetWorthCents int64  `db:"net_worth_cents" json:"net_worth_cents"`
 }
 
 func (q *Queries) GetNetWorthHistory(ctx context.Context, arg GetNetWorthHistoryParams) ([]GetNetWorthHistoryRow, error) {
@@ -496,7 +293,7 @@ func (q *Queries) GetNetWorthHistory(ctx context.Context, arg GetNetWorthHistory
 	var items []GetNetWorthHistoryRow
 	for rows.Next() {
 		var i GetNetWorthHistoryRow
-		if err := rows.Scan(&i.Date, &i.NetWorthUnits, &i.NetWorthNanos); err != nil {
+		if err := rows.Scan(&i.Date, &i.NetWorthCents); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -512,7 +309,7 @@ select
   c.slug,
   c.color,
   COUNT(t.id)::bigint as transaction_count,
-  SUM(amount_cents(t.tx_amount))::bigint as total_amount_cents
+  SUM(t.tx_amount_cents)::bigint as total_amount_cents
 from transactions t
 join categories c on t.category_id = c.id
 join accounts a on t.account_id = a.id
@@ -574,8 +371,8 @@ const getTopMerchants = `-- name: GetTopMerchants :many
 select
   t.merchant,
   COUNT(t.id)::bigint as transaction_count,
-  SUM(amount_cents(t.tx_amount))::bigint as total_amount_cents,
-  AVG(amount_cents(t.tx_amount))::bigint as avg_amount_cents
+  SUM(t.tx_amount_cents)::bigint as total_amount_cents,
+  AVG(t.tx_amount_cents)::bigint as avg_amount_cents
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid

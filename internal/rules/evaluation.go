@@ -74,17 +74,11 @@ func evaluateCondition(condition *Condition, tx *sqlc.Transaction, account *sqlc
 			fieldValue = &account.Bank
 		}
 	case FieldCurrency:
-		if tx.TxAmount != nil {
-			fieldValue = &tx.TxAmount.CurrencyCode
-		}
+		fieldValue = &tx.TxCurrency
 	case FieldAmount:
-		if tx.TxAmount != nil {
-			amount := float64(tx.TxAmount.Units)
-			if tx.TxAmount.Nanos != 0 {
-				amount += float64(tx.TxAmount.Nanos) / 1_000_000_000
-			}
-			numericValue = &amount
-		}
+		// Convert cents to dollars for rule matching
+		amount := float64(tx.TxAmountCents) / 100.0
+		numericValue = &amount
 	case FieldTxDirection:
 		val := float64(tx.TxDirection)
 		numericValue = &val

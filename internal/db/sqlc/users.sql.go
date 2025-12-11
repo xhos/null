@@ -33,7 +33,7 @@ func (q *Queries) CheckUserExists(ctx context.Context, id uuid.UUID) (bool, erro
 const createUser = `-- name: CreateUser :one
 insert into users (id, email, display_name)
 values ($1::uuid, $2::text, $3::text)
-returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
+returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -50,10 +50,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.DisplayName,
 		&i.DefaultAccountID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.PrimaryCurrency,
 		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -97,7 +97,7 @@ func (q *Queries) DeleteUserWithCascade(ctx context.Context, id uuid.UUID) (int6
 }
 
 const getUser = `-- name: GetUser :one
-select id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone from users
+select id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at from users
 where id = $1::uuid
 `
 
@@ -109,16 +109,16 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Email,
 		&i.DisplayName,
 		&i.DefaultAccountID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.PrimaryCurrency,
 		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-select id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone from users
+select id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at from users
 where lower(email) = lower($1::text)
 `
 
@@ -130,10 +130,10 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.DisplayName,
 		&i.DefaultAccountID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.PrimaryCurrency,
 		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -191,7 +191,7 @@ func (q *Queries) GetUserTimezone(ctx context.Context, id uuid.UUID) (string, er
 }
 
 const listUsers = `-- name: ListUsers :many
-select id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone from users
+select id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at from users
 order by created_at desc
 `
 
@@ -209,10 +209,10 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.DisplayName,
 			&i.DefaultAccountID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.PrimaryCurrency,
 			&i.Timezone,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -228,7 +228,7 @@ const setUserDefaultAccount = `-- name: SetUserDefaultAccount :one
 update users
 set default_account_id = $1::bigint
 where id = $2::uuid
-returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
+returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
 `
 
 type SetUserDefaultAccountParams struct {
@@ -244,10 +244,10 @@ func (q *Queries) SetUserDefaultAccount(ctx context.Context, arg SetUserDefaultA
 		&i.Email,
 		&i.DisplayName,
 		&i.DefaultAccountID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.PrimaryCurrency,
 		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -261,7 +261,7 @@ set
   primary_currency = coalesce($4::varchar(3), primary_currency),
   timezone = coalesce($5::varchar(50), timezone)
 where id = $6::uuid
-returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
+returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
 `
 
 type UpdateUserParams struct {
@@ -288,10 +288,10 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Email,
 		&i.DisplayName,
 		&i.DefaultAccountID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.PrimaryCurrency,
 		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -300,7 +300,7 @@ const updateUserDisplayName = `-- name: UpdateUserDisplayName :one
 update users
 set display_name = $1::text
 where id = $2::uuid
-returning id, email, display_name, default_account_id, created_at, updated_at, primary_currency, timezone
+returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
 `
 
 type UpdateUserDisplayNameParams struct {
@@ -316,10 +316,10 @@ func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDispl
 		&i.Email,
 		&i.DisplayName,
 		&i.DefaultAccountID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.PrimaryCurrency,
 		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

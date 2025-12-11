@@ -24,7 +24,6 @@ sql:
             go_type:
               type: 'time.Time'
 
-
           # double precision to float64
           - db_type: 'double precision'
             nullable: false
@@ -45,41 +44,6 @@ sql:
             nullable: true
             go_type:
               type: 'int32'
-              pointer: true
-
-          # money fields - use custom Money for JSONB
-          - column: 'accounts.anchor_balance'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-          - column: 'transactions.tx_amount'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-          - column: 'transactions.balance_after'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-          - column: 'transactions.foreign_amount'
-            go_type:
-              import: 'ariand/internal/types'
-              type: 'Money'
-              pointer: true
-
-          # pg json to go json
-          - db_type: 'pg_catalog.jsonb'
-            nullable: false
-            go_type:
-              import: 'encoding/json'
-              type: 'RawMessage'
-          - db_type: 'pg_catalog.jsonb'
-            nullable: true
-            go_type:
-              import: 'encoding/json'
-              type: 'RawMessage'
               pointer: true
 
           # pg uuid to google/uuid
@@ -115,7 +79,3 @@ sql:
             go_type:
               import: 'ariand/internal/gen/arian/v1'
               type: 'TransactionDirection'
-          - column: 'transactions.cat_status'
-            go_type:
-              import: 'ariand/internal/gen/arian/v1'
-              type: 'CategorizationStatus'
