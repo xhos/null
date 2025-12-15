@@ -15,7 +15,7 @@ insert into transaction_rules (user_id, rule_name, category_id, conditions, merc
 values (@user_id::uuid, @rule_name::text, @category_id::bigint, @conditions::jsonb, @merchant::text)
 returning *;
 
--- name: UpdateRule :one
+-- name: UpdateRule :exec
 update transaction_rules
 set
   rule_name = sqlc.narg('rule_name'),
@@ -26,8 +26,7 @@ set
   merchant = sqlc.narg('merchant'),
   updated_at = now()
 where rule_id = @rule_id::uuid
-  and user_id = @user_id::uuid
-returning *;
+  and user_id = @user_id::uuid;
 
 -- name: DeleteRule :execrows
 delete from transaction_rules

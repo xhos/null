@@ -39,9 +39,6 @@ const (
 	// CategoryServiceGetCategoryProcedure is the fully-qualified name of the CategoryService's
 	// GetCategory RPC.
 	CategoryServiceGetCategoryProcedure = "/arian.v1.CategoryService/GetCategory"
-	// CategoryServiceGetCategoryBySlugProcedure is the fully-qualified name of the CategoryService's
-	// GetCategoryBySlug RPC.
-	CategoryServiceGetCategoryBySlugProcedure = "/arian.v1.CategoryService/GetCategoryBySlug"
 	// CategoryServiceCreateCategoryProcedure is the fully-qualified name of the CategoryService's
 	// CreateCategory RPC.
 	CategoryServiceCreateCategoryProcedure = "/arian.v1.CategoryService/CreateCategory"
@@ -51,20 +48,15 @@ const (
 	// CategoryServiceDeleteCategoryProcedure is the fully-qualified name of the CategoryService's
 	// DeleteCategory RPC.
 	CategoryServiceDeleteCategoryProcedure = "/arian.v1.CategoryService/DeleteCategory"
-	// CategoryServiceListCategorySlugsProcedure is the fully-qualified name of the CategoryService's
-	// ListCategorySlugs RPC.
-	CategoryServiceListCategorySlugsProcedure = "/arian.v1.CategoryService/ListCategorySlugs"
 )
 
 // CategoryServiceClient is a client for the arian.v1.CategoryService service.
 type CategoryServiceClient interface {
 	ListCategories(context.Context, *connect.Request[v1.ListCategoriesRequest]) (*connect.Response[v1.ListCategoriesResponse], error)
 	GetCategory(context.Context, *connect.Request[v1.GetCategoryRequest]) (*connect.Response[v1.GetCategoryResponse], error)
-	GetCategoryBySlug(context.Context, *connect.Request[v1.GetCategoryBySlugRequest]) (*connect.Response[v1.GetCategoryBySlugResponse], error)
 	CreateCategory(context.Context, *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error)
 	UpdateCategory(context.Context, *connect.Request[v1.UpdateCategoryRequest]) (*connect.Response[v1.UpdateCategoryResponse], error)
 	DeleteCategory(context.Context, *connect.Request[v1.DeleteCategoryRequest]) (*connect.Response[v1.DeleteCategoryResponse], error)
-	ListCategorySlugs(context.Context, *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error)
 }
 
 // NewCategoryServiceClient constructs a client for the arian.v1.CategoryService service. By
@@ -90,12 +82,6 @@ func NewCategoryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(categoryServiceMethods.ByName("GetCategory")),
 			connect.WithClientOptions(opts...),
 		),
-		getCategoryBySlug: connect.NewClient[v1.GetCategoryBySlugRequest, v1.GetCategoryBySlugResponse](
-			httpClient,
-			baseURL+CategoryServiceGetCategoryBySlugProcedure,
-			connect.WithSchema(categoryServiceMethods.ByName("GetCategoryBySlug")),
-			connect.WithClientOptions(opts...),
-		),
 		createCategory: connect.NewClient[v1.CreateCategoryRequest, v1.CreateCategoryResponse](
 			httpClient,
 			baseURL+CategoryServiceCreateCategoryProcedure,
@@ -114,24 +100,16 @@ func NewCategoryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(categoryServiceMethods.ByName("DeleteCategory")),
 			connect.WithClientOptions(opts...),
 		),
-		listCategorySlugs: connect.NewClient[v1.ListCategorySlugsRequest, v1.ListCategorySlugsResponse](
-			httpClient,
-			baseURL+CategoryServiceListCategorySlugsProcedure,
-			connect.WithSchema(categoryServiceMethods.ByName("ListCategorySlugs")),
-			connect.WithClientOptions(opts...),
-		),
 	}
 }
 
 // categoryServiceClient implements CategoryServiceClient.
 type categoryServiceClient struct {
-	listCategories    *connect.Client[v1.ListCategoriesRequest, v1.ListCategoriesResponse]
-	getCategory       *connect.Client[v1.GetCategoryRequest, v1.GetCategoryResponse]
-	getCategoryBySlug *connect.Client[v1.GetCategoryBySlugRequest, v1.GetCategoryBySlugResponse]
-	createCategory    *connect.Client[v1.CreateCategoryRequest, v1.CreateCategoryResponse]
-	updateCategory    *connect.Client[v1.UpdateCategoryRequest, v1.UpdateCategoryResponse]
-	deleteCategory    *connect.Client[v1.DeleteCategoryRequest, v1.DeleteCategoryResponse]
-	listCategorySlugs *connect.Client[v1.ListCategorySlugsRequest, v1.ListCategorySlugsResponse]
+	listCategories *connect.Client[v1.ListCategoriesRequest, v1.ListCategoriesResponse]
+	getCategory    *connect.Client[v1.GetCategoryRequest, v1.GetCategoryResponse]
+	createCategory *connect.Client[v1.CreateCategoryRequest, v1.CreateCategoryResponse]
+	updateCategory *connect.Client[v1.UpdateCategoryRequest, v1.UpdateCategoryResponse]
+	deleteCategory *connect.Client[v1.DeleteCategoryRequest, v1.DeleteCategoryResponse]
 }
 
 // ListCategories calls arian.v1.CategoryService.ListCategories.
@@ -142,11 +120,6 @@ func (c *categoryServiceClient) ListCategories(ctx context.Context, req *connect
 // GetCategory calls arian.v1.CategoryService.GetCategory.
 func (c *categoryServiceClient) GetCategory(ctx context.Context, req *connect.Request[v1.GetCategoryRequest]) (*connect.Response[v1.GetCategoryResponse], error) {
 	return c.getCategory.CallUnary(ctx, req)
-}
-
-// GetCategoryBySlug calls arian.v1.CategoryService.GetCategoryBySlug.
-func (c *categoryServiceClient) GetCategoryBySlug(ctx context.Context, req *connect.Request[v1.GetCategoryBySlugRequest]) (*connect.Response[v1.GetCategoryBySlugResponse], error) {
-	return c.getCategoryBySlug.CallUnary(ctx, req)
 }
 
 // CreateCategory calls arian.v1.CategoryService.CreateCategory.
@@ -164,20 +137,13 @@ func (c *categoryServiceClient) DeleteCategory(ctx context.Context, req *connect
 	return c.deleteCategory.CallUnary(ctx, req)
 }
 
-// ListCategorySlugs calls arian.v1.CategoryService.ListCategorySlugs.
-func (c *categoryServiceClient) ListCategorySlugs(ctx context.Context, req *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error) {
-	return c.listCategorySlugs.CallUnary(ctx, req)
-}
-
 // CategoryServiceHandler is an implementation of the arian.v1.CategoryService service.
 type CategoryServiceHandler interface {
 	ListCategories(context.Context, *connect.Request[v1.ListCategoriesRequest]) (*connect.Response[v1.ListCategoriesResponse], error)
 	GetCategory(context.Context, *connect.Request[v1.GetCategoryRequest]) (*connect.Response[v1.GetCategoryResponse], error)
-	GetCategoryBySlug(context.Context, *connect.Request[v1.GetCategoryBySlugRequest]) (*connect.Response[v1.GetCategoryBySlugResponse], error)
 	CreateCategory(context.Context, *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error)
 	UpdateCategory(context.Context, *connect.Request[v1.UpdateCategoryRequest]) (*connect.Response[v1.UpdateCategoryResponse], error)
 	DeleteCategory(context.Context, *connect.Request[v1.DeleteCategoryRequest]) (*connect.Response[v1.DeleteCategoryResponse], error)
-	ListCategorySlugs(context.Context, *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error)
 }
 
 // NewCategoryServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -199,12 +165,6 @@ func NewCategoryServiceHandler(svc CategoryServiceHandler, opts ...connect.Handl
 		connect.WithSchema(categoryServiceMethods.ByName("GetCategory")),
 		connect.WithHandlerOptions(opts...),
 	)
-	categoryServiceGetCategoryBySlugHandler := connect.NewUnaryHandler(
-		CategoryServiceGetCategoryBySlugProcedure,
-		svc.GetCategoryBySlug,
-		connect.WithSchema(categoryServiceMethods.ByName("GetCategoryBySlug")),
-		connect.WithHandlerOptions(opts...),
-	)
 	categoryServiceCreateCategoryHandler := connect.NewUnaryHandler(
 		CategoryServiceCreateCategoryProcedure,
 		svc.CreateCategory,
@@ -223,28 +183,18 @@ func NewCategoryServiceHandler(svc CategoryServiceHandler, opts ...connect.Handl
 		connect.WithSchema(categoryServiceMethods.ByName("DeleteCategory")),
 		connect.WithHandlerOptions(opts...),
 	)
-	categoryServiceListCategorySlugsHandler := connect.NewUnaryHandler(
-		CategoryServiceListCategorySlugsProcedure,
-		svc.ListCategorySlugs,
-		connect.WithSchema(categoryServiceMethods.ByName("ListCategorySlugs")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/arian.v1.CategoryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CategoryServiceListCategoriesProcedure:
 			categoryServiceListCategoriesHandler.ServeHTTP(w, r)
 		case CategoryServiceGetCategoryProcedure:
 			categoryServiceGetCategoryHandler.ServeHTTP(w, r)
-		case CategoryServiceGetCategoryBySlugProcedure:
-			categoryServiceGetCategoryBySlugHandler.ServeHTTP(w, r)
 		case CategoryServiceCreateCategoryProcedure:
 			categoryServiceCreateCategoryHandler.ServeHTTP(w, r)
 		case CategoryServiceUpdateCategoryProcedure:
 			categoryServiceUpdateCategoryHandler.ServeHTTP(w, r)
 		case CategoryServiceDeleteCategoryProcedure:
 			categoryServiceDeleteCategoryHandler.ServeHTTP(w, r)
-		case CategoryServiceListCategorySlugsProcedure:
-			categoryServiceListCategorySlugsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -262,10 +212,6 @@ func (UnimplementedCategoryServiceHandler) GetCategory(context.Context, *connect
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategory is not implemented"))
 }
 
-func (UnimplementedCategoryServiceHandler) GetCategoryBySlug(context.Context, *connect.Request[v1.GetCategoryBySlugRequest]) (*connect.Response[v1.GetCategoryBySlugResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.GetCategoryBySlug is not implemented"))
-}
-
 func (UnimplementedCategoryServiceHandler) CreateCategory(context.Context, *connect.Request[v1.CreateCategoryRequest]) (*connect.Response[v1.CreateCategoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.CreateCategory is not implemented"))
 }
@@ -276,8 +222,4 @@ func (UnimplementedCategoryServiceHandler) UpdateCategory(context.Context, *conn
 
 func (UnimplementedCategoryServiceHandler) DeleteCategory(context.Context, *connect.Request[v1.DeleteCategoryRequest]) (*connect.Response[v1.DeleteCategoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.DeleteCategory is not implemented"))
-}
-
-func (UnimplementedCategoryServiceHandler) ListCategorySlugs(context.Context, *connect.Request[v1.ListCategorySlugsRequest]) (*connect.Response[v1.ListCategorySlugsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.CategoryService.ListCategorySlugs is not implemented"))
 }

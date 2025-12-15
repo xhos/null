@@ -35,39 +35,20 @@ const (
 const (
 	// UserServiceGetUserProcedure is the fully-qualified name of the UserService's GetUser RPC.
 	UserServiceGetUserProcedure = "/arian.v1.UserService/GetUser"
-	// UserServiceGetUserByEmailProcedure is the fully-qualified name of the UserService's
-	// GetUserByEmail RPC.
-	UserServiceGetUserByEmailProcedure = "/arian.v1.UserService/GetUserByEmail"
 	// UserServiceCreateUserProcedure is the fully-qualified name of the UserService's CreateUser RPC.
 	UserServiceCreateUserProcedure = "/arian.v1.UserService/CreateUser"
 	// UserServiceUpdateUserProcedure is the fully-qualified name of the UserService's UpdateUser RPC.
 	UserServiceUpdateUserProcedure = "/arian.v1.UserService/UpdateUser"
-	// UserServiceUpdateUserDisplayNameProcedure is the fully-qualified name of the UserService's
-	// UpdateUserDisplayName RPC.
-	UserServiceUpdateUserDisplayNameProcedure = "/arian.v1.UserService/UpdateUserDisplayName"
-	// UserServiceSetUserDefaultAccountProcedure is the fully-qualified name of the UserService's
-	// SetUserDefaultAccount RPC.
-	UserServiceSetUserDefaultAccountProcedure = "/arian.v1.UserService/SetUserDefaultAccount"
 	// UserServiceDeleteUserProcedure is the fully-qualified name of the UserService's DeleteUser RPC.
 	UserServiceDeleteUserProcedure = "/arian.v1.UserService/DeleteUser"
-	// UserServiceListUsersProcedure is the fully-qualified name of the UserService's ListUsers RPC.
-	UserServiceListUsersProcedure = "/arian.v1.UserService/ListUsers"
-	// UserServiceCheckUserExistsProcedure is the fully-qualified name of the UserService's
-	// CheckUserExists RPC.
-	UserServiceCheckUserExistsProcedure = "/arian.v1.UserService/CheckUserExists"
 )
 
 // UserServiceClient is a client for the arian.v1.UserService service.
 type UserServiceClient interface {
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
-	GetUserByEmail(context.Context, *connect.Request[v1.GetUserByEmailRequest]) (*connect.Response[v1.GetUserByEmailResponse], error)
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error)
-	UpdateUserDisplayName(context.Context, *connect.Request[v1.UpdateUserDisplayNameRequest]) (*connect.Response[v1.UpdateUserDisplayNameResponse], error)
-	SetUserDefaultAccount(context.Context, *connect.Request[v1.SetUserDefaultAccountRequest]) (*connect.Response[v1.SetUserDefaultAccountResponse], error)
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
-	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
-	CheckUserExists(context.Context, *connect.Request[v1.CheckUserExistsRequest]) (*connect.Response[v1.CheckUserExistsResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the arian.v1.UserService service. By default, it
@@ -87,12 +68,6 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("GetUser")),
 			connect.WithClientOptions(opts...),
 		),
-		getUserByEmail: connect.NewClient[v1.GetUserByEmailRequest, v1.GetUserByEmailResponse](
-			httpClient,
-			baseURL+UserServiceGetUserByEmailProcedure,
-			connect.WithSchema(userServiceMethods.ByName("GetUserByEmail")),
-			connect.WithClientOptions(opts...),
-		),
 		createUser: connect.NewClient[v1.CreateUserRequest, v1.CreateUserResponse](
 			httpClient,
 			baseURL+UserServiceCreateUserProcedure,
@@ -105,34 +80,10 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("UpdateUser")),
 			connect.WithClientOptions(opts...),
 		),
-		updateUserDisplayName: connect.NewClient[v1.UpdateUserDisplayNameRequest, v1.UpdateUserDisplayNameResponse](
-			httpClient,
-			baseURL+UserServiceUpdateUserDisplayNameProcedure,
-			connect.WithSchema(userServiceMethods.ByName("UpdateUserDisplayName")),
-			connect.WithClientOptions(opts...),
-		),
-		setUserDefaultAccount: connect.NewClient[v1.SetUserDefaultAccountRequest, v1.SetUserDefaultAccountResponse](
-			httpClient,
-			baseURL+UserServiceSetUserDefaultAccountProcedure,
-			connect.WithSchema(userServiceMethods.ByName("SetUserDefaultAccount")),
-			connect.WithClientOptions(opts...),
-		),
 		deleteUser: connect.NewClient[v1.DeleteUserRequest, v1.DeleteUserResponse](
 			httpClient,
 			baseURL+UserServiceDeleteUserProcedure,
 			connect.WithSchema(userServiceMethods.ByName("DeleteUser")),
-			connect.WithClientOptions(opts...),
-		),
-		listUsers: connect.NewClient[v1.ListUsersRequest, v1.ListUsersResponse](
-			httpClient,
-			baseURL+UserServiceListUsersProcedure,
-			connect.WithSchema(userServiceMethods.ByName("ListUsers")),
-			connect.WithClientOptions(opts...),
-		),
-		checkUserExists: connect.NewClient[v1.CheckUserExistsRequest, v1.CheckUserExistsResponse](
-			httpClient,
-			baseURL+UserServiceCheckUserExistsProcedure,
-			connect.WithSchema(userServiceMethods.ByName("CheckUserExists")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -140,25 +91,15 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
-	getUser               *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
-	getUserByEmail        *connect.Client[v1.GetUserByEmailRequest, v1.GetUserByEmailResponse]
-	createUser            *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
-	updateUser            *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
-	updateUserDisplayName *connect.Client[v1.UpdateUserDisplayNameRequest, v1.UpdateUserDisplayNameResponse]
-	setUserDefaultAccount *connect.Client[v1.SetUserDefaultAccountRequest, v1.SetUserDefaultAccountResponse]
-	deleteUser            *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
-	listUsers             *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	checkUserExists       *connect.Client[v1.CheckUserExistsRequest, v1.CheckUserExistsResponse]
+	getUser    *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
+	createUser *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
+	updateUser *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
+	deleteUser *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
 }
 
 // GetUser calls arian.v1.UserService.GetUser.
 func (c *userServiceClient) GetUser(ctx context.Context, req *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error) {
 	return c.getUser.CallUnary(ctx, req)
-}
-
-// GetUserByEmail calls arian.v1.UserService.GetUserByEmail.
-func (c *userServiceClient) GetUserByEmail(ctx context.Context, req *connect.Request[v1.GetUserByEmailRequest]) (*connect.Response[v1.GetUserByEmailResponse], error) {
-	return c.getUserByEmail.CallUnary(ctx, req)
 }
 
 // CreateUser calls arian.v1.UserService.CreateUser.
@@ -171,42 +112,17 @@ func (c *userServiceClient) UpdateUser(ctx context.Context, req *connect.Request
 	return c.updateUser.CallUnary(ctx, req)
 }
 
-// UpdateUserDisplayName calls arian.v1.UserService.UpdateUserDisplayName.
-func (c *userServiceClient) UpdateUserDisplayName(ctx context.Context, req *connect.Request[v1.UpdateUserDisplayNameRequest]) (*connect.Response[v1.UpdateUserDisplayNameResponse], error) {
-	return c.updateUserDisplayName.CallUnary(ctx, req)
-}
-
-// SetUserDefaultAccount calls arian.v1.UserService.SetUserDefaultAccount.
-func (c *userServiceClient) SetUserDefaultAccount(ctx context.Context, req *connect.Request[v1.SetUserDefaultAccountRequest]) (*connect.Response[v1.SetUserDefaultAccountResponse], error) {
-	return c.setUserDefaultAccount.CallUnary(ctx, req)
-}
-
 // DeleteUser calls arian.v1.UserService.DeleteUser.
 func (c *userServiceClient) DeleteUser(ctx context.Context, req *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error) {
 	return c.deleteUser.CallUnary(ctx, req)
 }
 
-// ListUsers calls arian.v1.UserService.ListUsers.
-func (c *userServiceClient) ListUsers(ctx context.Context, req *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {
-	return c.listUsers.CallUnary(ctx, req)
-}
-
-// CheckUserExists calls arian.v1.UserService.CheckUserExists.
-func (c *userServiceClient) CheckUserExists(ctx context.Context, req *connect.Request[v1.CheckUserExistsRequest]) (*connect.Response[v1.CheckUserExistsResponse], error) {
-	return c.checkUserExists.CallUnary(ctx, req)
-}
-
 // UserServiceHandler is an implementation of the arian.v1.UserService service.
 type UserServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error)
-	GetUserByEmail(context.Context, *connect.Request[v1.GetUserByEmailRequest]) (*connect.Response[v1.GetUserByEmailResponse], error)
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error)
-	UpdateUserDisplayName(context.Context, *connect.Request[v1.UpdateUserDisplayNameRequest]) (*connect.Response[v1.UpdateUserDisplayNameResponse], error)
-	SetUserDefaultAccount(context.Context, *connect.Request[v1.SetUserDefaultAccountRequest]) (*connect.Response[v1.SetUserDefaultAccountResponse], error)
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
-	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
-	CheckUserExists(context.Context, *connect.Request[v1.CheckUserExistsRequest]) (*connect.Response[v1.CheckUserExistsResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -222,12 +138,6 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(userServiceMethods.ByName("GetUser")),
 		connect.WithHandlerOptions(opts...),
 	)
-	userServiceGetUserByEmailHandler := connect.NewUnaryHandler(
-		UserServiceGetUserByEmailProcedure,
-		svc.GetUserByEmail,
-		connect.WithSchema(userServiceMethods.ByName("GetUserByEmail")),
-		connect.WithHandlerOptions(opts...),
-	)
 	userServiceCreateUserHandler := connect.NewUnaryHandler(
 		UserServiceCreateUserProcedure,
 		svc.CreateUser,
@@ -240,56 +150,22 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(userServiceMethods.ByName("UpdateUser")),
 		connect.WithHandlerOptions(opts...),
 	)
-	userServiceUpdateUserDisplayNameHandler := connect.NewUnaryHandler(
-		UserServiceUpdateUserDisplayNameProcedure,
-		svc.UpdateUserDisplayName,
-		connect.WithSchema(userServiceMethods.ByName("UpdateUserDisplayName")),
-		connect.WithHandlerOptions(opts...),
-	)
-	userServiceSetUserDefaultAccountHandler := connect.NewUnaryHandler(
-		UserServiceSetUserDefaultAccountProcedure,
-		svc.SetUserDefaultAccount,
-		connect.WithSchema(userServiceMethods.ByName("SetUserDefaultAccount")),
-		connect.WithHandlerOptions(opts...),
-	)
 	userServiceDeleteUserHandler := connect.NewUnaryHandler(
 		UserServiceDeleteUserProcedure,
 		svc.DeleteUser,
 		connect.WithSchema(userServiceMethods.ByName("DeleteUser")),
 		connect.WithHandlerOptions(opts...),
 	)
-	userServiceListUsersHandler := connect.NewUnaryHandler(
-		UserServiceListUsersProcedure,
-		svc.ListUsers,
-		connect.WithSchema(userServiceMethods.ByName("ListUsers")),
-		connect.WithHandlerOptions(opts...),
-	)
-	userServiceCheckUserExistsHandler := connect.NewUnaryHandler(
-		UserServiceCheckUserExistsProcedure,
-		svc.CheckUserExists,
-		connect.WithSchema(userServiceMethods.ByName("CheckUserExists")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/arian.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserServiceGetUserProcedure:
 			userServiceGetUserHandler.ServeHTTP(w, r)
-		case UserServiceGetUserByEmailProcedure:
-			userServiceGetUserByEmailHandler.ServeHTTP(w, r)
 		case UserServiceCreateUserProcedure:
 			userServiceCreateUserHandler.ServeHTTP(w, r)
 		case UserServiceUpdateUserProcedure:
 			userServiceUpdateUserHandler.ServeHTTP(w, r)
-		case UserServiceUpdateUserDisplayNameProcedure:
-			userServiceUpdateUserDisplayNameHandler.ServeHTTP(w, r)
-		case UserServiceSetUserDefaultAccountProcedure:
-			userServiceSetUserDefaultAccountHandler.ServeHTTP(w, r)
 		case UserServiceDeleteUserProcedure:
 			userServiceDeleteUserHandler.ServeHTTP(w, r)
-		case UserServiceListUsersProcedure:
-			userServiceListUsersHandler.ServeHTTP(w, r)
-		case UserServiceCheckUserExistsProcedure:
-			userServiceCheckUserExistsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -303,10 +179,6 @@ func (UnimplementedUserServiceHandler) GetUser(context.Context, *connect.Request
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.GetUser is not implemented"))
 }
 
-func (UnimplementedUserServiceHandler) GetUserByEmail(context.Context, *connect.Request[v1.GetUserByEmailRequest]) (*connect.Response[v1.GetUserByEmailResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.GetUserByEmail is not implemented"))
-}
-
 func (UnimplementedUserServiceHandler) CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.CreateUser is not implemented"))
 }
@@ -315,22 +187,6 @@ func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *connect.Requ
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.UpdateUser is not implemented"))
 }
 
-func (UnimplementedUserServiceHandler) UpdateUserDisplayName(context.Context, *connect.Request[v1.UpdateUserDisplayNameRequest]) (*connect.Response[v1.UpdateUserDisplayNameResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.UpdateUserDisplayName is not implemented"))
-}
-
-func (UnimplementedUserServiceHandler) SetUserDefaultAccount(context.Context, *connect.Request[v1.SetUserDefaultAccountRequest]) (*connect.Response[v1.SetUserDefaultAccountResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.SetUserDefaultAccount is not implemented"))
-}
-
 func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.DeleteUser is not implemented"))
-}
-
-func (UnimplementedUserServiceHandler) ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.ListUsers is not implemented"))
-}
-
-func (UnimplementedUserServiceHandler) CheckUserExists(context.Context, *connect.Request[v1.CheckUserExistsRequest]) (*connect.Response[v1.CheckUserExistsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.UserService.CheckUserExists is not implemented"))
 }

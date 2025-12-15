@@ -48,33 +48,9 @@ const (
 	// TransactionServiceDeleteTransactionProcedure is the fully-qualified name of the
 	// TransactionService's DeleteTransaction RPC.
 	TransactionServiceDeleteTransactionProcedure = "/arian.v1.TransactionService/DeleteTransaction"
-	// TransactionServiceBulkDeleteTransactionsProcedure is the fully-qualified name of the
-	// TransactionService's BulkDeleteTransactions RPC.
-	TransactionServiceBulkDeleteTransactionsProcedure = "/arian.v1.TransactionService/BulkDeleteTransactions"
-	// TransactionServiceCategorizeTransactionProcedure is the fully-qualified name of the
-	// TransactionService's CategorizeTransaction RPC.
-	TransactionServiceCategorizeTransactionProcedure = "/arian.v1.TransactionService/CategorizeTransaction"
-	// TransactionServiceSearchTransactionsProcedure is the fully-qualified name of the
-	// TransactionService's SearchTransactions RPC.
-	TransactionServiceSearchTransactionsProcedure = "/arian.v1.TransactionService/SearchTransactions"
-	// TransactionServiceGetTransactionsByAccountProcedure is the fully-qualified name of the
-	// TransactionService's GetTransactionsByAccount RPC.
-	TransactionServiceGetTransactionsByAccountProcedure = "/arian.v1.TransactionService/GetTransactionsByAccount"
-	// TransactionServiceGetUncategorizedTransactionsProcedure is the fully-qualified name of the
-	// TransactionService's GetUncategorizedTransactions RPC.
-	TransactionServiceGetUncategorizedTransactionsProcedure = "/arian.v1.TransactionService/GetUncategorizedTransactions"
-	// TransactionServiceBulkCategorizeTransactionsProcedure is the fully-qualified name of the
-	// TransactionService's BulkCategorizeTransactions RPC.
-	TransactionServiceBulkCategorizeTransactionsProcedure = "/arian.v1.TransactionService/BulkCategorizeTransactions"
-	// TransactionServiceGetTransactionCountByAccountProcedure is the fully-qualified name of the
-	// TransactionService's GetTransactionCountByAccount RPC.
-	TransactionServiceGetTransactionCountByAccountProcedure = "/arian.v1.TransactionService/GetTransactionCountByAccount"
-	// TransactionServiceFindCandidateTransactionsProcedure is the fully-qualified name of the
-	// TransactionService's FindCandidateTransactions RPC.
-	TransactionServiceFindCandidateTransactionsProcedure = "/arian.v1.TransactionService/FindCandidateTransactions"
-	// TransactionServiceIdentifyMerchantProcedure is the fully-qualified name of the
-	// TransactionService's IdentifyMerchant RPC.
-	TransactionServiceIdentifyMerchantProcedure = "/arian.v1.TransactionService/IdentifyMerchant"
+	// TransactionServiceCategorizeTransactionsProcedure is the fully-qualified name of the
+	// TransactionService's CategorizeTransactions RPC.
+	TransactionServiceCategorizeTransactionsProcedure = "/arian.v1.TransactionService/CategorizeTransactions"
 )
 
 // TransactionServiceClient is a client for the arian.v1.TransactionService service.
@@ -84,15 +60,7 @@ type TransactionServiceClient interface {
 	CreateTransaction(context.Context, *connect.Request[v1.CreateTransactionRequest]) (*connect.Response[v1.CreateTransactionResponse], error)
 	UpdateTransaction(context.Context, *connect.Request[v1.UpdateTransactionRequest]) (*connect.Response[v1.UpdateTransactionResponse], error)
 	DeleteTransaction(context.Context, *connect.Request[v1.DeleteTransactionRequest]) (*connect.Response[v1.DeleteTransactionResponse], error)
-	BulkDeleteTransactions(context.Context, *connect.Request[v1.BulkDeleteTransactionsRequest]) (*connect.Response[v1.BulkDeleteTransactionsResponse], error)
-	CategorizeTransaction(context.Context, *connect.Request[v1.CategorizeTransactionRequest]) (*connect.Response[v1.CategorizeTransactionResponse], error)
-	SearchTransactions(context.Context, *connect.Request[v1.SearchTransactionsRequest]) (*connect.Response[v1.SearchTransactionsResponse], error)
-	GetTransactionsByAccount(context.Context, *connect.Request[v1.GetTransactionsByAccountRequest]) (*connect.Response[v1.GetTransactionsByAccountResponse], error)
-	GetUncategorizedTransactions(context.Context, *connect.Request[v1.GetUncategorizedTransactionsRequest]) (*connect.Response[v1.GetUncategorizedTransactionsResponse], error)
-	BulkCategorizeTransactions(context.Context, *connect.Request[v1.BulkCategorizeTransactionsRequest]) (*connect.Response[v1.BulkCategorizeTransactionsResponse], error)
-	GetTransactionCountByAccount(context.Context, *connect.Request[v1.GetTransactionCountByAccountRequest]) (*connect.Response[v1.GetTransactionCountByAccountResponse], error)
-	FindCandidateTransactions(context.Context, *connect.Request[v1.FindCandidateTransactionsRequest]) (*connect.Response[v1.FindCandidateTransactionsResponse], error)
-	IdentifyMerchant(context.Context, *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error)
+	CategorizeTransactions(context.Context, *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error)
 }
 
 // NewTransactionServiceClient constructs a client for the arian.v1.TransactionService service. By
@@ -136,58 +104,10 @@ func NewTransactionServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(transactionServiceMethods.ByName("DeleteTransaction")),
 			connect.WithClientOptions(opts...),
 		),
-		bulkDeleteTransactions: connect.NewClient[v1.BulkDeleteTransactionsRequest, v1.BulkDeleteTransactionsResponse](
+		categorizeTransactions: connect.NewClient[v1.CategorizeTransactionsRequest, v1.CategorizeTransactionsResponse](
 			httpClient,
-			baseURL+TransactionServiceBulkDeleteTransactionsProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("BulkDeleteTransactions")),
-			connect.WithClientOptions(opts...),
-		),
-		categorizeTransaction: connect.NewClient[v1.CategorizeTransactionRequest, v1.CategorizeTransactionResponse](
-			httpClient,
-			baseURL+TransactionServiceCategorizeTransactionProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("CategorizeTransaction")),
-			connect.WithClientOptions(opts...),
-		),
-		searchTransactions: connect.NewClient[v1.SearchTransactionsRequest, v1.SearchTransactionsResponse](
-			httpClient,
-			baseURL+TransactionServiceSearchTransactionsProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("SearchTransactions")),
-			connect.WithClientOptions(opts...),
-		),
-		getTransactionsByAccount: connect.NewClient[v1.GetTransactionsByAccountRequest, v1.GetTransactionsByAccountResponse](
-			httpClient,
-			baseURL+TransactionServiceGetTransactionsByAccountProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("GetTransactionsByAccount")),
-			connect.WithClientOptions(opts...),
-		),
-		getUncategorizedTransactions: connect.NewClient[v1.GetUncategorizedTransactionsRequest, v1.GetUncategorizedTransactionsResponse](
-			httpClient,
-			baseURL+TransactionServiceGetUncategorizedTransactionsProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("GetUncategorizedTransactions")),
-			connect.WithClientOptions(opts...),
-		),
-		bulkCategorizeTransactions: connect.NewClient[v1.BulkCategorizeTransactionsRequest, v1.BulkCategorizeTransactionsResponse](
-			httpClient,
-			baseURL+TransactionServiceBulkCategorizeTransactionsProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("BulkCategorizeTransactions")),
-			connect.WithClientOptions(opts...),
-		),
-		getTransactionCountByAccount: connect.NewClient[v1.GetTransactionCountByAccountRequest, v1.GetTransactionCountByAccountResponse](
-			httpClient,
-			baseURL+TransactionServiceGetTransactionCountByAccountProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("GetTransactionCountByAccount")),
-			connect.WithClientOptions(opts...),
-		),
-		findCandidateTransactions: connect.NewClient[v1.FindCandidateTransactionsRequest, v1.FindCandidateTransactionsResponse](
-			httpClient,
-			baseURL+TransactionServiceFindCandidateTransactionsProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("FindCandidateTransactions")),
-			connect.WithClientOptions(opts...),
-		),
-		identifyMerchant: connect.NewClient[v1.IdentifyMerchantRequest, v1.IdentifyMerchantResponse](
-			httpClient,
-			baseURL+TransactionServiceIdentifyMerchantProcedure,
-			connect.WithSchema(transactionServiceMethods.ByName("IdentifyMerchant")),
+			baseURL+TransactionServiceCategorizeTransactionsProcedure,
+			connect.WithSchema(transactionServiceMethods.ByName("CategorizeTransactions")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -195,20 +115,12 @@ func NewTransactionServiceClient(httpClient connect.HTTPClient, baseURL string, 
 
 // transactionServiceClient implements TransactionServiceClient.
 type transactionServiceClient struct {
-	listTransactions             *connect.Client[v1.ListTransactionsRequest, v1.ListTransactionsResponse]
-	getTransaction               *connect.Client[v1.GetTransactionRequest, v1.GetTransactionResponse]
-	createTransaction            *connect.Client[v1.CreateTransactionRequest, v1.CreateTransactionResponse]
-	updateTransaction            *connect.Client[v1.UpdateTransactionRequest, v1.UpdateTransactionResponse]
-	deleteTransaction            *connect.Client[v1.DeleteTransactionRequest, v1.DeleteTransactionResponse]
-	bulkDeleteTransactions       *connect.Client[v1.BulkDeleteTransactionsRequest, v1.BulkDeleteTransactionsResponse]
-	categorizeTransaction        *connect.Client[v1.CategorizeTransactionRequest, v1.CategorizeTransactionResponse]
-	searchTransactions           *connect.Client[v1.SearchTransactionsRequest, v1.SearchTransactionsResponse]
-	getTransactionsByAccount     *connect.Client[v1.GetTransactionsByAccountRequest, v1.GetTransactionsByAccountResponse]
-	getUncategorizedTransactions *connect.Client[v1.GetUncategorizedTransactionsRequest, v1.GetUncategorizedTransactionsResponse]
-	bulkCategorizeTransactions   *connect.Client[v1.BulkCategorizeTransactionsRequest, v1.BulkCategorizeTransactionsResponse]
-	getTransactionCountByAccount *connect.Client[v1.GetTransactionCountByAccountRequest, v1.GetTransactionCountByAccountResponse]
-	findCandidateTransactions    *connect.Client[v1.FindCandidateTransactionsRequest, v1.FindCandidateTransactionsResponse]
-	identifyMerchant             *connect.Client[v1.IdentifyMerchantRequest, v1.IdentifyMerchantResponse]
+	listTransactions       *connect.Client[v1.ListTransactionsRequest, v1.ListTransactionsResponse]
+	getTransaction         *connect.Client[v1.GetTransactionRequest, v1.GetTransactionResponse]
+	createTransaction      *connect.Client[v1.CreateTransactionRequest, v1.CreateTransactionResponse]
+	updateTransaction      *connect.Client[v1.UpdateTransactionRequest, v1.UpdateTransactionResponse]
+	deleteTransaction      *connect.Client[v1.DeleteTransactionRequest, v1.DeleteTransactionResponse]
+	categorizeTransactions *connect.Client[v1.CategorizeTransactionsRequest, v1.CategorizeTransactionsResponse]
 }
 
 // ListTransactions calls arian.v1.TransactionService.ListTransactions.
@@ -236,49 +148,9 @@ func (c *transactionServiceClient) DeleteTransaction(ctx context.Context, req *c
 	return c.deleteTransaction.CallUnary(ctx, req)
 }
 
-// BulkDeleteTransactions calls arian.v1.TransactionService.BulkDeleteTransactions.
-func (c *transactionServiceClient) BulkDeleteTransactions(ctx context.Context, req *connect.Request[v1.BulkDeleteTransactionsRequest]) (*connect.Response[v1.BulkDeleteTransactionsResponse], error) {
-	return c.bulkDeleteTransactions.CallUnary(ctx, req)
-}
-
-// CategorizeTransaction calls arian.v1.TransactionService.CategorizeTransaction.
-func (c *transactionServiceClient) CategorizeTransaction(ctx context.Context, req *connect.Request[v1.CategorizeTransactionRequest]) (*connect.Response[v1.CategorizeTransactionResponse], error) {
-	return c.categorizeTransaction.CallUnary(ctx, req)
-}
-
-// SearchTransactions calls arian.v1.TransactionService.SearchTransactions.
-func (c *transactionServiceClient) SearchTransactions(ctx context.Context, req *connect.Request[v1.SearchTransactionsRequest]) (*connect.Response[v1.SearchTransactionsResponse], error) {
-	return c.searchTransactions.CallUnary(ctx, req)
-}
-
-// GetTransactionsByAccount calls arian.v1.TransactionService.GetTransactionsByAccount.
-func (c *transactionServiceClient) GetTransactionsByAccount(ctx context.Context, req *connect.Request[v1.GetTransactionsByAccountRequest]) (*connect.Response[v1.GetTransactionsByAccountResponse], error) {
-	return c.getTransactionsByAccount.CallUnary(ctx, req)
-}
-
-// GetUncategorizedTransactions calls arian.v1.TransactionService.GetUncategorizedTransactions.
-func (c *transactionServiceClient) GetUncategorizedTransactions(ctx context.Context, req *connect.Request[v1.GetUncategorizedTransactionsRequest]) (*connect.Response[v1.GetUncategorizedTransactionsResponse], error) {
-	return c.getUncategorizedTransactions.CallUnary(ctx, req)
-}
-
-// BulkCategorizeTransactions calls arian.v1.TransactionService.BulkCategorizeTransactions.
-func (c *transactionServiceClient) BulkCategorizeTransactions(ctx context.Context, req *connect.Request[v1.BulkCategorizeTransactionsRequest]) (*connect.Response[v1.BulkCategorizeTransactionsResponse], error) {
-	return c.bulkCategorizeTransactions.CallUnary(ctx, req)
-}
-
-// GetTransactionCountByAccount calls arian.v1.TransactionService.GetTransactionCountByAccount.
-func (c *transactionServiceClient) GetTransactionCountByAccount(ctx context.Context, req *connect.Request[v1.GetTransactionCountByAccountRequest]) (*connect.Response[v1.GetTransactionCountByAccountResponse], error) {
-	return c.getTransactionCountByAccount.CallUnary(ctx, req)
-}
-
-// FindCandidateTransactions calls arian.v1.TransactionService.FindCandidateTransactions.
-func (c *transactionServiceClient) FindCandidateTransactions(ctx context.Context, req *connect.Request[v1.FindCandidateTransactionsRequest]) (*connect.Response[v1.FindCandidateTransactionsResponse], error) {
-	return c.findCandidateTransactions.CallUnary(ctx, req)
-}
-
-// IdentifyMerchant calls arian.v1.TransactionService.IdentifyMerchant.
-func (c *transactionServiceClient) IdentifyMerchant(ctx context.Context, req *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error) {
-	return c.identifyMerchant.CallUnary(ctx, req)
+// CategorizeTransactions calls arian.v1.TransactionService.CategorizeTransactions.
+func (c *transactionServiceClient) CategorizeTransactions(ctx context.Context, req *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error) {
+	return c.categorizeTransactions.CallUnary(ctx, req)
 }
 
 // TransactionServiceHandler is an implementation of the arian.v1.TransactionService service.
@@ -288,15 +160,7 @@ type TransactionServiceHandler interface {
 	CreateTransaction(context.Context, *connect.Request[v1.CreateTransactionRequest]) (*connect.Response[v1.CreateTransactionResponse], error)
 	UpdateTransaction(context.Context, *connect.Request[v1.UpdateTransactionRequest]) (*connect.Response[v1.UpdateTransactionResponse], error)
 	DeleteTransaction(context.Context, *connect.Request[v1.DeleteTransactionRequest]) (*connect.Response[v1.DeleteTransactionResponse], error)
-	BulkDeleteTransactions(context.Context, *connect.Request[v1.BulkDeleteTransactionsRequest]) (*connect.Response[v1.BulkDeleteTransactionsResponse], error)
-	CategorizeTransaction(context.Context, *connect.Request[v1.CategorizeTransactionRequest]) (*connect.Response[v1.CategorizeTransactionResponse], error)
-	SearchTransactions(context.Context, *connect.Request[v1.SearchTransactionsRequest]) (*connect.Response[v1.SearchTransactionsResponse], error)
-	GetTransactionsByAccount(context.Context, *connect.Request[v1.GetTransactionsByAccountRequest]) (*connect.Response[v1.GetTransactionsByAccountResponse], error)
-	GetUncategorizedTransactions(context.Context, *connect.Request[v1.GetUncategorizedTransactionsRequest]) (*connect.Response[v1.GetUncategorizedTransactionsResponse], error)
-	BulkCategorizeTransactions(context.Context, *connect.Request[v1.BulkCategorizeTransactionsRequest]) (*connect.Response[v1.BulkCategorizeTransactionsResponse], error)
-	GetTransactionCountByAccount(context.Context, *connect.Request[v1.GetTransactionCountByAccountRequest]) (*connect.Response[v1.GetTransactionCountByAccountResponse], error)
-	FindCandidateTransactions(context.Context, *connect.Request[v1.FindCandidateTransactionsRequest]) (*connect.Response[v1.FindCandidateTransactionsResponse], error)
-	IdentifyMerchant(context.Context, *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error)
+	CategorizeTransactions(context.Context, *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error)
 }
 
 // NewTransactionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -336,58 +200,10 @@ func NewTransactionServiceHandler(svc TransactionServiceHandler, opts ...connect
 		connect.WithSchema(transactionServiceMethods.ByName("DeleteTransaction")),
 		connect.WithHandlerOptions(opts...),
 	)
-	transactionServiceBulkDeleteTransactionsHandler := connect.NewUnaryHandler(
-		TransactionServiceBulkDeleteTransactionsProcedure,
-		svc.BulkDeleteTransactions,
-		connect.WithSchema(transactionServiceMethods.ByName("BulkDeleteTransactions")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceCategorizeTransactionHandler := connect.NewUnaryHandler(
-		TransactionServiceCategorizeTransactionProcedure,
-		svc.CategorizeTransaction,
-		connect.WithSchema(transactionServiceMethods.ByName("CategorizeTransaction")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceSearchTransactionsHandler := connect.NewUnaryHandler(
-		TransactionServiceSearchTransactionsProcedure,
-		svc.SearchTransactions,
-		connect.WithSchema(transactionServiceMethods.ByName("SearchTransactions")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceGetTransactionsByAccountHandler := connect.NewUnaryHandler(
-		TransactionServiceGetTransactionsByAccountProcedure,
-		svc.GetTransactionsByAccount,
-		connect.WithSchema(transactionServiceMethods.ByName("GetTransactionsByAccount")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceGetUncategorizedTransactionsHandler := connect.NewUnaryHandler(
-		TransactionServiceGetUncategorizedTransactionsProcedure,
-		svc.GetUncategorizedTransactions,
-		connect.WithSchema(transactionServiceMethods.ByName("GetUncategorizedTransactions")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceBulkCategorizeTransactionsHandler := connect.NewUnaryHandler(
-		TransactionServiceBulkCategorizeTransactionsProcedure,
-		svc.BulkCategorizeTransactions,
-		connect.WithSchema(transactionServiceMethods.ByName("BulkCategorizeTransactions")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceGetTransactionCountByAccountHandler := connect.NewUnaryHandler(
-		TransactionServiceGetTransactionCountByAccountProcedure,
-		svc.GetTransactionCountByAccount,
-		connect.WithSchema(transactionServiceMethods.ByName("GetTransactionCountByAccount")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceFindCandidateTransactionsHandler := connect.NewUnaryHandler(
-		TransactionServiceFindCandidateTransactionsProcedure,
-		svc.FindCandidateTransactions,
-		connect.WithSchema(transactionServiceMethods.ByName("FindCandidateTransactions")),
-		connect.WithHandlerOptions(opts...),
-	)
-	transactionServiceIdentifyMerchantHandler := connect.NewUnaryHandler(
-		TransactionServiceIdentifyMerchantProcedure,
-		svc.IdentifyMerchant,
-		connect.WithSchema(transactionServiceMethods.ByName("IdentifyMerchant")),
+	transactionServiceCategorizeTransactionsHandler := connect.NewUnaryHandler(
+		TransactionServiceCategorizeTransactionsProcedure,
+		svc.CategorizeTransactions,
+		connect.WithSchema(transactionServiceMethods.ByName("CategorizeTransactions")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/arian.v1.TransactionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -402,24 +218,8 @@ func NewTransactionServiceHandler(svc TransactionServiceHandler, opts ...connect
 			transactionServiceUpdateTransactionHandler.ServeHTTP(w, r)
 		case TransactionServiceDeleteTransactionProcedure:
 			transactionServiceDeleteTransactionHandler.ServeHTTP(w, r)
-		case TransactionServiceBulkDeleteTransactionsProcedure:
-			transactionServiceBulkDeleteTransactionsHandler.ServeHTTP(w, r)
-		case TransactionServiceCategorizeTransactionProcedure:
-			transactionServiceCategorizeTransactionHandler.ServeHTTP(w, r)
-		case TransactionServiceSearchTransactionsProcedure:
-			transactionServiceSearchTransactionsHandler.ServeHTTP(w, r)
-		case TransactionServiceGetTransactionsByAccountProcedure:
-			transactionServiceGetTransactionsByAccountHandler.ServeHTTP(w, r)
-		case TransactionServiceGetUncategorizedTransactionsProcedure:
-			transactionServiceGetUncategorizedTransactionsHandler.ServeHTTP(w, r)
-		case TransactionServiceBulkCategorizeTransactionsProcedure:
-			transactionServiceBulkCategorizeTransactionsHandler.ServeHTTP(w, r)
-		case TransactionServiceGetTransactionCountByAccountProcedure:
-			transactionServiceGetTransactionCountByAccountHandler.ServeHTTP(w, r)
-		case TransactionServiceFindCandidateTransactionsProcedure:
-			transactionServiceFindCandidateTransactionsHandler.ServeHTTP(w, r)
-		case TransactionServiceIdentifyMerchantProcedure:
-			transactionServiceIdentifyMerchantHandler.ServeHTTP(w, r)
+		case TransactionServiceCategorizeTransactionsProcedure:
+			transactionServiceCategorizeTransactionsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -449,38 +249,6 @@ func (UnimplementedTransactionServiceHandler) DeleteTransaction(context.Context,
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.DeleteTransaction is not implemented"))
 }
 
-func (UnimplementedTransactionServiceHandler) BulkDeleteTransactions(context.Context, *connect.Request[v1.BulkDeleteTransactionsRequest]) (*connect.Response[v1.BulkDeleteTransactionsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.BulkDeleteTransactions is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) CategorizeTransaction(context.Context, *connect.Request[v1.CategorizeTransactionRequest]) (*connect.Response[v1.CategorizeTransactionResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.CategorizeTransaction is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) SearchTransactions(context.Context, *connect.Request[v1.SearchTransactionsRequest]) (*connect.Response[v1.SearchTransactionsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.SearchTransactions is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) GetTransactionsByAccount(context.Context, *connect.Request[v1.GetTransactionsByAccountRequest]) (*connect.Response[v1.GetTransactionsByAccountResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.GetTransactionsByAccount is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) GetUncategorizedTransactions(context.Context, *connect.Request[v1.GetUncategorizedTransactionsRequest]) (*connect.Response[v1.GetUncategorizedTransactionsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.GetUncategorizedTransactions is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) BulkCategorizeTransactions(context.Context, *connect.Request[v1.BulkCategorizeTransactionsRequest]) (*connect.Response[v1.BulkCategorizeTransactionsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.BulkCategorizeTransactions is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) GetTransactionCountByAccount(context.Context, *connect.Request[v1.GetTransactionCountByAccountRequest]) (*connect.Response[v1.GetTransactionCountByAccountResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.GetTransactionCountByAccount is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) FindCandidateTransactions(context.Context, *connect.Request[v1.FindCandidateTransactionsRequest]) (*connect.Response[v1.FindCandidateTransactionsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.FindCandidateTransactions is not implemented"))
-}
-
-func (UnimplementedTransactionServiceHandler) IdentifyMerchant(context.Context, *connect.Request[v1.IdentifyMerchantRequest]) (*connect.Response[v1.IdentifyMerchantResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.IdentifyMerchant is not implemented"))
+func (UnimplementedTransactionServiceHandler) CategorizeTransactions(context.Context, *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.TransactionService.CategorizeTransactions is not implemented"))
 }

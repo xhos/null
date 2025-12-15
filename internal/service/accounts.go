@@ -27,10 +27,7 @@ type AccountService interface {
 	Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error)
 	Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error)
 	Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error)
-	GetAccountCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	CheckUserAccountAccess(ctx context.Context, params sqlc.CheckUserAccountAccessParams) (bool, error)
-	SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error
-	SyncBalances(ctx context.Context, accountID int64) error
 }
 
 type acctSvc struct {
@@ -91,16 +88,21 @@ func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, u
 }
 
 func (s *acctSvc) Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error) {
-	updated, err := s.queries.UpdateAccount(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("AccountService.Update", ErrNotFound)
-	}
-
+	err := s.queries.UpdateAccount(ctx, params)
 	if err != nil {
 		return nil, wrapErr("AccountService.Update", err)
 	}
 
-	return &updated, nil
+	// Fetch and return updated account
+	account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
+		UserID: params.UserID,
+		ID:     params.ID,
+	})
+	if err != nil {
+		return nil, wrapErr("AccountService.Update.Get", err)
+	}
+
+	return &account, nil
 }
 
 func (s *acctSvc) Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error) {
@@ -111,36 +113,10 @@ func (s *acctSvc) Delete(ctx context.Context, params sqlc.DeleteAccountParams) (
 	return affected, nil
 }
 
-func (s *acctSvc) GetAccountCount(ctx context.Context, userID uuid.UUID) (int64, error) {
-	count, err := s.queries.GetUserAccountsCount(ctx, userID)
-	if err != nil {
-		return 0, wrapErr("AccountService.GetUserAccountsCount", err)
-	}
-	return count, nil
-}
-
 func (s *acctSvc) CheckUserAccountAccess(ctx context.Context, params sqlc.CheckUserAccountAccessParams) (bool, error) {
 	access, err := s.queries.CheckUserAccountAccess(ctx, params)
 	if err != nil {
 		return false, wrapErr("AccountService.CheckUserAccountAccess", err)
 	}
 	return access, nil
-}
-
-func (s *acctSvc) SetAnchor(ctx context.Context, params sqlc.SetAccountAnchorParams) error {
-	_, err := s.queries.SetAccountAnchor(ctx, params)
-	if err != nil {
-		return wrapErr("AccountService.SetAnchor", err)
-	}
-
-	// Balance recalculation is now handled by database queries automatically
-	s.log.Info("Anchor set successfully", "account_id", params.ID)
-
-	return nil
-}
-
-func (s *acctSvc) SyncBalances(ctx context.Context, accountID int64) error {
-	// Balance syncing is now handled by database queries automatically via window functions
-	s.log.Info("Balance sync requested (handled automatically by DB)", "account_id", accountID)
-	return nil
 }

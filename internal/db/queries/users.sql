@@ -15,7 +15,7 @@ insert into users (id, email, display_name)
 values (@id::uuid, @email::text, sqlc.narg('display_name')::text)
 returning *;
 
--- name: UpdateUser :one
+-- name: UpdateUser :exec
 update users
 set
   email = sqlc.narg('email')::text,
@@ -23,20 +23,7 @@ set
   default_account_id = sqlc.narg('default_account_id')::bigint,
   primary_currency = coalesce(sqlc.narg('primary_currency')::varchar(3), primary_currency),
   timezone = coalesce(sqlc.narg('timezone')::varchar(50), timezone)
-where id = @id::uuid
-returning *;
-
--- name: UpdateUserDisplayName :one
-update users
-set display_name = @display_name::text
-where id = @id::uuid
-returning *;
-
--- name: SetUserDefaultAccount :one
-update users
-set default_account_id = @default_account_id::bigint
-where id = @id::uuid
-returning *;
+where id = @id::uuid;
 
 -- name: DeleteUser :execrows
 delete from

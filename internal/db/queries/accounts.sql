@@ -54,7 +54,7 @@ values
 returning
   *;
 
--- name: UpdateAccount :one
+-- name: UpdateAccount :exec
 update
   accounts
 set
@@ -69,8 +69,7 @@ set
   colors = coalesce(sqlc.narg('colors')::text [], colors)
 where
   id = @id::bigint
-returning
-  *;
+  and owner_id = @user_id::uuid;
 
 -- name: DeleteAccount :execrows
 delete from
@@ -87,7 +86,8 @@ set
   anchor_balance_cents = @anchor_balance_cents::bigint,
   anchor_currency = @anchor_currency::char(3)
 where
-  id = @id::bigint;
+  id = @id::bigint
+  and owner_id = @user_id::uuid;
 
 -- name: GetAccountAnchorBalance :one
 select

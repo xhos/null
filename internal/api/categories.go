@@ -92,14 +92,12 @@ func (s *Server) UpdateCategory(ctx context.Context, req *connect.Request[pb.Upd
 		params.Color = req.Msg.Color
 	}
 
-	cat, err := s.services.Categories.Update(ctx, params)
+	_, err = s.services.Categories.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
-	return connect.NewResponse(&pb.UpdateCategoryResponse{
-		Category: toProtoCategory(cat),
-	}), nil
+	return connect.NewResponse(&pb.UpdateCategoryResponse{}), nil
 }
 
 func (s *Server) DeleteCategory(ctx context.Context, req *connect.Request[pb.DeleteCategoryRequest]) (*connect.Response[pb.DeleteCategoryResponse], error) {
@@ -117,44 +115,5 @@ func (s *Server) DeleteCategory(ctx context.Context, req *connect.Request[pb.Del
 
 	return connect.NewResponse(&pb.DeleteCategoryResponse{
 		AffectedRows: affected,
-	}), nil
-}
-
-func (s *Server) GetCategoryBySlug(ctx context.Context, req *connect.Request[pb.GetCategoryBySlugRequest]) (*connect.Response[pb.GetCategoryBySlugResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	slug := req.Msg.GetSlug()
-
-	cat, err := s.services.Categories.BySlug(ctx, userID, slug)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetCategoryBySlugResponse{
-		Category: toProtoCategory(cat),
-	}), nil
-}
-
-func (s *Server) ListCategorySlugs(ctx context.Context, req *connect.Request[pb.ListCategorySlugsRequest]) (*connect.Response[pb.ListCategorySlugsResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	categories, err := s.services.Categories.List(ctx, userID)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	slugs := make([]string, len(categories))
-	for i, cat := range categories {
-		slugs[i] = cat.Slug
-	}
-
-	return connect.NewResponse(&pb.ListCategorySlugsResponse{
-		Slugs: slugs,
 	}), nil
 }

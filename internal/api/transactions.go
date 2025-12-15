@@ -94,20 +94,7 @@ func (s *Server) UpdateTransaction(ctx context.Context, req *connect.Request[pb.
 		return nil, handleError(err)
 	}
 
-	// get the updated transaction
-	getParams := sqlc.GetTransactionParams{
-		UserID: userID,
-		ID:     req.Msg.GetId(),
-	}
-
-	transaction, err := s.services.Transactions.Get(ctx, getParams)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.UpdateTransactionResponse{
-		Transaction: convertTransactionToProto(transaction),
-	}), nil
+	return connect.NewResponse(&pb.UpdateTransactionResponse{}), nil
 }
 
 func (s *Server) DeleteTransaction(ctx context.Context, req *connect.Request[pb.DeleteTransactionRequest]) (*connect.Response[pb.DeleteTransactionResponse], error) {
@@ -116,30 +103,9 @@ func (s *Server) DeleteTransaction(ctx context.Context, req *connect.Request[pb.
 		return nil, err
 	}
 
-	params := sqlc.DeleteTransactionParams{
-		UserID: userID,
-		ID:     req.Msg.GetId(),
-	}
-
-	affectedRows, err := s.services.Transactions.Delete(ctx, params)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.DeleteTransactionResponse{
-		AffectedRows: affectedRows,
-	}), nil
-}
-
-func (s *Server) BulkDeleteTransactions(ctx context.Context, req *connect.Request[pb.BulkDeleteTransactionsRequest]) (*connect.Response[pb.BulkDeleteTransactionsResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	params := sqlc.BulkDeleteTransactionsParams{
 		UserID:         userID,
-		TransactionIds: req.Msg.TransactionIds,
+		TransactionIds: req.Msg.Ids,
 	}
 
 	err = s.services.Transactions.BulkDelete(ctx, params)
@@ -147,103 +113,12 @@ func (s *Server) BulkDeleteTransactions(ctx context.Context, req *connect.Reques
 		return nil, handleError(err)
 	}
 
-	return connect.NewResponse(&pb.BulkDeleteTransactionsResponse{
-		AffectedRows: int64(len(req.Msg.TransactionIds)),
+	return connect.NewResponse(&pb.DeleteTransactionResponse{
+		AffectedRows: int64(len(req.Msg.Ids)),
 	}), nil
 }
 
-func (s *Server) CategorizeTransaction(ctx context.Context, req *connect.Request[pb.CategorizeTransactionRequest]) (*connect.Response[pb.CategorizeTransactionResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// manual categorization via bulk categorize
-	params := sqlc.BulkCategorizeTransactionsParams{
-		UserID:         userID,
-		TransactionIds: []int64{req.Msg.GetTransactionId()},
-		CategoryID:     req.Msg.GetCategoryId(),
-	}
-
-	err = s.services.Transactions.BulkCategorize(ctx, params)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	// get the updated transaction
-	getParams := sqlc.GetTransactionParams{
-		UserID: userID,
-		ID:     req.Msg.GetTransactionId(),
-	}
-
-	transaction, err := s.services.Transactions.Get(ctx, getParams)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.CategorizeTransactionResponse{
-		Transaction: convertTransactionToProto(transaction),
-	}), nil
-}
-
-func (s *Server) SearchTransactions(ctx context.Context, req *connect.Request[pb.SearchTransactionsRequest]) (*connect.Response[pb.SearchTransactionsResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	transactions, err := s.services.Transactions.SearchTransactions(ctx, userID, req.Msg.GetQuery(), req.Msg.AccountId, req.Msg.CategoryId, req.Msg.Limit, req.Msg.Offset)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.SearchTransactionsResponse{
-		Transactions: mapSlice(transactions, func(tx *sqlc.Transaction) *pb.TransactionWithScore {
-			return &pb.TransactionWithScore{
-				Transaction: convertTransactionToProto(tx),
-			}
-		}),
-		TotalCount: int64(len(transactions)),
-	}), nil
-}
-
-func (s *Server) GetTransactionsByAccount(ctx context.Context, req *connect.Request[pb.GetTransactionsByAccountRequest]) (*connect.Response[pb.GetTransactionsByAccountResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	transactions, err := s.services.Transactions.GetTransactionsByAccount(ctx, userID, req.Msg.GetAccountId(), req.Msg.Limit, req.Msg.Offset)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetTransactionsByAccountResponse{
-		Transactions: mapSlice(transactions, toProtoTransaction),
-		TotalCount:   int64(len(transactions)),
-		NextCursor:   buildNextCursor(transactions, req.Msg.Limit),
-	}), nil
-}
-
-func (s *Server) GetUncategorizedTransactions(ctx context.Context, req *connect.Request[pb.GetUncategorizedTransactionsRequest]) (*connect.Response[pb.GetUncategorizedTransactionsResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	transactions, err := s.services.Transactions.GetUncategorizedTransactions(ctx, userID, req.Msg.AccountId, req.Msg.Limit, req.Msg.Offset)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetUncategorizedTransactionsResponse{
-		Transactions: mapSlice(transactions, toProtoTransaction),
-		TotalCount:   int64(len(transactions)),
-		NextCursor:   buildNextCursor(transactions, req.Msg.Limit),
-	}), nil
-}
-
-func (s *Server) BulkCategorizeTransactions(ctx context.Context, req *connect.Request[pb.BulkCategorizeTransactionsRequest]) (*connect.Response[pb.BulkCategorizeTransactionsResponse], error) {
+func (s *Server) CategorizeTransactions(ctx context.Context, req *connect.Request[pb.CategorizeTransactionsRequest]) (*connect.Response[pb.CategorizeTransactionsResponse], error) {
 	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -255,98 +130,12 @@ func (s *Server) BulkCategorizeTransactions(ctx context.Context, req *connect.Re
 		CategoryID:     req.Msg.GetCategoryId(),
 	}
 
-	err = s.services.Transactions.BulkCategorize(ctx, params)
+	err = s.services.Transactions.Categorize(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
-	return connect.NewResponse(&pb.BulkCategorizeTransactionsResponse{
+	return connect.NewResponse(&pb.CategorizeTransactionsResponse{
 		AffectedRows: int64(len(req.Msg.TransactionIds)),
-	}), nil
-}
-
-func (s *Server) GetTransactionCountByAccount(ctx context.Context, req *connect.Request[pb.GetTransactionCountByAccountRequest]) (*connect.Response[pb.GetTransactionCountByAccountResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	counts, err := s.services.Transactions.GetTransactionCountByAccount(ctx, userID)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetTransactionCountByAccountResponse{
-		Counts: mapSlice(counts, func(count *sqlc.GetTransactionCountByAccountRow) *pb.TransactionCountByAccount {
-			return &pb.TransactionCountByAccount{
-				AccountId:        count.ID,
-				TransactionCount: count.TransactionCount,
-			}
-		}),
-	}), nil
-}
-
-func (s *Server) FindCandidateTransactions(ctx context.Context, req *connect.Request[pb.FindCandidateTransactionsRequest]) (*connect.Response[pb.FindCandidateTransactionsResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert money to float64 for fuzzy matching
-	totalAmount := 0.0
-	if req.Msg.TotalAmount != nil {
-		totalAmount = float64(req.Msg.TotalAmount.Units) + float64(req.Msg.TotalAmount.Nanos)/1e9
-	}
-
-	params := sqlc.FindCandidateTransactionsParams{
-		UserID:     userID,
-		Merchant:   req.Msg.GetMerchant(),
-		Date:       timestampToDate(req.Msg.PurchaseDate),
-		TotalCents: int64(totalAmount * 100), // Convert dollars to cents
-	}
-
-	candidates, err := s.services.Transactions.FindCandidateTransactions(ctx, params)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.FindCandidateTransactionsResponse{
-		Candidates: mapSlice(candidates, func(candidate *sqlc.FindCandidateTransactionsRow) *pb.TransactionWithScore {
-			return &pb.TransactionWithScore{
-				Transaction: convertTransactionToProto(candidate),
-			}
-		}),
-	}), nil
-}
-
-func (s *Server) IdentifyMerchant(ctx context.Context, req *connect.Request[pb.IdentifyMerchantRequest]) (*connect.Response[pb.IdentifyMerchantResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.services.Transactions.IdentifyMerchantForTransaction(ctx, userID, req.Msg.GetTransactionId())
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	// get the updated transaction to return the identified merchant
-	getParams := sqlc.GetTransactionParams{
-		UserID: userID,
-		ID:     req.Msg.GetTransactionId(),
-	}
-
-	transaction, err := s.services.Transactions.Get(ctx, getParams)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	merchant := ""
-	if transaction.Merchant != nil {
-		merchant = *transaction.Merchant
-	}
-
-	return connect.NewResponse(&pb.IdentifyMerchantResponse{
-		Merchant: merchant,
 	}), nil
 }

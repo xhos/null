@@ -61,7 +61,6 @@ type DashboardService interface {
 	TopCategories(ctx context.Context, params sqlc.GetTopCategoriesParams) ([]sqlc.GetTopCategoriesRow, error)
 	TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsParams) ([]sqlc.GetTopMerchantsRow, error)
 	AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error)
-	GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error)
 	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error)
 	GetCategorySpendingComparison(ctx context.Context, params CategorySpendingParams) (*CategorySpendingResult, error)
 	GetNetWorthHistory(ctx context.Context, params NetWorthHistoryParams) ([]sqlc.GetNetWorthHistoryRow, error)
@@ -202,54 +201,6 @@ func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc
 		return nil, wrapErr("DashboardService.AccountBalances", err)
 	}
 	return balances, nil
-}
-
-func (s *dashSvc) GetAccountSummary(ctx context.Context, userID uuid.UUID, accountID int64, startDate *string, endDate *string) (*AccountSummary, error) {
-	var start, end *time.Time
-
-	hasStartDate := startDate != nil
-	if hasStartDate {
-		parsed, err := time.Parse("2006-01-02", *startDate)
-		if err != nil {
-			return nil, wrapErr("DashboardService.GetAccountSummary.ParseStartDate", err)
-		}
-		start = &parsed
-	}
-
-	hasEndDate := endDate != nil
-	if hasEndDate {
-		parsed, err := time.Parse("2006-01-02", *endDate)
-		if err != nil {
-			return nil, wrapErr("DashboardService.GetAccountSummary.ParseEndDate", err)
-		}
-		end = &parsed
-	}
-
-	// Use general summary and trends (account-specific queries removed)
-	summaryParams := sqlc.GetDashboardSummaryParams{
-		UserID: userID,
-		Start:  start,
-		End:    end,
-	}
-	summary, err := s.queries.GetDashboardSummary(ctx, summaryParams)
-	if err != nil {
-		return nil, wrapErr("DashboardService.GetAccountSummary", err)
-	}
-
-	trendsParams := sqlc.GetDashboardTrendsParams{
-		UserID: userID,
-		Start:  start,
-		End:    end,
-	}
-	trends, err := s.queries.GetDashboardTrends(ctx, trendsParams)
-	if err != nil {
-		return nil, wrapErr("DashboardService.GetAccountSummary.GetTrends", err)
-	}
-
-	return &AccountSummary{
-		Summary: &summary,
-		Trends:  trends,
-	}, nil
 }
 
 func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error) {

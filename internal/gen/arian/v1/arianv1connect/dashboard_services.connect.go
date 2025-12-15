@@ -36,9 +36,6 @@ const (
 	// DashboardServiceGetDashboardSummaryProcedure is the fully-qualified name of the
 	// DashboardService's GetDashboardSummary RPC.
 	DashboardServiceGetDashboardSummaryProcedure = "/arian.v1.DashboardService/GetDashboardSummary"
-	// DashboardServiceGetTrendDataProcedure is the fully-qualified name of the DashboardService's
-	// GetTrendData RPC.
-	DashboardServiceGetTrendDataProcedure = "/arian.v1.DashboardService/GetTrendData"
 	// DashboardServiceGetMonthlyComparisonProcedure is the fully-qualified name of the
 	// DashboardService's GetMonthlyComparison RPC.
 	DashboardServiceGetMonthlyComparisonProcedure = "/arian.v1.DashboardService/GetMonthlyComparison"
@@ -48,24 +45,12 @@ const (
 	// DashboardServiceGetTopMerchantsProcedure is the fully-qualified name of the DashboardService's
 	// GetTopMerchants RPC.
 	DashboardServiceGetTopMerchantsProcedure = "/arian.v1.DashboardService/GetTopMerchants"
-	// DashboardServiceGetAccountSummaryProcedure is the fully-qualified name of the DashboardService's
-	// GetAccountSummary RPC.
-	DashboardServiceGetAccountSummaryProcedure = "/arian.v1.DashboardService/GetAccountSummary"
-	// DashboardServiceGetAccountBalancesProcedure is the fully-qualified name of the DashboardService's
-	// GetAccountBalances RPC.
-	DashboardServiceGetAccountBalancesProcedure = "/arian.v1.DashboardService/GetAccountBalances"
 	// DashboardServiceGetSpendingTrendsProcedure is the fully-qualified name of the DashboardService's
 	// GetSpendingTrends RPC.
 	DashboardServiceGetSpendingTrendsProcedure = "/arian.v1.DashboardService/GetSpendingTrends"
-	// DashboardServiceGetTotalBalanceProcedure is the fully-qualified name of the DashboardService's
-	// GetTotalBalance RPC.
-	DashboardServiceGetTotalBalanceProcedure = "/arian.v1.DashboardService/GetTotalBalance"
-	// DashboardServiceGetTotalDebtProcedure is the fully-qualified name of the DashboardService's
-	// GetTotalDebt RPC.
-	DashboardServiceGetTotalDebtProcedure = "/arian.v1.DashboardService/GetTotalDebt"
-	// DashboardServiceGetNetBalanceProcedure is the fully-qualified name of the DashboardService's
-	// GetNetBalance RPC.
-	DashboardServiceGetNetBalanceProcedure = "/arian.v1.DashboardService/GetNetBalance"
+	// DashboardServiceGetFinancialSummaryProcedure is the fully-qualified name of the
+	// DashboardService's GetFinancialSummary RPC.
+	DashboardServiceGetFinancialSummaryProcedure = "/arian.v1.DashboardService/GetFinancialSummary"
 	// DashboardServiceGetCategorySpendingComparisonProcedure is the fully-qualified name of the
 	// DashboardService's GetCategorySpendingComparison RPC.
 	DashboardServiceGetCategorySpendingComparisonProcedure = "/arian.v1.DashboardService/GetCategorySpendingComparison"
@@ -77,16 +62,13 @@ const (
 // DashboardServiceClient is a client for the arian.v1.DashboardService service.
 type DashboardServiceClient interface {
 	GetDashboardSummary(context.Context, *connect.Request[v1.GetDashboardSummaryRequest]) (*connect.Response[v1.GetDashboardSummaryResponse], error)
-	GetTrendData(context.Context, *connect.Request[v1.GetTrendDataRequest]) (*connect.Response[v1.GetTrendDataResponse], error)
 	GetMonthlyComparison(context.Context, *connect.Request[v1.GetMonthlyComparisonRequest]) (*connect.Response[v1.GetMonthlyComparisonResponse], error)
 	GetTopCategories(context.Context, *connect.Request[v1.GetTopCategoriesRequest]) (*connect.Response[v1.GetTopCategoriesResponse], error)
 	GetTopMerchants(context.Context, *connect.Request[v1.GetTopMerchantsRequest]) (*connect.Response[v1.GetTopMerchantsResponse], error)
-	GetAccountSummary(context.Context, *connect.Request[v1.GetAccountSummaryRequest]) (*connect.Response[v1.GetAccountSummaryResponse], error)
-	GetAccountBalances(context.Context, *connect.Request[v1.GetAccountBalancesRequest]) (*connect.Response[v1.GetAccountBalancesResponse], error)
 	GetSpendingTrends(context.Context, *connect.Request[v1.GetSpendingTrendsRequest]) (*connect.Response[v1.GetSpendingTrendsResponse], error)
-	GetTotalBalance(context.Context, *connect.Request[v1.GetTotalBalanceRequest]) (*connect.Response[v1.GetTotalBalanceResponse], error)
-	GetTotalDebt(context.Context, *connect.Request[v1.GetTotalDebtRequest]) (*connect.Response[v1.GetTotalDebtResponse], error)
-	GetNetBalance(context.Context, *connect.Request[v1.GetNetBalanceRequest]) (*connect.Response[v1.GetNetBalanceResponse], error)
+	// combines total balance, debt, and net worth across all accounts
+	GetFinancialSummary(context.Context, *connect.Request[v1.GetFinancialSummaryRequest]) (*connect.Response[v1.GetFinancialSummaryResponse], error)
+	// compares category spending between current and previous period
 	GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error)
 	GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error)
 }
@@ -108,12 +90,6 @@ func NewDashboardServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(dashboardServiceMethods.ByName("GetDashboardSummary")),
 			connect.WithClientOptions(opts...),
 		),
-		getTrendData: connect.NewClient[v1.GetTrendDataRequest, v1.GetTrendDataResponse](
-			httpClient,
-			baseURL+DashboardServiceGetTrendDataProcedure,
-			connect.WithSchema(dashboardServiceMethods.ByName("GetTrendData")),
-			connect.WithClientOptions(opts...),
-		),
 		getMonthlyComparison: connect.NewClient[v1.GetMonthlyComparisonRequest, v1.GetMonthlyComparisonResponse](
 			httpClient,
 			baseURL+DashboardServiceGetMonthlyComparisonProcedure,
@@ -132,40 +108,16 @@ func NewDashboardServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(dashboardServiceMethods.ByName("GetTopMerchants")),
 			connect.WithClientOptions(opts...),
 		),
-		getAccountSummary: connect.NewClient[v1.GetAccountSummaryRequest, v1.GetAccountSummaryResponse](
-			httpClient,
-			baseURL+DashboardServiceGetAccountSummaryProcedure,
-			connect.WithSchema(dashboardServiceMethods.ByName("GetAccountSummary")),
-			connect.WithClientOptions(opts...),
-		),
-		getAccountBalances: connect.NewClient[v1.GetAccountBalancesRequest, v1.GetAccountBalancesResponse](
-			httpClient,
-			baseURL+DashboardServiceGetAccountBalancesProcedure,
-			connect.WithSchema(dashboardServiceMethods.ByName("GetAccountBalances")),
-			connect.WithClientOptions(opts...),
-		),
 		getSpendingTrends: connect.NewClient[v1.GetSpendingTrendsRequest, v1.GetSpendingTrendsResponse](
 			httpClient,
 			baseURL+DashboardServiceGetSpendingTrendsProcedure,
 			connect.WithSchema(dashboardServiceMethods.ByName("GetSpendingTrends")),
 			connect.WithClientOptions(opts...),
 		),
-		getTotalBalance: connect.NewClient[v1.GetTotalBalanceRequest, v1.GetTotalBalanceResponse](
+		getFinancialSummary: connect.NewClient[v1.GetFinancialSummaryRequest, v1.GetFinancialSummaryResponse](
 			httpClient,
-			baseURL+DashboardServiceGetTotalBalanceProcedure,
-			connect.WithSchema(dashboardServiceMethods.ByName("GetTotalBalance")),
-			connect.WithClientOptions(opts...),
-		),
-		getTotalDebt: connect.NewClient[v1.GetTotalDebtRequest, v1.GetTotalDebtResponse](
-			httpClient,
-			baseURL+DashboardServiceGetTotalDebtProcedure,
-			connect.WithSchema(dashboardServiceMethods.ByName("GetTotalDebt")),
-			connect.WithClientOptions(opts...),
-		),
-		getNetBalance: connect.NewClient[v1.GetNetBalanceRequest, v1.GetNetBalanceResponse](
-			httpClient,
-			baseURL+DashboardServiceGetNetBalanceProcedure,
-			connect.WithSchema(dashboardServiceMethods.ByName("GetNetBalance")),
+			baseURL+DashboardServiceGetFinancialSummaryProcedure,
+			connect.WithSchema(dashboardServiceMethods.ByName("GetFinancialSummary")),
 			connect.WithClientOptions(opts...),
 		),
 		getCategorySpendingComparison: connect.NewClient[v1.GetCategorySpendingComparisonRequest, v1.GetCategorySpendingComparisonResponse](
@@ -186,16 +138,11 @@ func NewDashboardServiceClient(httpClient connect.HTTPClient, baseURL string, op
 // dashboardServiceClient implements DashboardServiceClient.
 type dashboardServiceClient struct {
 	getDashboardSummary           *connect.Client[v1.GetDashboardSummaryRequest, v1.GetDashboardSummaryResponse]
-	getTrendData                  *connect.Client[v1.GetTrendDataRequest, v1.GetTrendDataResponse]
 	getMonthlyComparison          *connect.Client[v1.GetMonthlyComparisonRequest, v1.GetMonthlyComparisonResponse]
 	getTopCategories              *connect.Client[v1.GetTopCategoriesRequest, v1.GetTopCategoriesResponse]
 	getTopMerchants               *connect.Client[v1.GetTopMerchantsRequest, v1.GetTopMerchantsResponse]
-	getAccountSummary             *connect.Client[v1.GetAccountSummaryRequest, v1.GetAccountSummaryResponse]
-	getAccountBalances            *connect.Client[v1.GetAccountBalancesRequest, v1.GetAccountBalancesResponse]
 	getSpendingTrends             *connect.Client[v1.GetSpendingTrendsRequest, v1.GetSpendingTrendsResponse]
-	getTotalBalance               *connect.Client[v1.GetTotalBalanceRequest, v1.GetTotalBalanceResponse]
-	getTotalDebt                  *connect.Client[v1.GetTotalDebtRequest, v1.GetTotalDebtResponse]
-	getNetBalance                 *connect.Client[v1.GetNetBalanceRequest, v1.GetNetBalanceResponse]
+	getFinancialSummary           *connect.Client[v1.GetFinancialSummaryRequest, v1.GetFinancialSummaryResponse]
 	getCategorySpendingComparison *connect.Client[v1.GetCategorySpendingComparisonRequest, v1.GetCategorySpendingComparisonResponse]
 	getNetWorthHistory            *connect.Client[v1.GetNetWorthHistoryRequest, v1.GetNetWorthHistoryResponse]
 }
@@ -203,11 +150,6 @@ type dashboardServiceClient struct {
 // GetDashboardSummary calls arian.v1.DashboardService.GetDashboardSummary.
 func (c *dashboardServiceClient) GetDashboardSummary(ctx context.Context, req *connect.Request[v1.GetDashboardSummaryRequest]) (*connect.Response[v1.GetDashboardSummaryResponse], error) {
 	return c.getDashboardSummary.CallUnary(ctx, req)
-}
-
-// GetTrendData calls arian.v1.DashboardService.GetTrendData.
-func (c *dashboardServiceClient) GetTrendData(ctx context.Context, req *connect.Request[v1.GetTrendDataRequest]) (*connect.Response[v1.GetTrendDataResponse], error) {
-	return c.getTrendData.CallUnary(ctx, req)
 }
 
 // GetMonthlyComparison calls arian.v1.DashboardService.GetMonthlyComparison.
@@ -225,34 +167,14 @@ func (c *dashboardServiceClient) GetTopMerchants(ctx context.Context, req *conne
 	return c.getTopMerchants.CallUnary(ctx, req)
 }
 
-// GetAccountSummary calls arian.v1.DashboardService.GetAccountSummary.
-func (c *dashboardServiceClient) GetAccountSummary(ctx context.Context, req *connect.Request[v1.GetAccountSummaryRequest]) (*connect.Response[v1.GetAccountSummaryResponse], error) {
-	return c.getAccountSummary.CallUnary(ctx, req)
-}
-
-// GetAccountBalances calls arian.v1.DashboardService.GetAccountBalances.
-func (c *dashboardServiceClient) GetAccountBalances(ctx context.Context, req *connect.Request[v1.GetAccountBalancesRequest]) (*connect.Response[v1.GetAccountBalancesResponse], error) {
-	return c.getAccountBalances.CallUnary(ctx, req)
-}
-
 // GetSpendingTrends calls arian.v1.DashboardService.GetSpendingTrends.
 func (c *dashboardServiceClient) GetSpendingTrends(ctx context.Context, req *connect.Request[v1.GetSpendingTrendsRequest]) (*connect.Response[v1.GetSpendingTrendsResponse], error) {
 	return c.getSpendingTrends.CallUnary(ctx, req)
 }
 
-// GetTotalBalance calls arian.v1.DashboardService.GetTotalBalance.
-func (c *dashboardServiceClient) GetTotalBalance(ctx context.Context, req *connect.Request[v1.GetTotalBalanceRequest]) (*connect.Response[v1.GetTotalBalanceResponse], error) {
-	return c.getTotalBalance.CallUnary(ctx, req)
-}
-
-// GetTotalDebt calls arian.v1.DashboardService.GetTotalDebt.
-func (c *dashboardServiceClient) GetTotalDebt(ctx context.Context, req *connect.Request[v1.GetTotalDebtRequest]) (*connect.Response[v1.GetTotalDebtResponse], error) {
-	return c.getTotalDebt.CallUnary(ctx, req)
-}
-
-// GetNetBalance calls arian.v1.DashboardService.GetNetBalance.
-func (c *dashboardServiceClient) GetNetBalance(ctx context.Context, req *connect.Request[v1.GetNetBalanceRequest]) (*connect.Response[v1.GetNetBalanceResponse], error) {
-	return c.getNetBalance.CallUnary(ctx, req)
+// GetFinancialSummary calls arian.v1.DashboardService.GetFinancialSummary.
+func (c *dashboardServiceClient) GetFinancialSummary(ctx context.Context, req *connect.Request[v1.GetFinancialSummaryRequest]) (*connect.Response[v1.GetFinancialSummaryResponse], error) {
+	return c.getFinancialSummary.CallUnary(ctx, req)
 }
 
 // GetCategorySpendingComparison calls arian.v1.DashboardService.GetCategorySpendingComparison.
@@ -268,16 +190,13 @@ func (c *dashboardServiceClient) GetNetWorthHistory(ctx context.Context, req *co
 // DashboardServiceHandler is an implementation of the arian.v1.DashboardService service.
 type DashboardServiceHandler interface {
 	GetDashboardSummary(context.Context, *connect.Request[v1.GetDashboardSummaryRequest]) (*connect.Response[v1.GetDashboardSummaryResponse], error)
-	GetTrendData(context.Context, *connect.Request[v1.GetTrendDataRequest]) (*connect.Response[v1.GetTrendDataResponse], error)
 	GetMonthlyComparison(context.Context, *connect.Request[v1.GetMonthlyComparisonRequest]) (*connect.Response[v1.GetMonthlyComparisonResponse], error)
 	GetTopCategories(context.Context, *connect.Request[v1.GetTopCategoriesRequest]) (*connect.Response[v1.GetTopCategoriesResponse], error)
 	GetTopMerchants(context.Context, *connect.Request[v1.GetTopMerchantsRequest]) (*connect.Response[v1.GetTopMerchantsResponse], error)
-	GetAccountSummary(context.Context, *connect.Request[v1.GetAccountSummaryRequest]) (*connect.Response[v1.GetAccountSummaryResponse], error)
-	GetAccountBalances(context.Context, *connect.Request[v1.GetAccountBalancesRequest]) (*connect.Response[v1.GetAccountBalancesResponse], error)
 	GetSpendingTrends(context.Context, *connect.Request[v1.GetSpendingTrendsRequest]) (*connect.Response[v1.GetSpendingTrendsResponse], error)
-	GetTotalBalance(context.Context, *connect.Request[v1.GetTotalBalanceRequest]) (*connect.Response[v1.GetTotalBalanceResponse], error)
-	GetTotalDebt(context.Context, *connect.Request[v1.GetTotalDebtRequest]) (*connect.Response[v1.GetTotalDebtResponse], error)
-	GetNetBalance(context.Context, *connect.Request[v1.GetNetBalanceRequest]) (*connect.Response[v1.GetNetBalanceResponse], error)
+	// combines total balance, debt, and net worth across all accounts
+	GetFinancialSummary(context.Context, *connect.Request[v1.GetFinancialSummaryRequest]) (*connect.Response[v1.GetFinancialSummaryResponse], error)
+	// compares category spending between current and previous period
 	GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error)
 	GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error)
 }
@@ -293,12 +212,6 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 		DashboardServiceGetDashboardSummaryProcedure,
 		svc.GetDashboardSummary,
 		connect.WithSchema(dashboardServiceMethods.ByName("GetDashboardSummary")),
-		connect.WithHandlerOptions(opts...),
-	)
-	dashboardServiceGetTrendDataHandler := connect.NewUnaryHandler(
-		DashboardServiceGetTrendDataProcedure,
-		svc.GetTrendData,
-		connect.WithSchema(dashboardServiceMethods.ByName("GetTrendData")),
 		connect.WithHandlerOptions(opts...),
 	)
 	dashboardServiceGetMonthlyComparisonHandler := connect.NewUnaryHandler(
@@ -319,40 +232,16 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 		connect.WithSchema(dashboardServiceMethods.ByName("GetTopMerchants")),
 		connect.WithHandlerOptions(opts...),
 	)
-	dashboardServiceGetAccountSummaryHandler := connect.NewUnaryHandler(
-		DashboardServiceGetAccountSummaryProcedure,
-		svc.GetAccountSummary,
-		connect.WithSchema(dashboardServiceMethods.ByName("GetAccountSummary")),
-		connect.WithHandlerOptions(opts...),
-	)
-	dashboardServiceGetAccountBalancesHandler := connect.NewUnaryHandler(
-		DashboardServiceGetAccountBalancesProcedure,
-		svc.GetAccountBalances,
-		connect.WithSchema(dashboardServiceMethods.ByName("GetAccountBalances")),
-		connect.WithHandlerOptions(opts...),
-	)
 	dashboardServiceGetSpendingTrendsHandler := connect.NewUnaryHandler(
 		DashboardServiceGetSpendingTrendsProcedure,
 		svc.GetSpendingTrends,
 		connect.WithSchema(dashboardServiceMethods.ByName("GetSpendingTrends")),
 		connect.WithHandlerOptions(opts...),
 	)
-	dashboardServiceGetTotalBalanceHandler := connect.NewUnaryHandler(
-		DashboardServiceGetTotalBalanceProcedure,
-		svc.GetTotalBalance,
-		connect.WithSchema(dashboardServiceMethods.ByName("GetTotalBalance")),
-		connect.WithHandlerOptions(opts...),
-	)
-	dashboardServiceGetTotalDebtHandler := connect.NewUnaryHandler(
-		DashboardServiceGetTotalDebtProcedure,
-		svc.GetTotalDebt,
-		connect.WithSchema(dashboardServiceMethods.ByName("GetTotalDebt")),
-		connect.WithHandlerOptions(opts...),
-	)
-	dashboardServiceGetNetBalanceHandler := connect.NewUnaryHandler(
-		DashboardServiceGetNetBalanceProcedure,
-		svc.GetNetBalance,
-		connect.WithSchema(dashboardServiceMethods.ByName("GetNetBalance")),
+	dashboardServiceGetFinancialSummaryHandler := connect.NewUnaryHandler(
+		DashboardServiceGetFinancialSummaryProcedure,
+		svc.GetFinancialSummary,
+		connect.WithSchema(dashboardServiceMethods.ByName("GetFinancialSummary")),
 		connect.WithHandlerOptions(opts...),
 	)
 	dashboardServiceGetCategorySpendingComparisonHandler := connect.NewUnaryHandler(
@@ -371,26 +260,16 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 		switch r.URL.Path {
 		case DashboardServiceGetDashboardSummaryProcedure:
 			dashboardServiceGetDashboardSummaryHandler.ServeHTTP(w, r)
-		case DashboardServiceGetTrendDataProcedure:
-			dashboardServiceGetTrendDataHandler.ServeHTTP(w, r)
 		case DashboardServiceGetMonthlyComparisonProcedure:
 			dashboardServiceGetMonthlyComparisonHandler.ServeHTTP(w, r)
 		case DashboardServiceGetTopCategoriesProcedure:
 			dashboardServiceGetTopCategoriesHandler.ServeHTTP(w, r)
 		case DashboardServiceGetTopMerchantsProcedure:
 			dashboardServiceGetTopMerchantsHandler.ServeHTTP(w, r)
-		case DashboardServiceGetAccountSummaryProcedure:
-			dashboardServiceGetAccountSummaryHandler.ServeHTTP(w, r)
-		case DashboardServiceGetAccountBalancesProcedure:
-			dashboardServiceGetAccountBalancesHandler.ServeHTTP(w, r)
 		case DashboardServiceGetSpendingTrendsProcedure:
 			dashboardServiceGetSpendingTrendsHandler.ServeHTTP(w, r)
-		case DashboardServiceGetTotalBalanceProcedure:
-			dashboardServiceGetTotalBalanceHandler.ServeHTTP(w, r)
-		case DashboardServiceGetTotalDebtProcedure:
-			dashboardServiceGetTotalDebtHandler.ServeHTTP(w, r)
-		case DashboardServiceGetNetBalanceProcedure:
-			dashboardServiceGetNetBalanceHandler.ServeHTTP(w, r)
+		case DashboardServiceGetFinancialSummaryProcedure:
+			dashboardServiceGetFinancialSummaryHandler.ServeHTTP(w, r)
 		case DashboardServiceGetCategorySpendingComparisonProcedure:
 			dashboardServiceGetCategorySpendingComparisonHandler.ServeHTTP(w, r)
 		case DashboardServiceGetNetWorthHistoryProcedure:
@@ -408,10 +287,6 @@ func (UnimplementedDashboardServiceHandler) GetDashboardSummary(context.Context,
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetDashboardSummary is not implemented"))
 }
 
-func (UnimplementedDashboardServiceHandler) GetTrendData(context.Context, *connect.Request[v1.GetTrendDataRequest]) (*connect.Response[v1.GetTrendDataResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetTrendData is not implemented"))
-}
-
 func (UnimplementedDashboardServiceHandler) GetMonthlyComparison(context.Context, *connect.Request[v1.GetMonthlyComparisonRequest]) (*connect.Response[v1.GetMonthlyComparisonResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetMonthlyComparison is not implemented"))
 }
@@ -424,28 +299,12 @@ func (UnimplementedDashboardServiceHandler) GetTopMerchants(context.Context, *co
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetTopMerchants is not implemented"))
 }
 
-func (UnimplementedDashboardServiceHandler) GetAccountSummary(context.Context, *connect.Request[v1.GetAccountSummaryRequest]) (*connect.Response[v1.GetAccountSummaryResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetAccountSummary is not implemented"))
-}
-
-func (UnimplementedDashboardServiceHandler) GetAccountBalances(context.Context, *connect.Request[v1.GetAccountBalancesRequest]) (*connect.Response[v1.GetAccountBalancesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetAccountBalances is not implemented"))
-}
-
 func (UnimplementedDashboardServiceHandler) GetSpendingTrends(context.Context, *connect.Request[v1.GetSpendingTrendsRequest]) (*connect.Response[v1.GetSpendingTrendsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetSpendingTrends is not implemented"))
 }
 
-func (UnimplementedDashboardServiceHandler) GetTotalBalance(context.Context, *connect.Request[v1.GetTotalBalanceRequest]) (*connect.Response[v1.GetTotalBalanceResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetTotalBalance is not implemented"))
-}
-
-func (UnimplementedDashboardServiceHandler) GetTotalDebt(context.Context, *connect.Request[v1.GetTotalDebtRequest]) (*connect.Response[v1.GetTotalDebtResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetTotalDebt is not implemented"))
-}
-
-func (UnimplementedDashboardServiceHandler) GetNetBalance(context.Context, *connect.Request[v1.GetNetBalanceRequest]) (*connect.Response[v1.GetNetBalanceResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetNetBalance is not implemented"))
+func (UnimplementedDashboardServiceHandler) GetFinancialSummary(context.Context, *connect.Request[v1.GetFinancialSummaryRequest]) (*connect.Response[v1.GetFinancialSummaryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.DashboardService.GetFinancialSummary is not implemented"))
 }
 
 func (UnimplementedDashboardServiceHandler) GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error) {

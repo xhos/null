@@ -48,15 +48,6 @@ const (
 	// AccountServiceDeleteAccountProcedure is the fully-qualified name of the AccountService's
 	// DeleteAccount RPC.
 	AccountServiceDeleteAccountProcedure = "/arian.v1.AccountService/DeleteAccount"
-	// AccountServiceSetAccountAnchorProcedure is the fully-qualified name of the AccountService's
-	// SetAccountAnchor RPC.
-	AccountServiceSetAccountAnchorProcedure = "/arian.v1.AccountService/SetAccountAnchor"
-	// AccountServiceGetAccountsCountProcedure is the fully-qualified name of the AccountService's
-	// GetAccountsCount RPC.
-	AccountServiceGetAccountsCountProcedure = "/arian.v1.AccountService/GetAccountsCount"
-	// AccountServiceSyncAccountBalancesProcedure is the fully-qualified name of the AccountService's
-	// SyncAccountBalances RPC.
-	AccountServiceSyncAccountBalancesProcedure = "/arian.v1.AccountService/SyncAccountBalances"
 )
 
 // AccountServiceClient is a client for the arian.v1.AccountService service.
@@ -66,9 +57,6 @@ type AccountServiceClient interface {
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAccountResponse], error)
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
-	SetAccountAnchor(context.Context, *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error)
-	GetAccountsCount(context.Context, *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error)
-	SyncAccountBalances(context.Context, *connect.Request[v1.SyncAccountBalancesRequest]) (*connect.Response[v1.SyncAccountBalancesResponse], error)
 }
 
 // NewAccountServiceClient constructs a client for the arian.v1.AccountService service. By default,
@@ -112,37 +100,16 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(accountServiceMethods.ByName("DeleteAccount")),
 			connect.WithClientOptions(opts...),
 		),
-		setAccountAnchor: connect.NewClient[v1.SetAccountAnchorRequest, v1.SetAccountAnchorResponse](
-			httpClient,
-			baseURL+AccountServiceSetAccountAnchorProcedure,
-			connect.WithSchema(accountServiceMethods.ByName("SetAccountAnchor")),
-			connect.WithClientOptions(opts...),
-		),
-		getAccountsCount: connect.NewClient[v1.GetAccountsCountRequest, v1.GetAccountsCountResponse](
-			httpClient,
-			baseURL+AccountServiceGetAccountsCountProcedure,
-			connect.WithSchema(accountServiceMethods.ByName("GetAccountsCount")),
-			connect.WithClientOptions(opts...),
-		),
-		syncAccountBalances: connect.NewClient[v1.SyncAccountBalancesRequest, v1.SyncAccountBalancesResponse](
-			httpClient,
-			baseURL+AccountServiceSyncAccountBalancesProcedure,
-			connect.WithSchema(accountServiceMethods.ByName("SyncAccountBalances")),
-			connect.WithClientOptions(opts...),
-		),
 	}
 }
 
 // accountServiceClient implements AccountServiceClient.
 type accountServiceClient struct {
-	listAccounts        *connect.Client[v1.ListAccountsRequest, v1.ListAccountsResponse]
-	getAccount          *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
-	createAccount       *connect.Client[v1.CreateAccountRequest, v1.CreateAccountResponse]
-	updateAccount       *connect.Client[v1.UpdateAccountRequest, v1.UpdateAccountResponse]
-	deleteAccount       *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
-	setAccountAnchor    *connect.Client[v1.SetAccountAnchorRequest, v1.SetAccountAnchorResponse]
-	getAccountsCount    *connect.Client[v1.GetAccountsCountRequest, v1.GetAccountsCountResponse]
-	syncAccountBalances *connect.Client[v1.SyncAccountBalancesRequest, v1.SyncAccountBalancesResponse]
+	listAccounts  *connect.Client[v1.ListAccountsRequest, v1.ListAccountsResponse]
+	getAccount    *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
+	createAccount *connect.Client[v1.CreateAccountRequest, v1.CreateAccountResponse]
+	updateAccount *connect.Client[v1.UpdateAccountRequest, v1.UpdateAccountResponse]
+	deleteAccount *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
 }
 
 // ListAccounts calls arian.v1.AccountService.ListAccounts.
@@ -170,21 +137,6 @@ func (c *accountServiceClient) DeleteAccount(ctx context.Context, req *connect.R
 	return c.deleteAccount.CallUnary(ctx, req)
 }
 
-// SetAccountAnchor calls arian.v1.AccountService.SetAccountAnchor.
-func (c *accountServiceClient) SetAccountAnchor(ctx context.Context, req *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error) {
-	return c.setAccountAnchor.CallUnary(ctx, req)
-}
-
-// GetAccountsCount calls arian.v1.AccountService.GetAccountsCount.
-func (c *accountServiceClient) GetAccountsCount(ctx context.Context, req *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error) {
-	return c.getAccountsCount.CallUnary(ctx, req)
-}
-
-// SyncAccountBalances calls arian.v1.AccountService.SyncAccountBalances.
-func (c *accountServiceClient) SyncAccountBalances(ctx context.Context, req *connect.Request[v1.SyncAccountBalancesRequest]) (*connect.Response[v1.SyncAccountBalancesResponse], error) {
-	return c.syncAccountBalances.CallUnary(ctx, req)
-}
-
 // AccountServiceHandler is an implementation of the arian.v1.AccountService service.
 type AccountServiceHandler interface {
 	ListAccounts(context.Context, *connect.Request[v1.ListAccountsRequest]) (*connect.Response[v1.ListAccountsResponse], error)
@@ -192,9 +144,6 @@ type AccountServiceHandler interface {
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAccountResponse], error)
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
-	SetAccountAnchor(context.Context, *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error)
-	GetAccountsCount(context.Context, *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error)
-	SyncAccountBalances(context.Context, *connect.Request[v1.SyncAccountBalancesRequest]) (*connect.Response[v1.SyncAccountBalancesResponse], error)
 }
 
 // NewAccountServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -234,24 +183,6 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 		connect.WithSchema(accountServiceMethods.ByName("DeleteAccount")),
 		connect.WithHandlerOptions(opts...),
 	)
-	accountServiceSetAccountAnchorHandler := connect.NewUnaryHandler(
-		AccountServiceSetAccountAnchorProcedure,
-		svc.SetAccountAnchor,
-		connect.WithSchema(accountServiceMethods.ByName("SetAccountAnchor")),
-		connect.WithHandlerOptions(opts...),
-	)
-	accountServiceGetAccountsCountHandler := connect.NewUnaryHandler(
-		AccountServiceGetAccountsCountProcedure,
-		svc.GetAccountsCount,
-		connect.WithSchema(accountServiceMethods.ByName("GetAccountsCount")),
-		connect.WithHandlerOptions(opts...),
-	)
-	accountServiceSyncAccountBalancesHandler := connect.NewUnaryHandler(
-		AccountServiceSyncAccountBalancesProcedure,
-		svc.SyncAccountBalances,
-		connect.WithSchema(accountServiceMethods.ByName("SyncAccountBalances")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/arian.v1.AccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AccountServiceListAccountsProcedure:
@@ -264,12 +195,6 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 			accountServiceUpdateAccountHandler.ServeHTTP(w, r)
 		case AccountServiceDeleteAccountProcedure:
 			accountServiceDeleteAccountHandler.ServeHTTP(w, r)
-		case AccountServiceSetAccountAnchorProcedure:
-			accountServiceSetAccountAnchorHandler.ServeHTTP(w, r)
-		case AccountServiceGetAccountsCountProcedure:
-			accountServiceGetAccountsCountHandler.ServeHTTP(w, r)
-		case AccountServiceSyncAccountBalancesProcedure:
-			accountServiceSyncAccountBalancesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -297,16 +222,4 @@ func (UnimplementedAccountServiceHandler) UpdateAccount(context.Context, *connec
 
 func (UnimplementedAccountServiceHandler) DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.DeleteAccount is not implemented"))
-}
-
-func (UnimplementedAccountServiceHandler) SetAccountAnchor(context.Context, *connect.Request[v1.SetAccountAnchorRequest]) (*connect.Response[v1.SetAccountAnchorResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.SetAccountAnchor is not implemented"))
-}
-
-func (UnimplementedAccountServiceHandler) GetAccountsCount(context.Context, *connect.Request[v1.GetAccountsCountRequest]) (*connect.Response[v1.GetAccountsCountResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.GetAccountsCount is not implemented"))
-}
-
-func (UnimplementedAccountServiceHandler) SyncAccountBalances(context.Context, *connect.Request[v1.SyncAccountBalancesRequest]) (*connect.Response[v1.SyncAccountBalancesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("arian.v1.AccountService.SyncAccountBalances is not implemented"))
 }

@@ -302,23 +302,30 @@ set
   anchor_currency = $2::char(3)
 where
   id = $3::bigint
+  and owner_id = $4::uuid
 `
 
 type SetAccountAnchorParams struct {
-	AnchorBalanceCents int64  `db:"anchor_balance_cents" json:"anchor_balance_cents"`
-	AnchorCurrency     string `db:"anchor_currency" json:"anchor_currency"`
-	ID                 int64  `db:"id" json:"id"`
+	AnchorBalanceCents int64     `db:"anchor_balance_cents" json:"anchor_balance_cents"`
+	AnchorCurrency     string    `db:"anchor_currency" json:"anchor_currency"`
+	ID                 int64     `db:"id" json:"id"`
+	UserID             uuid.UUID `db:"user_id" json:"user_id"`
 }
 
 func (q *Queries) SetAccountAnchor(ctx context.Context, arg SetAccountAnchorParams) (int64, error) {
-	result, err := q.db.Exec(ctx, setAccountAnchor, arg.AnchorBalanceCents, arg.AnchorCurrency, arg.ID)
+	result, err := q.db.Exec(ctx, setAccountAnchor,
+		arg.AnchorBalanceCents,
+		arg.AnchorCurrency,
+		arg.ID,
+		arg.UserID,
+	)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
 }
 
-const updateAccount = `-- name: UpdateAccount :one
+const updateAccount = `-- name: UpdateAccount :exec
 update
   accounts
 set
@@ -333,8 +340,7 @@ set
   colors = coalesce($9::text [], colors)
 where
   id = $10::bigint
-returning
-  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance_cents, anchor_currency, main_currency, colors, created_at, updated_at
+  and owner_id = $11::uuid
 `
 
 type UpdateAccountParams struct {
@@ -348,10 +354,11 @@ type UpdateAccountParams struct {
 	MainCurrency       *string    `db:"main_currency" json:"main_currency"`
 	Colors             []string   `db:"colors" json:"colors"`
 	ID                 int64      `db:"id" json:"id"`
+	UserID             uuid.UUID  `db:"user_id" json:"user_id"`
 }
 
-func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
-	row := q.db.QueryRow(ctx, updateAccount,
+func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
+	_, err := q.db.Exec(ctx, updateAccount,
 		arg.Name,
 		arg.Bank,
 		arg.AccountType,
@@ -362,22 +369,7 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		arg.MainCurrency,
 		arg.Colors,
 		arg.ID,
+		arg.UserID,
 	)
-	var i Account
-	err := row.Scan(
-		&i.ID,
-		&i.OwnerID,
-		&i.Name,
-		&i.Bank,
-		&i.AccountType,
-		&i.Alias,
-		&i.AnchorDate,
-		&i.AnchorBalanceCents,
-		&i.AnchorCurrency,
-		&i.MainCurrency,
-		&i.Colors,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+	return err
 }

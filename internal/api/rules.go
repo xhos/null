@@ -182,7 +182,7 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 		params.PriorityOrder = &priority
 	}
 
-	rule, err := s.services.Rules.Update(ctx, params)
+	_, err = s.services.Rules.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
@@ -191,15 +191,13 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 	if req.Msg.ApplyToExisting != nil && *req.Msg.ApplyToExisting {
 		count, err := s.services.Rules.ApplyToExisting(ctx, userID, nil)
 		if err != nil {
-			s.log.Warn("failed to apply rule to existing transactions", "rule_id", rule.RuleID, "error", err)
+			s.log.Warn("failed to apply rule to existing transactions", "rule_id", ruleID, "error", err)
 		} else {
-			s.log.Info("applied rule to existing transactions", "rule_id", rule.RuleID, "count", count)
+			s.log.Info("applied rule to existing transactions", "rule_id", ruleID, "count", count)
 		}
 	}
 
-	return connect.NewResponse(&pb.UpdateRuleResponse{
-		Rule: toProtoRule(rule),
-	}), nil
+	return connect.NewResponse(&pb.UpdateRuleResponse{}), nil
 }
 
 func (s *Server) DeleteRule(ctx context.Context, req *connect.Request[pb.DeleteRuleRequest]) (*connect.Response[pb.DeleteRuleResponse], error) {

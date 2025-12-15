@@ -256,18 +256,6 @@ func updateUserParamsFromProto(req *pb.UpdateUserRequest) (sqlc.UpdateUserParams
 	}, nil
 }
 
-func setUserDefaultAccountParamsFromProto(req *pb.SetUserDefaultAccountRequest) (sqlc.SetUserDefaultAccountParams, error) {
-	userID, err := parseUUID(req.GetId())
-	if err != nil {
-		return sqlc.SetUserDefaultAccountParams{}, err
-	}
-
-	return sqlc.SetUserDefaultAccountParams{
-		ID:               userID,
-		DefaultAccountID: req.GetDefaultAccountId(),
-	}, nil
-}
-
 // ==================== CATEGORY MAPPINGS ====================
 
 func toProtoCategory(c *sqlc.Category) *pb.Category {
@@ -556,15 +544,6 @@ func toProtoTransaction(t *sqlc.Transaction) *pb.Transaction {
 // buildDashboardSummaryParams creates sqlc params from proto request
 func buildDashboardSummaryParams(userID uuid.UUID, req *pb.GetDashboardSummaryRequest) sqlc.GetDashboardSummaryParams {
 	return sqlc.GetDashboardSummaryParams{
-		UserID: userID,
-		Start:  dateToTime(req.StartDate),
-		End:    dateToTime(req.EndDate),
-	}
-}
-
-// buildDashboardTrendsParams creates sqlc params from proto request
-func buildDashboardTrendsParams(userID uuid.UUID, req *pb.GetTrendDataRequest) sqlc.GetDashboardTrendsParams {
-	return sqlc.GetDashboardTrendsParams{
 		UserID: userID,
 		Start:  dateToTime(req.StartDate),
 		End:    dateToTime(req.EndDate),

@@ -23,14 +23,7 @@ type TransactionService interface {
 	Update(ctx context.Context, params sqlc.UpdateTransactionParams) error
 	Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error)
 	BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error
-	BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error
-	GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountRow, error)
-	FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsParams) ([]sqlc.FindCandidateTransactionsRow, error)
-	CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
-	IdentifyMerchantForTransaction(ctx context.Context, userID uuid.UUID, txID int64) error
-	SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.Transaction, error)
-	GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.Transaction, error)
-	GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.Transaction, error)
+	Categorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error
 }
 
 type txnSvc struct {
@@ -102,8 +95,6 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		s.applyRulesToTransaction(ctx, params.UserID, id)
 	}
 
-	// Balance recalculation is now handled by database queries automatically via window functions
-
 	return id, nil
 }
 
@@ -120,10 +111,7 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 		return wrapErr("TransactionService.Update.GetOriginal", err)
 	}
 
-	accountID, err := s.queries.UpdateTransaction(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		return wrapErr("TransactionService.Update", ErrNotFound)
-	}
+	err = s.queries.UpdateTransaction(ctx, params)
 	if err != nil {
 		return wrapErr("TransactionService.Update", err)
 	}
@@ -137,41 +125,16 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 		s.applyRulesToTransaction(ctx, params.UserID, params.ID)
 	}
 
-	// check if amount, date, or direction changed - if so, recalculate balances
-	amountChanged := params.TxAmountCents != nil && *params.TxAmountCents != tx.TxAmountCents
-	dateChanged := params.TxDate != nil && !params.TxDate.Equal(tx.TxDate)
-	directionChanged := params.TxDirection != nil && int16(*params.TxDirection) != int16(tx.TxDirection)
-
-	if amountChanged || dateChanged || directionChanged {
-		// Balance recalculation is now handled by database queries automatically
-		s.log.Debug("Transaction modified, balances will be recalculated by DB", "account_id", accountID)
-	}
-
 	return nil
 }
 
 func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error) {
-	// get transaction info before deletion for balance recalculation
-	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
-		UserID: params.UserID,
-		ID:     params.ID,
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, wrapErr("TransactionService.Delete", ErrNotFound)
-	}
-	if err != nil {
-		return 0, wrapErr("TransactionService.Delete.GetOriginal", err)
-	}
-
-	accountID, err := s.queries.DeleteTransaction(ctx, params)
+	affectedRows, err := s.queries.DeleteTransaction(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.Delete", err)
 	}
 
-	// Balance recalculation is now handled by database queries automatically
-	s.log.Debug("Transaction deleted, balances will be recalculated by DB", "account_id", tx.AccountID)
-
-	return accountID, nil
+	return affectedRows, nil
 }
 
 func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error {
@@ -186,116 +149,17 @@ func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransacti
 		return wrapErr("TransactionService.BulkDelete", err)
 	}
 
-	// Balance recalculation is now handled by database queries automatically
 	s.log.Debug("Bulk deleted transactions, balances will be recalculated by DB", "affected_accounts", len(affectedAccounts))
 
 	return nil
 }
 
-func (s *txnSvc) BulkCategorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error {
+func (s *txnSvc) Categorize(ctx context.Context, params sqlc.BulkCategorizeTransactionsParams) error {
 	_, err := s.queries.BulkCategorizeTransactions(ctx, params)
 	if err != nil {
-		return wrapErr("TransactionService.BulkCategorize", err)
+		return wrapErr("TransactionService.Categorize", err)
 	}
 	return nil
-}
-
-func (s *txnSvc) GetTransactionCountByAccount(ctx context.Context, userID uuid.UUID) ([]sqlc.GetTransactionCountByAccountRow, error) {
-	counts, err := s.queries.GetTransactionCountByAccount(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("TransactionService.GetTransactionCountByAccount", err)
-	}
-	return counts, nil
-}
-
-func (s *txnSvc) FindCandidateTransactions(ctx context.Context, params sqlc.FindCandidateTransactionsParams) ([]sqlc.FindCandidateTransactionsRow, error) {
-	candidates, err := s.queries.FindCandidateTransactions(ctx, params)
-	if err != nil {
-		return nil, wrapErr("TransactionService.FindCandidateTransactions", err)
-	}
-	return candidates, nil
-}
-
-func (s *txnSvc) CategorizeTransaction(ctx context.Context, userID uuid.UUID, txID int64) error {
-	s.log.Info("CategorizeTransaction", "user", userID, "tx", txID, "method", "similarity")
-
-	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
-		UserID: userID,
-		ID:     txID,
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("transaction %d: %w", txID, ErrNotFound)
-	}
-
-	if err != nil {
-		return wrapErr("CategorizeTransaction.GetTransaction", err)
-	}
-
-	result, err := s.determineCategory(ctx, userID, &tx)
-	if err != nil {
-		return wrapErr("CategorizeTransaction.DetermineCategory", err)
-	}
-
-	var categoryID *int64 // will be nil if no category found
-	if result.CategorySlug != "" {
-		category, err := s.catSvc.BySlug(ctx, userID, result.CategorySlug)
-		if err != nil {
-			return wrapErr("CategorizeTransaction.FindCategoryBySlug", err)
-		}
-		categoryID = &category.ID
-	}
-
-	// use atomic update - only succeeds if category_manually_set is false
-	params := sqlc.CategorizeTransactionAtomicParams{
-		ID:                  txID,
-		UserID:              userID,
-		CategoryID:          categoryID,
-		CategoryManuallySet: false, // AI categorization is not manual
-		Suggestions:         result.Suggestions,
-	}
-
-	updated, err := s.queries.CategorizeTransactionAtomic(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		// transaction was already categorized manually - that's OK
-		s.log.Info("Transaction already categorized", "tx", txID)
-		return nil
-	}
-	if err != nil {
-		return wrapErr("CategorizeTransaction.AtomicUpdate", err)
-	}
-
-	s.log.Info("Transaction categorized", "tx", updated.ID, "manually_set", updated.CategoryManuallySet)
-	return nil
-}
-
-func (s *txnSvc) IdentifyMerchantForTransaction(ctx context.Context, userID uuid.UUID, txID int64) error {
-	s.log.Info("IdentifyMerchantForTransaction", "user", userID, "tx", txID)
-
-	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
-		UserID: userID,
-		ID:     txID,
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("transaction %d: %w", txID, ErrNotFound)
-	}
-
-	if err != nil {
-		return wrapErr("IdentifyMerchantForTransaction.GetTransaction", err)
-	}
-
-	if tx.TxDesc == nil || *tx.TxDesc == "" {
-		return fmt.Errorf("transaction has no description to analyze: %w", ErrValidation)
-	}
-
-	params := sqlc.UpdateTransactionParams{
-		ID:     txID,
-		UserID: userID,
-	}
-
-	_, err = s.queries.UpdateTransaction(ctx, params)
-	return wrapErr("IdentifyMerchantForTransaction.UpdateTransaction", err)
 }
 
 // determineCategory analyzes a transaction to suggest a category
@@ -387,65 +251,8 @@ func similarity(a, b string) float64 {
 	return float64(inter) / float64(union)
 }
 
-func (s *txnSvc) SearchTransactions(ctx context.Context, userID uuid.UUID, query string, accountID *int64, categoryID *int64, limit *int32, offset *int32) ([]sqlc.Transaction, error) {
-	params := sqlc.ListTransactionsParams{
-		UserID: userID,
-		DescQ:  &query,
-		Limit:  limit,
-	}
-	if accountID != nil {
-		params.AccountIds = []int64{*accountID}
-	}
-	// TODO: categoryID parameter is currently ignored in this MVP implementation
-	// future enhancement would support category filtering
-
-	_ = offset // offset also not implemented in current query
-
-	return s.List(ctx, params)
-}
-
-func (s *txnSvc) GetTransactionsByAccount(ctx context.Context, userID uuid.UUID, accountID int64, limit *int32, offset *int32) ([]sqlc.Transaction, error) {
-	params := sqlc.ListTransactionsParams{
-		UserID:     userID,
-		AccountIds: []int64{accountID},
-		Limit:      limit,
-	}
-	// TODO: offset not implemented in current query for MVP
-	_ = offset
-
-	return s.List(ctx, params)
-}
-
-func (s *txnSvc) GetUncategorizedTransactions(ctx context.Context, userID uuid.UUID, accountID *int64, limit *int32, offset *int32) ([]sqlc.Transaction, error) {
-	params := sqlc.ListTransactionsParams{
-		UserID:        userID,
-		Uncategorized: boolPtr(true),
-		Limit:         limit,
-	}
-	if accountID != nil {
-		params.AccountIds = []int64{*accountID}
-	}
-	// TODO: offset not implemented in current query for MVP
-	_ = offset
-
-	return s.List(ctx, params)
-}
-
 func boolPtr(b bool) *bool {
 	return &b
-}
-
-// equalBytes compares two byte slices
-func equalBytes(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, txID int64) {
@@ -517,7 +324,7 @@ func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, 
 		s.log.Info("Setting merchant from rule", "tx_id", txID, "merchant", *result.Merchant)
 	}
 
-	_, err = s.queries.UpdateTransaction(ctx, updateParams)
+	err = s.queries.UpdateTransaction(ctx, updateParams)
 	if err != nil {
 		s.log.Warn("failed to update transaction with rule results", "tx_id", txID, "error", err)
 		return

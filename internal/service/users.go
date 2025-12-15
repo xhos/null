@@ -16,8 +16,6 @@ type UserService interface {
 	GetByEmail(ctx context.Context, email string) (*sqlc.User, error)
 	Create(ctx context.Context, params sqlc.CreateUserParams) (*sqlc.User, error)
 	Update(ctx context.Context, params sqlc.UpdateUserParams) (*sqlc.User, error)
-	UpdateDisplayName(ctx context.Context, params sqlc.UpdateUserDisplayNameParams) (*sqlc.User, error)
-	SetDefaultAccount(ctx context.Context, params sqlc.SetUserDefaultAccountParams) (*sqlc.User, error)
 	EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context) ([]sqlc.User, error)
@@ -74,26 +72,15 @@ func (s *userSvc) Update(ctx context.Context, params sqlc.UpdateUserParams) (*sq
 		params.Email = &normalized
 	}
 
-	user, err := s.queries.UpdateUser(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("UserService.Update", ErrNotFound)
-	}
-
+	err := s.queries.UpdateUser(ctx, params)
 	if err != nil {
 		return nil, wrapErr("UserService.Update", err)
 	}
 
-	return &user, nil
-}
-
-func (s *userSvc) UpdateDisplayName(ctx context.Context, params sqlc.UpdateUserDisplayNameParams) (*sqlc.User, error) {
-	user, err := s.queries.UpdateUserDisplayName(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("UserService.UpdateDisplayName", ErrNotFound)
-	}
-
+	// Fetch and return updated user
+	user, err := s.queries.GetUser(ctx, params.ID)
 	if err != nil {
-		return nil, wrapErr("UserService.UpdateDisplayName", err)
+		return nil, wrapErr("UserService.Update.Get", err)
 	}
 
 	return &user, nil
@@ -129,19 +116,6 @@ func (s *userSvc) Exists(ctx context.Context, id uuid.UUID) (bool, error) {
 	return exists, nil
 }
 
-func (s *userSvc) SetDefaultAccount(ctx context.Context, params sqlc.SetUserDefaultAccountParams) (*sqlc.User, error) {
-	user, err := s.queries.SetUserDefaultAccount(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("UserService.SetDefaultAccount", ErrNotFound)
-	}
-
-	if err != nil {
-		return nil, wrapErr("UserService.SetDefaultAccount", err)
-	}
-
-	return &user, nil
-}
-
 func (s *userSvc) EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error {
 	user, err := s.queries.GetUser(ctx, userID)
 	if err != nil {
@@ -161,9 +135,11 @@ func (s *userSvc) EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) er
 		return wrapErr("UserService.EnsureDefaultAccount", err)
 	}
 
-	_, err = s.queries.SetUserDefaultAccount(ctx, sqlc.SetUserDefaultAccountParams{
+	// Use UpdateUser to set default account
+	defaultAccountID := &firstAccountID
+	err = s.queries.UpdateUser(ctx, sqlc.UpdateUserParams{
 		ID:               userID,
-		DefaultAccountID: firstAccountID,
+		DefaultAccountID: defaultAccountID,
 	})
 	if err != nil {
 		return wrapErr("UserService.EnsureDefaultAccount", err)

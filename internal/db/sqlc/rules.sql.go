@@ -296,7 +296,7 @@ func (q *Queries) ListRules(ctx context.Context, userID uuid.UUID) ([]Transactio
 	return items, nil
 }
 
-const updateRule = `-- name: UpdateRule :one
+const updateRule = `-- name: UpdateRule :exec
 update transaction_rules
 set
   rule_name = $1,
@@ -308,7 +308,6 @@ set
   updated_at = now()
 where rule_id = $7::uuid
   and user_id = $8::uuid
-returning rule_id, user_id, rule_name, category_id, merchant, conditions, logic_operator, is_active, priority_order, rule_source, created_at, updated_at, last_applied_at, times_applied
 `
 
 type UpdateRuleParams struct {
@@ -322,8 +321,8 @@ type UpdateRuleParams struct {
 	UserID        uuid.UUID `db:"user_id" json:"user_id"`
 }
 
-func (q *Queries) UpdateRule(ctx context.Context, arg UpdateRuleParams) (TransactionRule, error) {
-	row := q.db.QueryRow(ctx, updateRule,
+func (q *Queries) UpdateRule(ctx context.Context, arg UpdateRuleParams) error {
+	_, err := q.db.Exec(ctx, updateRule,
 		arg.RuleName,
 		arg.CategoryID,
 		arg.Conditions,
@@ -333,22 +332,5 @@ func (q *Queries) UpdateRule(ctx context.Context, arg UpdateRuleParams) (Transac
 		arg.RuleID,
 		arg.UserID,
 	)
-	var i TransactionRule
-	err := row.Scan(
-		&i.RuleID,
-		&i.UserID,
-		&i.RuleName,
-		&i.CategoryID,
-		&i.Merchant,
-		&i.Conditions,
-		&i.LogicOperator,
-		&i.IsActive,
-		&i.PriorityOrder,
-		&i.RuleSource,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastAppliedAt,
-		&i.TimesApplied,
-	)
-	return i, err
+	return err
 }

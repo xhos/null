@@ -224,35 +224,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const setUserDefaultAccount = `-- name: SetUserDefaultAccount :one
-update users
-set default_account_id = $1::bigint
-where id = $2::uuid
-returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
-`
-
-type SetUserDefaultAccountParams struct {
-	DefaultAccountID int64     `db:"default_account_id" json:"default_account_id"`
-	ID               uuid.UUID `db:"id" json:"id"`
-}
-
-func (q *Queries) SetUserDefaultAccount(ctx context.Context, arg SetUserDefaultAccountParams) (User, error) {
-	row := q.db.QueryRow(ctx, setUserDefaultAccount, arg.DefaultAccountID, arg.ID)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.DisplayName,
-		&i.DefaultAccountID,
-		&i.PrimaryCurrency,
-		&i.Timezone,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const updateUser = `-- name: UpdateUser :one
+const updateUser = `-- name: UpdateUser :exec
 update users
 set
   email = $1::text,
@@ -261,7 +233,6 @@ set
   primary_currency = coalesce($4::varchar(3), primary_currency),
   timezone = coalesce($5::varchar(50), timezone)
 where id = $6::uuid
-returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
 `
 
 type UpdateUserParams struct {
@@ -273,8 +244,8 @@ type UpdateUserParams struct {
 	ID               uuid.UUID `db:"id" json:"id"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUser,
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.Exec(ctx, updateUser,
 		arg.Email,
 		arg.DisplayName,
 		arg.DefaultAccountID,
@@ -282,44 +253,5 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Timezone,
 		arg.ID,
 	)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.DisplayName,
-		&i.DefaultAccountID,
-		&i.PrimaryCurrency,
-		&i.Timezone,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const updateUserDisplayName = `-- name: UpdateUserDisplayName :one
-update users
-set display_name = $1::text
-where id = $2::uuid
-returning id, email, display_name, default_account_id, primary_currency, timezone, created_at, updated_at
-`
-
-type UpdateUserDisplayNameParams struct {
-	DisplayName string    `db:"display_name" json:"display_name"`
-	ID          uuid.UUID `db:"id" json:"id"`
-}
-
-func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserDisplayName, arg.DisplayName, arg.ID)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.DisplayName,
-		&i.DefaultAccountID,
-		&i.PrimaryCurrency,
-		&i.Timezone,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+	return err
 }

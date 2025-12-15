@@ -214,7 +214,7 @@ func (q *Queries) ListCategories(ctx context.Context, userID uuid.UUID) ([]Categ
 	return items, nil
 }
 
-const updateCategory = `-- name: UpdateCategory :one
+const updateCategory = `-- name: UpdateCategory :exec
 update
   categories
 set
@@ -223,13 +223,6 @@ set
 where
   id = $3::bigint
   and user_id = $4::uuid
-returning
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
 `
 
 type UpdateCategoryParams struct {
@@ -239,23 +232,14 @@ type UpdateCategoryParams struct {
 	UserID uuid.UUID `db:"user_id" json:"user_id"`
 }
 
-func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
-	row := q.db.QueryRow(ctx, updateCategory,
+func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) error {
+	_, err := q.db.Exec(ctx, updateCategory,
 		arg.Slug,
 		arg.Color,
 		arg.ID,
 		arg.UserID,
 	)
-	var i Category
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.Slug,
-		&i.Color,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+	return err
 }
 
 const updateChildCategorySlugs = `-- name: UpdateChildCategorySlugs :execrows

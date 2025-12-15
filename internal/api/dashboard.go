@@ -29,23 +29,6 @@ func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[p
 	}), nil
 }
 
-func (s *Server) GetTrendData(ctx context.Context, req *connect.Request[pb.GetTrendDataRequest]) (*connect.Response[pb.GetTrendDataResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	params := buildDashboardTrendsParams(userID, req.Msg)
-	trends, err := s.services.Dashboard.Trends(ctx, params)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetTrendDataResponse{
-		Trends: mapSlice(trends, toProtoTrendPoint),
-	}), nil
-}
-
 func (s *Server) GetMonthlyComparison(ctx context.Context, req *connect.Request[pb.GetMonthlyComparisonRequest]) (*connect.Response[pb.GetMonthlyComparisonResponse], error) {
 	userID, err := getUserID(ctx)
 	if err != nil {
@@ -97,33 +80,6 @@ func (s *Server) GetTopMerchants(ctx context.Context, req *connect.Request[pb.Ge
 	}), nil
 }
 
-func (s *Server) GetAccountSummary(ctx context.Context, req *connect.Request[pb.GetAccountSummaryRequest]) (*connect.Response[pb.GetAccountSummaryResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var startDate, endDate *string
-	if req.Msg.StartDate != nil {
-		start := dateToTime(req.Msg.StartDate).Format("2006-01-02")
-		startDate = &start
-	}
-	if req.Msg.EndDate != nil {
-		end := dateToTime(req.Msg.EndDate).Format("2006-01-02")
-		endDate = &end
-	}
-
-	accountSummary, err := s.services.Dashboard.GetAccountSummary(ctx, userID, req.Msg.GetAccountId(), startDate, endDate)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetAccountSummaryResponse{
-		Summary: toProtoDashboardSummary(accountSummary.Summary),
-		Trends:  mapSlice(accountSummary.Trends, toProtoTrendPoint),
-	}), nil
-}
-
 func (s *Server) GetSpendingTrends(ctx context.Context, req *connect.Request[pb.GetSpendingTrendsRequest]) (*connect.Response[pb.GetSpendingTrendsResponse], error) {
 	userID, err := getUserID(ctx)
 	if err != nil {
@@ -143,24 +99,7 @@ func (s *Server) GetSpendingTrends(ctx context.Context, req *connect.Request[pb.
 	}), nil
 }
 
-func (s *Server) GetAccountBalances(ctx context.Context, req *connect.Request[pb.GetAccountBalancesRequest]) (*connect.Response[pb.GetAccountBalancesResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// get all accounts for the user
-	accounts, err := s.services.Accounts.List(ctx, userID)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetAccountBalancesResponse{
-		Balances: mapSlice(accounts, toProtoAccountBalance),
-	}), nil
-}
-
-func (s *Server) GetNetBalance(ctx context.Context, req *connect.Request[pb.GetNetBalanceRequest]) (*connect.Response[pb.GetNetBalanceResponse], error) {
+func (s *Server) GetFinancialSummary(ctx context.Context, req *connect.Request[pb.GetFinancialSummaryRequest]) (*connect.Response[pb.GetFinancialSummaryResponse], error) {
 	userID, err := getUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -171,31 +110,9 @@ func (s *Server) GetNetBalance(ctx context.Context, req *connect.Request[pb.GetN
 		return nil, handleError(err)
 	}
 
-	return connect.NewResponse(&pb.GetNetBalanceResponse{
-		NetBalance: netBalance,
-	}), nil
-}
-
-func (s *Server) GetTotalBalance(ctx context.Context, req *connect.Request[pb.GetTotalBalanceRequest]) (*connect.Response[pb.GetTotalBalanceResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	totalBalance, err := s.services.Dashboard.Balance(ctx, userID)
 	if err != nil {
 		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetTotalBalanceResponse{
-		TotalBalance: totalBalance,
-	}), nil
-}
-
-func (s *Server) GetTotalDebt(ctx context.Context, req *connect.Request[pb.GetTotalDebtRequest]) (*connect.Response[pb.GetTotalDebtResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
 	}
 
 	totalDebt, err := s.services.Dashboard.Debt(ctx, userID)
@@ -203,8 +120,10 @@ func (s *Server) GetTotalDebt(ctx context.Context, req *connect.Request[pb.GetTo
 		return nil, handleError(err)
 	}
 
-	return connect.NewResponse(&pb.GetTotalDebtResponse{
-		TotalDebt: totalDebt,
+	return connect.NewResponse(&pb.GetFinancialSummaryResponse{
+		TotalBalance: totalBalance,
+		TotalDebt:    totalDebt,
+		NetBalance:   netBalance,
 	}), nil
 }
 

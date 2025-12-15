@@ -150,7 +150,7 @@ where
 returning
   id;
 
--- name: UpdateTransaction :one
+-- name: UpdateTransaction :exec
 update
   transactions
 set
@@ -181,11 +181,9 @@ where
     where
       a.owner_id = sqlc.arg(user_id)::uuid
       or au.user_id is not null
-  )
-returning
-  account_id;
+  );
 
--- name: DeleteTransaction :one
+-- name: DeleteTransaction :execrows
 delete from
   transactions
 where
@@ -200,9 +198,7 @@ where
     where
       a.owner_id = sqlc.arg(user_id)::uuid
       or au.user_id is not null
-  )
-returning
-  account_id;
+  );
 
 -- name: CategorizeTransactionAtomic :one
 update

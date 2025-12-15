@@ -108,12 +108,18 @@ func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (
 }
 
 func (s *catSvc) updateCategoryDirectly(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
-	category, err := s.queries.UpdateCategory(ctx, params)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("CategoryService.Update", ErrNotFound)
-	}
+	err := s.queries.UpdateCategory(ctx, params)
 	if err != nil {
 		return nil, wrapErr("CategoryService.Update", err)
+	}
+
+	// Fetch and return updated category
+	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
+		UserID: params.UserID,
+		ID:     params.ID,
+	})
+	if err != nil {
+		return nil, wrapErr("CategoryService.Update.Get", err)
 	}
 	return &category, nil
 }

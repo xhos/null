@@ -54,7 +54,7 @@ returning
   created_at,
   updated_at;
 
--- name: UpdateCategory :one
+-- name: UpdateCategory :exec
 update
   categories
 set
@@ -62,14 +62,7 @@ set
   color = sqlc.narg('color')::text
 where
   id = @id::bigint
-  and user_id = @user_id::uuid
-returning
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at;
+  and user_id = @user_id::uuid;
 
 -- name: CreateCategoryIfNotExists :one
 insert into

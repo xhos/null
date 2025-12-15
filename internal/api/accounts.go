@@ -58,14 +58,12 @@ func (s *Server) CreateAccount(ctx context.Context, req *connect.Request[pb.Crea
 
 func (s *Server) UpdateAccount(ctx context.Context, req *connect.Request[pb.UpdateAccountRequest]) (*connect.Response[pb.UpdateAccountResponse], error) {
 	params := buildUpdateAccountParams(req.Msg)
-	account, err := s.services.Accounts.Update(ctx, params)
+	_, err := s.services.Accounts.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
-	return connect.NewResponse(&pb.UpdateAccountResponse{
-		Account: toProtoAccount(account),
-	}), nil
+	return connect.NewResponse(&pb.UpdateAccountResponse{}), nil
 }
 
 func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.DeleteAccountRequest]) (*connect.Response[pb.DeleteAccountResponse], error) {
@@ -87,48 +85,4 @@ func (s *Server) DeleteAccount(ctx context.Context, req *connect.Request[pb.Dele
 	return connect.NewResponse(&pb.DeleteAccountResponse{
 		AffectedRows: affectedRows,
 	}), nil
-}
-
-func (s *Server) SetAccountAnchor(ctx context.Context, req *connect.Request[pb.SetAccountAnchorRequest]) (*connect.Response[pb.SetAccountAnchorResponse], error) {
-	balance := req.Msg.GetBalance()
-	cents := moneyToCents(balance)
-	currency := balance.GetCurrencyCode()
-
-	params := sqlc.SetAccountAnchorParams{
-		ID:                 req.Msg.GetId(),
-		AnchorBalanceCents: cents,
-		AnchorCurrency:     currency,
-	}
-
-	err := s.services.Accounts.SetAnchor(ctx, params)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.SetAccountAnchorResponse{
-		AffectedRows: 1,
-	}), nil
-}
-
-func (s *Server) GetAccountsCount(ctx context.Context, req *connect.Request[pb.GetAccountsCountRequest]) (*connect.Response[pb.GetAccountsCountResponse], error) {
-	userID, err := getUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	count, err := s.services.Accounts.GetAccountCount(ctx, userID)
-	if err != nil {
-		return nil, handleError(err)
-	}
-
-	return connect.NewResponse(&pb.GetAccountsCountResponse{
-		Count: count,
-	}), nil
-}
-
-func (s *Server) SyncAccountBalances(ctx context.Context, req *connect.Request[pb.SyncAccountBalancesRequest]) (*connect.Response[pb.SyncAccountBalancesResponse], error) {
-	// placeholder - delegate to service layer when implemented
-	s.log.Info("SyncAccountBalances called", "account_id", req.Msg.GetAccountId())
-
-	return connect.NewResponse(&pb.SyncAccountBalancesResponse{}), nil
 }

@@ -236,7 +236,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return id, err
 }
 
-const deleteTransaction = `-- name: DeleteTransaction :one
+const deleteTransaction = `-- name: DeleteTransaction :execrows
 delete from
   transactions
 where
@@ -252,8 +252,6 @@ where
       a.owner_id = $2::uuid
       or au.user_id is not null
   )
-returning
-  account_id
 `
 
 type DeleteTransactionParams struct {
@@ -262,10 +260,11 @@ type DeleteTransactionParams struct {
 }
 
 func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionParams) (int64, error) {
-	row := q.db.QueryRow(ctx, deleteTransaction, arg.ID, arg.UserID)
-	var account_id int64
-	err := row.Scan(&account_id)
-	return account_id, err
+	result, err := q.db.Exec(ctx, deleteTransaction, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const findCandidateTransactions = `-- name: FindCandidateTransactions :many
@@ -721,7 +720,7 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 	return items, nil
 }
 
-const updateTransaction = `-- name: UpdateTransaction :one
+const updateTransaction = `-- name: UpdateTransaction :exec
 update
   transactions
 set
@@ -753,8 +752,6 @@ where
       a.owner_id = $17::uuid
       or au.user_id is not null
   )
-returning
-  account_id
 `
 
 type UpdateTransactionParams struct {
@@ -777,8 +774,8 @@ type UpdateTransactionParams struct {
 	UserID              uuid.UUID  `db:"user_id" json:"user_id"`
 }
 
-func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (int64, error) {
-	row := q.db.QueryRow(ctx, updateTransaction,
+func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
+	_, err := q.db.Exec(ctx, updateTransaction,
 		arg.EmailID,
 		arg.TxDate,
 		arg.TxAmountCents,
@@ -797,7 +794,5 @@ func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionPa
 		arg.ID,
 		arg.UserID,
 	)
-	var account_id int64
-	err := row.Scan(&account_id)
-	return account_id, err
+	return err
 }
