@@ -54,28 +54,19 @@ func (s *Server) CreateTransaction(ctx context.Context, req *connect.Request[pb.
 		return nil, err
 	}
 
-	params, err := buildCreateTransactionParams(userID, req.Msg)
-	if err != nil {
-		return nil, handleError(err)
-	}
-	transactionID, err := s.services.Transactions.Create(ctx, params)
+	paramsList, err := buildCreateTransactionParamsList(userID, req.Msg)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
-	// get the created transaction
-	getParams := sqlc.GetTransactionParams{
-		UserID: userID,
-		ID:     transactionID,
-	}
-
-	transaction, err := s.services.Transactions.Get(ctx, getParams)
+	transactions, err := s.services.Transactions.Create(ctx, userID, paramsList)
 	if err != nil {
 		return nil, handleError(err)
 	}
 
 	return connect.NewResponse(&pb.CreateTransactionResponse{
-		Transaction: convertTransactionToProto(transaction),
+		Transactions: mapSlice(transactions, toProtoTransaction),
+		CreatedCount: int32(len(transactions)),
 	}), nil
 }
 

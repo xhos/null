@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ const (
 type TransactionService interface {
 	List(ctx context.Context, params sqlc.ListTransactionsParams) ([]sqlc.Transaction, error)
 	Get(ctx context.Context, params sqlc.GetTransactionParams) (*sqlc.Transaction, error)
-	Create(ctx context.Context, params sqlc.CreateTransactionParams) (int64, error)
+	Create(ctx context.Context, userID uuid.UUID, params []sqlc.CreateTransactionParams) ([]sqlc.Transaction, error)
 	Update(ctx context.Context, params sqlc.UpdateTransactionParams) error
 	Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error)
 	BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransactionsParams) error
@@ -71,36 +72,108 @@ func (s *txnSvc) Get(ctx context.Context, params sqlc.GetTransactionParams) (*sq
 	return &row, nil
 }
 
-func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams) (int64, error) {
-	if err := s.validateCreateParams(params); err != nil {
-		return 0, fmt.Errorf("TransactionService.Create: %w", err)
+func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, paramsList []sqlc.CreateTransactionParams) ([]sqlc.Transaction, error) {
+	if len(paramsList) == 0 {
+		return nil, fmt.Errorf("TransactionService.Create: no transactions provided")
 	}
 
-	id, err := s.queries.CreateTransaction(ctx, params)
+	// Validate all transactions first
+	for i, params := range paramsList {
+		if err := s.validateCreateParams(params); err != nil {
+			return nil, fmt.Errorf("TransactionService.Create: transaction %d invalid: %w", i, err)
+		}
+	}
+
+	// Prepare bulk insert arrays
+	accountIDs := make([]int64, len(paramsList))
+	txDates := make([]time.Time, len(paramsList))
+	txAmountCents := make([]int64, len(paramsList))
+	txCurrencies := make([]string, len(paramsList))
+	txDirections := make([]int16, len(paramsList))
+	txDescs := make([]string, len(paramsList))
+	categoryIDs := make([]int64, len(paramsList))
+	merchants := make([]string, len(paramsList))
+	userNotes := make([]string, len(paramsList))
+	foreignAmountCents := make([]int64, len(paramsList))
+	foreignCurrencies := make([]string, len(paramsList))
+	exchangeRates := make([]float64, len(paramsList))
+
+	for i, params := range paramsList {
+		accountIDs[i] = params.AccountID
+		txDates[i] = params.TxDate
+		txAmountCents[i] = params.TxAmountCents
+		txCurrencies[i] = params.TxCurrency
+		txDirections[i] = params.TxDirection
+
+		if params.TxDesc != nil {
+			txDescs[i] = *params.TxDesc
+		}
+
+		if params.CategoryID != nil {
+			categoryIDs[i] = *params.CategoryID
+		}
+
+		if params.Merchant != nil {
+			merchants[i] = *params.Merchant
+		}
+
+		if params.UserNotes != nil {
+			userNotes[i] = *params.UserNotes
+		}
+
+		if params.ForeignAmountCents != nil {
+			foreignAmountCents[i] = *params.ForeignAmountCents
+		}
+
+		if params.ForeignCurrency != nil {
+			foreignCurrencies[i] = *params.ForeignCurrency
+		}
+
+		if params.ExchangeRate != nil {
+			exchangeRates[i] = *params.ExchangeRate
+		}
+	}
+
+	// Bulk insert
+	transactions, err := s.queries.BulkCreateTransactions(ctx, sqlc.BulkCreateTransactionsParams{
+		AccountIds:         accountIDs,
+		TxDates:            txDates,
+		TxAmountCents:      txAmountCents,
+		TxCurrencies:       txCurrencies,
+		TxDirections:       txDirections,
+		TxDescs:            txDescs,
+		CategoryIds:        categoryIDs,
+		Merchants:          merchants,
+		UserNotes:          userNotes,
+		ForeignAmountCents: foreignAmountCents,
+		ForeignCurrencies:  foreignCurrencies,
+		ExchangeRates:      exchangeRates,
+	})
 	if err != nil {
-		return 0, wrapErr("TransactionService.Create", err)
+		return nil, wrapErr("TransactionService.Create.BulkInsert", err)
 	}
 
-	// sync account balances after creating transaction
-	if err := s.queries.SyncAccountBalances(ctx, params.AccountID); err != nil {
-		s.log.Warn("failed to sync account balances after creating transaction", "tx_id", id, "account_id", params.AccountID, "error", err)
+	// Sync balances for all affected accounts
+	affectedAccounts := make(map[int64]bool)
+	for _, accountID := range accountIDs {
+		affectedAccounts[accountID] = true
 	}
 
-	// apply rules if fields weren't manually set
-	shouldApplyRules := (params.CategoryManuallySet == nil || !*params.CategoryManuallySet) ||
-		(params.MerchantManuallySet == nil || !*params.MerchantManuallySet)
-
-	s.log.Info("Transaction created, checking if rules should apply",
-		"tx_id", id,
-		"should_apply_rules", shouldApplyRules,
-		"category_manually_set", params.CategoryManuallySet,
-		"merchant_manually_set", params.MerchantManuallySet)
-
-	if shouldApplyRules {
-		s.applyRulesToTransaction(ctx, params.UserID, id)
+	for accountID := range affectedAccounts {
+		if err := s.queries.SyncAccountBalances(ctx, accountID); err != nil {
+			s.log.Warn("failed to sync account balances", "account_id", accountID, "error", err)
+		}
 	}
 
-	return id, nil
+	// Apply rules to transactions that need it
+	for _, tx := range transactions {
+		shouldApplyRules := !tx.CategoryManuallySet || !tx.MerchantManuallySet
+		if shouldApplyRules {
+			s.applyRulesToTransaction(ctx, userID, tx.ID)
+		}
+	}
+
+	return transactions, nil
 }
 
 func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams) error {

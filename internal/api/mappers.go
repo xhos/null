@@ -372,59 +372,65 @@ func buildListTransactionsParams(userID uuid.UUID, req *pb.ListTransactionsReque
 	return params
 }
 
-// buildCreateTransactionParams creates sqlc params from proto request
-func buildCreateTransactionParams(userID uuid.UUID, req *pb.CreateTransactionRequest) (sqlc.CreateTransactionParams, error) {
-	txAmount := req.TxAmount
-	txCents := moneyToCents(txAmount)
-	txCurrency := "CAD"
-	if txAmount != nil && txAmount.CurrencyCode != "" {
-		txCurrency = txAmount.CurrencyCode
-	}
+// buildCreateTransactionParamsList creates sqlc params list from proto request
+func buildCreateTransactionParamsList(userID uuid.UUID, req *pb.CreateTransactionRequest) ([]sqlc.CreateTransactionParams, error) {
+	paramsList := make([]sqlc.CreateTransactionParams, len(req.Transactions))
 
-	categoryManuallySet := false
-	merchantManuallySet := false
-
-	params := sqlc.CreateTransactionParams{
-		UserID:              userID,
-		AccountID:           req.GetAccountId(),
-		TxDate:              fromProtoTimestamp(req.TxDate),
-		TxAmountCents:       txCents,
-		TxCurrency:          txCurrency,
-		TxDirection:         int16(req.Direction),
-		TxDesc:              req.Description,
-		Merchant:            req.Merchant,
-		UserNotes:           req.UserNotes,
-		CategoryManuallySet: &categoryManuallySet,
-		MerchantManuallySet: &merchantManuallySet,
-	}
-
-	// if user provides category_id, mark it as manually set
-	if req.CategoryId != nil {
-		params.CategoryID = req.CategoryId
-		manuallySet := true
-		params.CategoryManuallySet = &manuallySet
-	}
-
-	// if user provides merchant, mark it as manually set
-	if req.Merchant != nil {
-		manuallySet := true
-		params.MerchantManuallySet = &manuallySet
-	}
-
-	if req.ForeignAmount != nil {
-		foreignCents := moneyToCents(req.ForeignAmount)
-		foreignCurrency := req.ForeignAmount.CurrencyCode
-		if foreignCurrency == "" {
-			foreignCurrency = "USD"
+	for i, txInput := range req.Transactions {
+		txAmount := txInput.TxAmount
+		txCents := moneyToCents(txAmount)
+		txCurrency := "CAD"
+		if txAmount != nil && txAmount.CurrencyCode != "" {
+			txCurrency = txAmount.CurrencyCode
 		}
-		params.ForeignAmountCents = &foreignCents
-		params.ForeignCurrency = &foreignCurrency
-		if req.ExchangeRate != nil {
-			params.ExchangeRate = req.ExchangeRate
+
+		categoryManuallySet := false
+		merchantManuallySet := false
+
+		params := sqlc.CreateTransactionParams{
+			UserID:              userID,
+			AccountID:           txInput.GetAccountId(),
+			TxDate:              fromProtoTimestamp(txInput.TxDate),
+			TxAmountCents:       txCents,
+			TxCurrency:          txCurrency,
+			TxDirection:         int16(txInput.Direction),
+			TxDesc:              txInput.Description,
+			Merchant:            txInput.Merchant,
+			UserNotes:           txInput.UserNotes,
+			CategoryManuallySet: &categoryManuallySet,
+			MerchantManuallySet: &merchantManuallySet,
 		}
+
+		// if user provides category_id, mark it as manually set
+		if txInput.CategoryId != nil {
+			params.CategoryID = txInput.CategoryId
+			manuallySet := true
+			params.CategoryManuallySet = &manuallySet
+		}
+
+		// if user provides merchant, mark it as manually set
+		if txInput.Merchant != nil {
+			manuallySet := true
+			params.MerchantManuallySet = &manuallySet
+		}
+
+		if txInput.ForeignAmount != nil {
+			foreignCents := moneyToCents(txInput.ForeignAmount)
+			foreignCurrency := txInput.ForeignAmount.CurrencyCode
+			if foreignCurrency == "" {
+				foreignCurrency = "USD"
+			}
+			params.ForeignAmountCents = &foreignCents
+			params.ForeignCurrency = &foreignCurrency
+			if txInput.ExchangeRate != nil {
+				params.ExchangeRate = txInput.ExchangeRate
+			}
+		}
+
+		paramsList[i] = params
 	}
 
-	return params, nil
+	return paramsList, nil
 }
 
 // buildUpdateTransactionParams creates sqlc params from proto request

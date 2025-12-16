@@ -49,6 +49,109 @@ func (q *Queries) BulkCategorizeTransactions(ctx context.Context, arg BulkCatego
 	return result.RowsAffected(), nil
 }
 
+const bulkCreateTransactions = `-- name: BulkCreateTransactions :many
+insert into
+  transactions (
+    account_id,
+    tx_date,
+    tx_amount_cents,
+    tx_currency,
+    tx_direction,
+    tx_desc,
+    category_id,
+    merchant,
+    user_notes,
+    foreign_amount_cents,
+    foreign_currency,
+    exchange_rate
+  )
+select
+  unnest($1::bigint[]),
+  unnest($2::timestamptz[]),
+  unnest($3::bigint[]),
+  unnest($4::char(3)[]),
+  unnest($5::smallint[]),
+  unnest($6::text[]),
+  unnest($7::bigint[]),
+  unnest($8::text[]),
+  unnest($9::text[]),
+  unnest($10::bigint[]),
+  unnest($11::char(3)[]),
+  unnest($12::double precision[])
+returning
+  id, account_id, email_id, tx_date, tx_amount_cents, tx_currency, tx_direction, tx_desc, balance_after_cents, balance_currency, merchant, category_id, category_manually_set, merchant_manually_set, suggestions, user_notes, foreign_amount_cents, foreign_currency, exchange_rate, created_at, updated_at
+`
+
+type BulkCreateTransactionsParams struct {
+	AccountIds         []int64     `db:"account_ids" json:"account_ids"`
+	TxDates            []time.Time `db:"tx_dates" json:"tx_dates"`
+	TxAmountCents      []int64     `db:"tx_amount_cents" json:"tx_amount_cents"`
+	TxCurrencies       []string    `db:"tx_currencies" json:"tx_currencies"`
+	TxDirections       []int16     `db:"tx_directions" json:"tx_directions"`
+	TxDescs            []string    `db:"tx_descs" json:"tx_descs"`
+	CategoryIds        []int64     `db:"category_ids" json:"category_ids"`
+	Merchants          []string    `db:"merchants" json:"merchants"`
+	UserNotes          []string    `db:"user_notes" json:"user_notes"`
+	ForeignAmountCents []int64     `db:"foreign_amount_cents" json:"foreign_amount_cents"`
+	ForeignCurrencies  []string    `db:"foreign_currencies" json:"foreign_currencies"`
+	ExchangeRates      []float64   `db:"exchange_rates" json:"exchange_rates"`
+}
+
+func (q *Queries) BulkCreateTransactions(ctx context.Context, arg BulkCreateTransactionsParams) ([]Transaction, error) {
+	rows, err := q.db.Query(ctx, bulkCreateTransactions,
+		arg.AccountIds,
+		arg.TxDates,
+		arg.TxAmountCents,
+		arg.TxCurrencies,
+		arg.TxDirections,
+		arg.TxDescs,
+		arg.CategoryIds,
+		arg.Merchants,
+		arg.UserNotes,
+		arg.ForeignAmountCents,
+		arg.ForeignCurrencies,
+		arg.ExchangeRates,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.EmailID,
+			&i.TxDate,
+			&i.TxAmountCents,
+			&i.TxCurrency,
+			&i.TxDirection,
+			&i.TxDesc,
+			&i.BalanceAfterCents,
+			&i.BalanceCurrency,
+			&i.Merchant,
+			&i.CategoryID,
+			&i.CategoryManuallySet,
+			&i.MerchantManuallySet,
+			&i.Suggestions,
+			&i.UserNotes,
+			&i.ForeignAmountCents,
+			&i.ForeignCurrency,
+			&i.ExchangeRate,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const bulkDeleteTransactions = `-- name: BulkDeleteTransactions :execrows
 delete from
   transactions

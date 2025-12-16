@@ -150,6 +150,38 @@ where
 returning
   id;
 
+-- name: BulkCreateTransactions :many
+insert into
+  transactions (
+    account_id,
+    tx_date,
+    tx_amount_cents,
+    tx_currency,
+    tx_direction,
+    tx_desc,
+    category_id,
+    merchant,
+    user_notes,
+    foreign_amount_cents,
+    foreign_currency,
+    exchange_rate
+  )
+select
+  unnest(@account_ids::bigint[]),
+  unnest(@tx_dates::timestamptz[]),
+  unnest(@tx_amount_cents::bigint[]),
+  unnest(@tx_currencies::char(3)[]),
+  unnest(@tx_directions::smallint[]),
+  unnest(@tx_descs::text[]),
+  unnest(@category_ids::bigint[]),
+  unnest(@merchants::text[]),
+  unnest(@user_notes::text[]),
+  unnest(@foreign_amount_cents::bigint[]),
+  unnest(@foreign_currencies::char(3)[]),
+  unnest(@exchange_rates::double precision[])
+returning
+  *;
+
 -- name: UpdateTransaction :exec
 update
   transactions
