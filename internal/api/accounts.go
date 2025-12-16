@@ -57,8 +57,15 @@ func (s *Server) CreateAccount(ctx context.Context, req *connect.Request[pb.Crea
 }
 
 func (s *Server) UpdateAccount(ctx context.Context, req *connect.Request[pb.UpdateAccountRequest]) (*connect.Response[pb.UpdateAccountResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	params := buildUpdateAccountParams(req.Msg)
-	_, err := s.services.Accounts.Update(ctx, params)
+	params.UserID = userID
+
+	err = s.services.Accounts.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}

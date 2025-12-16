@@ -15,7 +15,7 @@ type UserService interface {
 	Get(ctx context.Context, id uuid.UUID) (*sqlc.User, error)
 	GetByEmail(ctx context.Context, email string) (*sqlc.User, error)
 	Create(ctx context.Context, params sqlc.CreateUserParams) (*sqlc.User, error)
-	Update(ctx context.Context, params sqlc.UpdateUserParams) (*sqlc.User, error)
+	Update(ctx context.Context, params sqlc.UpdateUserParams) error
 	EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context) ([]sqlc.User, error)
@@ -66,7 +66,7 @@ func (s *userSvc) Create(ctx context.Context, params sqlc.CreateUserParams) (*sq
 	return &user, nil
 }
 
-func (s *userSvc) Update(ctx context.Context, params sqlc.UpdateUserParams) (*sqlc.User, error) {
+func (s *userSvc) Update(ctx context.Context, params sqlc.UpdateUserParams) error {
 	if params.Email != nil {
 		normalized := strings.ToLower(*params.Email)
 		params.Email = &normalized
@@ -74,16 +74,10 @@ func (s *userSvc) Update(ctx context.Context, params sqlc.UpdateUserParams) (*sq
 
 	err := s.queries.UpdateUser(ctx, params)
 	if err != nil {
-		return nil, wrapErr("UserService.Update", err)
+		return wrapErr("UserService.Update", err)
 	}
 
-	// Fetch and return updated user
-	user, err := s.queries.GetUser(ctx, params.ID)
-	if err != nil {
-		return nil, wrapErr("UserService.Update.Get", err)
-	}
-
-	return &user, nil
+	return nil
 }
 
 func (s *userSvc) Delete(ctx context.Context, id uuid.UUID) error {

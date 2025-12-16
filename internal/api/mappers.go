@@ -181,6 +181,9 @@ func createAccountParamsFromProto(req *pb.CreateAccountRequest) (sqlc.CreateAcco
 
 	// Default to CAD if main_currency is empty
 	mainCurrency := req.GetMainCurrency()
+	if mainCurrency == "" {
+		mainCurrency = "CAD"
+	}
 
 	// Default colors if not provided, validate if provided
 	colors := req.GetColors()

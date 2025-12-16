@@ -182,7 +182,7 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 		params.PriorityOrder = &priority
 	}
 
-	_, err = s.services.Rules.Update(ctx, params)
+	err = s.services.Rules.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}

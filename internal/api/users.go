@@ -45,7 +45,7 @@ func (s *Server) UpdateUser(ctx context.Context, req *connect.Request[pb.UpdateU
 		return nil, err
 	}
 
-	_, err = s.services.Users.Update(ctx, params)
+	err = s.services.Users.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}

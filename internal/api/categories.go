@@ -92,7 +92,7 @@ func (s *Server) UpdateCategory(ctx context.Context, req *connect.Request[pb.Upd
 		params.Color = req.Msg.Color
 	}
 
-	_, err = s.services.Categories.Update(ctx, params)
+	err = s.services.Categories.Update(ctx, params)
 	if err != nil {
 		return nil, handleError(err)
 	}

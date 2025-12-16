@@ -15,7 +15,7 @@ type RuleService interface {
 	List(ctx context.Context, userID uuid.UUID) ([]sqlc.TransactionRule, error)
 	Get(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (*sqlc.TransactionRule, error)
 	Create(ctx context.Context, params sqlc.CreateRuleParams) (*sqlc.TransactionRule, error)
-	Update(ctx context.Context, params sqlc.UpdateRuleParams) (*sqlc.TransactionRule, error)
+	Update(ctx context.Context, params sqlc.UpdateRuleParams) error
 	Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (int64, error)
 
 	ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.Account) (*RuleMatchResult, error)
@@ -66,21 +66,12 @@ func (s *catRuleSvc) Create(ctx context.Context, params sqlc.CreateRuleParams) (
 	return &rule, nil
 }
 
-func (s *catRuleSvc) Update(ctx context.Context, params sqlc.UpdateRuleParams) (*sqlc.TransactionRule, error) {
+func (s *catRuleSvc) Update(ctx context.Context, params sqlc.UpdateRuleParams) error {
 	err := s.queries.UpdateRule(ctx, params)
 	if err != nil {
-		return nil, wrapErr("RuleService.Update", err)
+		return wrapErr("RuleService.Update", err)
 	}
-
-	// Fetch and return updated rule
-	rule, err := s.queries.GetRule(ctx, sqlc.GetRuleParams{
-		UserID: params.UserID,
-		RuleID: params.RuleID,
-	})
-	if err != nil {
-		return nil, wrapErr("RuleService.Update.Get", err)
-	}
-	return &rule, nil
+	return nil
 }
 
 func (s *catRuleSvc) Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (int64, error) {

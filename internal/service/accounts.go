@@ -25,7 +25,7 @@ type AccountService interface {
 	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Account, error)
 	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Account, error)
 	Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*sqlc.Account, error)
-	Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error)
+	Update(ctx context.Context, params sqlc.UpdateAccountParams) error
 	Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error)
 	CheckUserAccountAccess(ctx context.Context, params sqlc.CheckUserAccountAccessParams) (bool, error)
 }
@@ -87,22 +87,12 @@ func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, u
 	return &created, nil
 }
 
-func (s *acctSvc) Update(ctx context.Context, params sqlc.UpdateAccountParams) (*sqlc.Account, error) {
+func (s *acctSvc) Update(ctx context.Context, params sqlc.UpdateAccountParams) error {
 	err := s.queries.UpdateAccount(ctx, params)
 	if err != nil {
-		return nil, wrapErr("AccountService.Update", err)
+		return wrapErr("AccountService.Update", err)
 	}
-
-	// Fetch and return updated account
-	account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
-		UserID: params.UserID,
-		ID:     params.ID,
-	})
-	if err != nil {
-		return nil, wrapErr("AccountService.Update.Get", err)
-	}
-
-	return &account, nil
+	return nil
 }
 
 func (s *acctSvc) Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error) {

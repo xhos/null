@@ -16,7 +16,7 @@ type CategoryService interface {
 	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Category, error)
 	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Category, error)
 	Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error)
-	Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error)
+	Update(ctx context.Context, params sqlc.UpdateCategoryParams) error
 	Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error)
 	BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sqlc.Category, error)
 }
@@ -68,60 +68,43 @@ func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (
 	return &category, nil
 }
 
-func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
+func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) error {
 	isSlugBeingUpdated := params.Slug != nil
-	if !isSlugBeingUpdated {
-		return s.updateCategoryDirectly(ctx, params)
+	if isSlugBeingUpdated {
+		oldCategory, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
+			ID:     params.ID,
+			UserID: params.UserID,
+		})
+		if errors.Is(err, sql.ErrNoRows) {
+			return wrapErr("CategoryService.Update", ErrNotFound)
+		}
+		if err != nil {
+			return wrapErr("CategoryService.Update", err)
+		}
+
+		slugIsActuallyChanging := oldCategory.Slug != *params.Slug
+		if slugIsActuallyChanging {
+			// when slug changes, we need to update child category slugs to maintain hierarchy
+			if err := s.ensureParentCategories(ctx, params.UserID, *params.Slug); err != nil {
+				return wrapErr("CategoryService.Update", err)
+			}
+
+			_, err = s.queries.UpdateChildCategorySlugs(ctx, sqlc.UpdateChildCategorySlugsParams{
+				UserID:        params.UserID,
+				OldSlugPrefix: oldCategory.Slug,
+				NewSlugPrefix: *params.Slug,
+			})
+			if err != nil {
+				return wrapErr("CategoryService.Update", err)
+			}
+		}
 	}
 
-	oldCategory, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
-		ID:     params.ID,
-		UserID: params.UserID,
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("CategoryService.Update", ErrNotFound)
-	}
-	if err != nil {
-		return nil, wrapErr("CategoryService.Update", err)
-	}
-
-	slugIsActuallyChanging := oldCategory.Slug != *params.Slug
-	if !slugIsActuallyChanging {
-		return s.updateCategoryDirectly(ctx, params)
-	}
-
-	// when slug changes, we need to update child category slugs to maintain hierarchy
-	if err := s.ensureParentCategories(ctx, params.UserID, *params.Slug); err != nil {
-		return nil, wrapErr("CategoryService.Update", err)
-	}
-
-	_, err = s.queries.UpdateChildCategorySlugs(ctx, sqlc.UpdateChildCategorySlugsParams{
-		UserID:        params.UserID,
-		OldSlugPrefix: oldCategory.Slug,
-		NewSlugPrefix: *params.Slug,
-	})
-	if err != nil {
-		return nil, wrapErr("CategoryService.Update", err)
-	}
-
-	return s.updateCategoryDirectly(ctx, params)
-}
-
-func (s *catSvc) updateCategoryDirectly(ctx context.Context, params sqlc.UpdateCategoryParams) (*sqlc.Category, error) {
 	err := s.queries.UpdateCategory(ctx, params)
 	if err != nil {
-		return nil, wrapErr("CategoryService.Update", err)
+		return wrapErr("CategoryService.Update", err)
 	}
-
-	// Fetch and return updated category
-	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
-		UserID: params.UserID,
-		ID:     params.ID,
-	})
-	if err != nil {
-		return nil, wrapErr("CategoryService.Update.Get", err)
-	}
-	return &category, nil
+	return nil
 }
 
 func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error) {
