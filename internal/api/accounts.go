@@ -20,7 +20,7 @@ func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListA
 	}
 
 	return connect.NewResponse(&pb.ListAccountsResponse{
-		Accounts: mapSlice(accounts, toProtoAccount),
+		Accounts: accounts,
 	}), nil
 }
 
@@ -36,7 +36,7 @@ func (s *Server) GetAccount(ctx context.Context, req *connect.Request[pb.GetAcco
 	}
 
 	return connect.NewResponse(&pb.GetAccountResponse{
-		Account: toProtoAccount(account),
+		Account: account,
 	}), nil
 }
 
@@ -52,7 +52,7 @@ func (s *Server) CreateAccount(ctx context.Context, req *connect.Request[pb.Crea
 	}
 
 	return connect.NewResponse(&pb.CreateAccountResponse{
-		Account: toProtoAccount(account),
+		Account: account,
 	}), nil
 }
 

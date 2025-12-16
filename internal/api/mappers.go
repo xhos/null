@@ -163,6 +163,49 @@ func toProtoAccount(a *sqlc.Account) *pb.Account {
 		Colors:        a.Colors,
 		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
 		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
+		Balance:       centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency), // For newly created accounts
+	}
+}
+
+func listAccountRowToProto(a *sqlc.ListAccountsRow) *pb.Account {
+	if a == nil {
+		return nil
+	}
+
+	return &pb.Account{
+		Id:            a.ID,
+		Name:          a.Name,
+		Bank:          a.Bank,
+		Type:          a.AccountType,
+		Alias:         a.Alias,
+		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
+		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
+		MainCurrency:  a.MainCurrency,
+		Colors:        a.Colors,
+		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
+		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
+		Balance:       centsToMoney(a.BalanceCents, a.BalanceCurrency),
+	}
+}
+
+func getAccountRowToProto(a *sqlc.GetAccountRow) *pb.Account {
+	if a == nil {
+		return nil
+	}
+
+	return &pb.Account{
+		Id:            a.ID,
+		Name:          a.Name,
+		Bank:          a.Bank,
+		Type:          a.AccountType,
+		Alias:         a.Alias,
+		AnchorDate:    dateToProtoTimestamp(a.AnchorDate),
+		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
+		MainCurrency:  a.MainCurrency,
+		Colors:        a.Colors,
+		CreatedAt:     toProtoTimestamp(&a.CreatedAt),
+		UpdatedAt:     toProtoTimestamp(&a.UpdatedAt),
+		Balance:       centsToMoney(a.BalanceCents, a.BalanceCurrency),
 	}
 }
 

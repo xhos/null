@@ -1,6 +1,22 @@
 -- name: ListAccounts :many
 select
-  a.*
+  a.*,
+  COALESCE(
+    (select t.balance_after_cents
+     from transactions t
+     where t.account_id = a.id
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_balance_cents
+  ) as balance_cents,
+  COALESCE(
+    (select t.balance_currency
+     from transactions t
+     where t.account_id = a.id
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_currency
+  ) as balance_currency
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -14,7 +30,23 @@ order by
 
 -- name: GetAccount :one
 select
-  a.*
+  a.*,
+  COALESCE(
+    (select t.balance_after_cents
+     from transactions t
+     where t.account_id = a.id
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_balance_cents
+  ) as balance_cents,
+  COALESCE(
+    (select t.balance_currency
+     from transactions t
+     where t.account_id = a.id
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_currency
+  ) as balance_currency
 from
   accounts a
   left join account_users au on au.account_id = a.id
@@ -139,3 +171,68 @@ from
 where
   a.owner_id = @user_id::uuid
   or au.user_id is not null;
+
+-- name: SyncAccountBalances :exec
+with anchor_transactions as (
+  select
+    t.id,
+    t.account_id,
+    t.tx_date,
+    t.tx_direction,
+    t.tx_amount_cents,
+    a.main_currency,
+    a.anchor_date,
+    a.anchor_balance_cents,
+    case when t.tx_date >= a.anchor_date then 1 else 0 end as is_after_anchor
+  from
+    transactions t
+    join accounts a on t.account_id = a.id
+  where
+    t.account_id = @account_id::bigint
+),
+before_anchor as (
+  select
+    id,
+    main_currency,
+    anchor_balance_cents - sum(
+      case
+        when tx_direction = 1 then tx_amount_cents
+        when tx_direction = 2 then -tx_amount_cents
+        else 0
+      end
+    ) over (
+      order by tx_date desc, id desc
+    ) as balance_after_cents
+  from
+    anchor_transactions
+  where
+    is_after_anchor = 0
+),
+after_anchor as (
+  select
+    id,
+    main_currency,
+    anchor_balance_cents + sum(
+      case
+        when tx_direction = 1 then tx_amount_cents
+        when tx_direction = 2 then -tx_amount_cents
+        else 0
+      end
+    ) over (
+      order by tx_date, id
+    ) as balance_after_cents
+  from
+    anchor_transactions
+  where
+    is_after_anchor = 1
+)
+update
+  transactions
+set
+  balance_after_cents = coalesce(ba.balance_after_cents, aa.balance_after_cents),
+  balance_currency = coalesce(ba.main_currency, aa.main_currency)
+from
+  before_anchor ba
+  full outer join after_anchor aa on ba.id = aa.id
+where
+  transactions.id = coalesce(ba.id, aa.id);

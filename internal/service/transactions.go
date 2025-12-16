@@ -81,6 +81,11 @@ func (s *txnSvc) Create(ctx context.Context, params sqlc.CreateTransactionParams
 		return 0, wrapErr("TransactionService.Create", err)
 	}
 
+	// sync account balances after creating transaction
+	if err := s.queries.SyncAccountBalances(ctx, params.AccountID); err != nil {
+		s.log.Warn("failed to sync account balances after creating transaction", "tx_id", id, "account_id", params.AccountID, "error", err)
+	}
+
 	// apply rules if fields weren't manually set
 	shouldApplyRules := (params.CategoryManuallySet == nil || !*params.CategoryManuallySet) ||
 		(params.MerchantManuallySet == nil || !*params.MerchantManuallySet)
@@ -116,6 +121,14 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 		return wrapErr("TransactionService.Update", err)
 	}
 
+	// sync balances if amount, date, or direction changed
+	balanceFieldsChanged := params.TxAmountCents != nil || params.TxDate != nil || params.TxDirection != nil
+	if balanceFieldsChanged {
+		if err := s.queries.SyncAccountBalances(ctx, tx.AccountID); err != nil {
+			s.log.Warn("failed to sync account balances after updating transaction", "tx_id", params.ID, "account_id", tx.AccountID, "error", err)
+		}
+	}
+
 	// apply rules if relevant fields changed and aren't manually set
 	fieldsChangedForRules := params.TxDesc != nil || params.Merchant != nil || params.TxAmountCents != nil
 	shouldApplyRules := fieldsChangedForRules &&
@@ -129,9 +142,26 @@ func (s *txnSvc) Update(ctx context.Context, params sqlc.UpdateTransactionParams
 }
 
 func (s *txnSvc) Delete(ctx context.Context, params sqlc.DeleteTransactionParams) (int64, error) {
+	// get transaction to find account_id before deletion
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
+		UserID: params.UserID,
+		ID:     params.ID,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, wrapErr("TransactionService.Delete", ErrNotFound)
+	}
+	if err != nil {
+		return 0, wrapErr("TransactionService.Delete.GetOriginal", err)
+	}
+
 	affectedRows, err := s.queries.DeleteTransaction(ctx, params)
 	if err != nil {
 		return 0, wrapErr("TransactionService.Delete", err)
+	}
+
+	// sync balances after deletion
+	if err := s.queries.SyncAccountBalances(ctx, tx.AccountID); err != nil {
+		s.log.Warn("failed to sync account balances after deleting transaction", "tx_id", params.ID, "account_id", tx.AccountID, "error", err)
 	}
 
 	return affectedRows, nil
@@ -149,7 +179,14 @@ func (s *txnSvc) BulkDelete(ctx context.Context, params sqlc.BulkDeleteTransacti
 		return wrapErr("TransactionService.BulkDelete", err)
 	}
 
-	s.log.Debug("Bulk deleted transactions, balances will be recalculated by DB", "affected_accounts", len(affectedAccounts))
+	// sync balances for all affected accounts
+	for _, accountID := range affectedAccounts {
+		if err := s.queries.SyncAccountBalances(ctx, accountID); err != nil {
+			s.log.Warn("failed to sync account balances after bulk delete", "account_id", accountID, "error", err)
+		}
+	}
+
+	s.log.Debug("Bulk deleted transactions and synced balances", "affected_accounts", len(affectedAccounts))
 
 	return nil
 }

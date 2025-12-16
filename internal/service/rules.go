@@ -18,7 +18,7 @@ type RuleService interface {
 	Update(ctx context.Context, params sqlc.UpdateRuleParams) error
 	Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (int64, error)
 
-	ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.Account) (*RuleMatchResult, error)
+	ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (*RuleMatchResult, error)
 	ApplyToExisting(ctx context.Context, userID uuid.UUID, transactionIDs []int64) (int, error)
 }
 
@@ -85,7 +85,7 @@ func (s *catRuleSvc) Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.U
 	return affected, nil
 }
 
-func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.Account) (*RuleMatchResult, error) {
+func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (*RuleMatchResult, error) {
 	s.log.Info("ApplyToTransaction called",
 		"user_id", userID,
 		"tx_desc", tx.TxDesc,
@@ -252,7 +252,7 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 }
 
 // evaluateRulesForTransaction is the same logic as ApplyToTransaction but without ctx/queries
-func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, tx *sqlc.Transaction, account *sqlc.Account) *RuleMatchResult {
+func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, tx *sqlc.Transaction, account *sqlc.GetAccountRow) *RuleMatchResult {
 	result := &RuleMatchResult{}
 
 	for _, rule := range activeRules {

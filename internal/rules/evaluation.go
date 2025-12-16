@@ -9,7 +9,7 @@ import (
 )
 
 // EvaluateRule evaluates a rule against transaction and account data
-func EvaluateRule(rule *RuleConditions, tx *sqlc.Transaction, account *sqlc.Account) (bool, error) {
+func EvaluateRule(rule *RuleConditions, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (bool, error) {
 	if rule == nil || tx == nil {
 		return false, nil
 	}
@@ -47,7 +47,7 @@ func EvaluateRule(rule *RuleConditions, tx *sqlc.Transaction, account *sqlc.Acco
 }
 
 // evaluateCondition evaluates a single condition against transaction data
-func evaluateCondition(condition *Condition, tx *sqlc.Transaction, account *sqlc.Account) (bool, error) {
+func evaluateCondition(condition *Condition, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (bool, error) {
 	field := FieldType(condition.Field)
 	operator := OperatorType(condition.Operator)
 
