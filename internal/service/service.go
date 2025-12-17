@@ -3,6 +3,7 @@ package service
 import (
 	"ariand/internal/config"
 	"ariand/internal/db"
+	"ariand/internal/exchange"
 
 	"github.com/charmbracelet/log"
 )
@@ -23,8 +24,10 @@ func New(database *db.DB, lg *log.Logger, cfg *config.Config) (*Services, error)
 
 	ruleSvc := newCatRuleSvc(queries, lg.WithPrefix("rules"))
 
+	exchangeClient := exchange.NewClient(cfg.ExchangeAPIURL)
+
 	return &Services{
-		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, ruleSvc),
+		Transactions: newTxnSvc(queries, lg.WithPrefix("txn"), catSvc, ruleSvc, exchangeClient),
 		Categories:   catSvc,
 		Rules:        ruleSvc,
 		Accounts:     newAcctSvc(queries, lg.WithPrefix("acct")),

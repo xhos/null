@@ -2,6 +2,7 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	"ariand/internal/exchange"
 	"context"
 	"database/sql"
 	"errors"
@@ -27,20 +28,15 @@ type TransactionService interface {
 }
 
 type txnSvc struct {
-	queries *sqlc.Queries
-	log     *log.Logger
-	catSvc  CategoryService
-	ruleSvc RuleService
+	queries        *sqlc.Queries
+	log            *log.Logger
+	catSvc         CategoryService
+	ruleSvc        RuleService
+	exchangeClient *exchange.Client
 }
 
-func newTxnSvc(queries *sqlc.Queries, lg *log.Logger, catSvc CategoryService, ruleSvc RuleService) TransactionService {
-	return &txnSvc{queries: queries, log: lg, catSvc: catSvc, ruleSvc: ruleSvc}
-}
-
-type categorizationResult struct {
-	CategorySlug string
-	Status       string
-	Suggestions  []string
+func newTxnSvc(queries *sqlc.Queries, lg *log.Logger, catSvc CategoryService, ruleSvc RuleService, exchangeClient *exchange.Client) TransactionService {
+	return &txnSvc{queries: queries, log: lg, catSvc: catSvc, ruleSvc: ruleSvc, exchangeClient: exchangeClient}
 }
 
 func (s *txnSvc) List(ctx context.Context, params sqlc.ListTransactionsParams) ([]sqlc.Transaction, error) {
@@ -71,6 +67,39 @@ func (s *txnSvc) Get(ctx context.Context, params sqlc.GetTransactionParams) (*sq
 	return &row, nil
 }
 
+func (s *txnSvc) processForeignCurrency(ctx context.Context, userID uuid.UUID, params *sqlc.CreateTransactionParams) (*sqlc.CreateTransactionParams, error) {
+	account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
+		UserID: userID,
+		ID:     params.AccountID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch account: %w", err)
+	}
+
+	if params.TxCurrency == account.AnchorCurrency {
+		params.ForeignAmountCents = nil
+		params.ForeignCurrency = nil
+		params.ExchangeRate = nil
+		return params, nil
+	}
+
+	foreignAmountCents := params.TxAmountCents
+	foreignCurrency := params.TxCurrency
+
+	rate, err := s.exchangeClient.GetExchangeRate(foreignCurrency, account.AnchorCurrency, &params.TxDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get exchange rate from %s to %s: %w", foreignCurrency, account.AnchorCurrency, err)
+	}
+
+	params.TxAmountCents = int64(float64(foreignAmountCents) * rate)
+	params.TxCurrency = account.AnchorCurrency
+	params.ForeignAmountCents = &foreignAmountCents
+	params.ForeignCurrency = &foreignCurrency
+	params.ExchangeRate = &rate
+
+	return params, nil
+}
+
 func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, paramsList []sqlc.CreateTransactionParams) ([]sqlc.Transaction, error) {
 	if len(paramsList) == 0 {
 		return nil, fmt.Errorf("TransactionService.Create: no transactions provided")
@@ -81,6 +110,15 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, paramsList []sqlc
 		if err := s.validateCreateParams(params); err != nil {
 			return nil, fmt.Errorf("TransactionService.Create: transaction %d invalid: %w", i, err)
 		}
+	}
+
+	// process foreign currency conversions
+	for i := range paramsList {
+		converted, err := s.processForeignCurrency(ctx, userID, &paramsList[i])
+		if err != nil {
+			return nil, fmt.Errorf("TransactionService.Create: transaction %d currency conversion failed: %w", i, err)
+		}
+		paramsList[i] = *converted
 	}
 
 	transactions := make([]sqlc.Transaction, 0, len(paramsList))
@@ -212,52 +250,6 @@ func (s *txnSvc) Categorize(ctx context.Context, params sqlc.BulkCategorizeTrans
 	return nil
 }
 
-// determineCategory analyzes a transaction to suggest a category
-func (s *txnSvc) determineCategory(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction) (*categorizationResult, error) {
-	// 1. rule-based similarity (fast path)
-	if tx.TxDesc != nil {
-		params := sqlc.ListTransactionsParams{
-			UserID: userID,
-			DescQ:  tx.TxDesc,
-			Limit:  int32Ptr(10),
-		}
-		if rows, err := s.queries.ListTransactions(ctx, params); err == nil {
-			desc := strings.ToLower(*tx.TxDesc)
-			for _, m := range rows {
-				// must be a different txn with usable fields
-				if m.ID == tx.ID || m.CategoryID == nil || m.TxDesc == nil {
-					continue
-				}
-
-				// Check if amounts are within 20% of each other
-				amountDiff := tx.TxAmountCents - m.TxAmountCents
-				if amountDiff < 0 {
-					amountDiff = -amountDiff
-				}
-				maxAmount := tx.TxAmountCents
-				if m.TxAmountCents > maxAmount {
-					maxAmount = m.TxAmountCents
-				}
-				withinTolerance := maxAmount == 0 || float64(amountDiff) <= float64(maxAmount)*0.20
-
-				if similarity(desc, strings.ToLower(*m.TxDesc)) >= 0.7 && withinTolerance {
-					// fetch category to get slug
-					category, err := s.catSvc.Get(ctx, userID, *m.CategoryID)
-					if err != nil {
-						continue
-					}
-					s.log.Info("found similar transaction for auto-categorization",
-						"txID", tx.ID, "similarTxID", m.ID)
-					return &categorizationResult{CategorySlug: category.Slug, Status: "auto"}, nil
-				}
-			}
-		}
-	}
-
-	// not found
-	return &categorizationResult{CategorySlug: "", Status: "failed", Suggestions: []string{}}, nil
-}
-
 // validateCreateParams validates transaction creation parameters
 func (s *txnSvc) validateCreateParams(params sqlc.CreateTransactionParams) error {
 	if params.TxAmountCents == 0 {
@@ -306,9 +298,6 @@ func boolPtr(b bool) *bool {
 }
 
 func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, txID int64) {
-	s.log.Info("Applying rules to transaction", "tx_id", txID, "user_id", userID)
-
-	// fetch transaction with account data for rule evaluation
 	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
 		UserID: userID,
 		ID:     txID,
@@ -318,13 +307,11 @@ func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, 
 		return
 	}
 
-	// skip if manually set
-	if tx.CategoryManuallySet && tx.MerchantManuallySet {
-		s.log.Info("Skipping rule application - both fields manually set", "tx_id", txID)
+	bothFieldsManuallySet := tx.CategoryManuallySet && tx.MerchantManuallySet
+	if bothFieldsManuallySet {
 		return
 	}
 
-	// fetch account for rule evaluation
 	account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
 		UserID: userID,
 		ID:     tx.AccountID,
@@ -334,28 +321,14 @@ func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, 
 		return
 	}
 
-	s.log.Info("Transaction data for rule evaluation",
-		"tx_id", txID,
-		"description", tx.TxDesc,
-		"merchant", tx.Merchant,
-		"category_manually_set", tx.CategoryManuallySet,
-		"merchant_manually_set", tx.MerchantManuallySet)
-
-	// apply rules
 	result, err := s.ruleSvc.ApplyToTransaction(ctx, userID, &tx, &account)
 	if err != nil {
 		s.log.Warn("failed to apply rules", "tx_id", txID, "error", err)
 		return
 	}
 
-	s.log.Info("Rule application result",
-		"tx_id", txID,
-		"category_id", result.CategoryID,
-		"merchant", result.Merchant)
-
-	// update only if rules matched something
-	if result.CategoryID == nil && result.Merchant == nil {
-		s.log.Info("No rules matched for transaction", "tx_id", txID)
+	noRulesMatched := result.CategoryID == nil && result.Merchant == nil
+	if noRulesMatched {
 		return
 	}
 
@@ -366,19 +339,13 @@ func (s *txnSvc) applyRulesToTransaction(ctx context.Context, userID uuid.UUID, 
 
 	if !tx.CategoryManuallySet && result.CategoryID != nil {
 		updateParams.CategoryID = result.CategoryID
-		s.log.Info("Setting category from rule", "tx_id", txID, "category_id", *result.CategoryID)
 	}
 
 	if !tx.MerchantManuallySet && result.Merchant != nil {
 		updateParams.Merchant = result.Merchant
-		s.log.Info("Setting merchant from rule", "tx_id", txID, "merchant", *result.Merchant)
 	}
 
-	err = s.queries.UpdateTransaction(ctx, updateParams)
-	if err != nil {
+	if err := s.queries.UpdateTransaction(ctx, updateParams); err != nil {
 		s.log.Warn("failed to update transaction with rule results", "tx_id", txID, "error", err)
-		return
 	}
-
-	s.log.Info("Successfully applied rules to transaction", "tx_id", txID)
 }
