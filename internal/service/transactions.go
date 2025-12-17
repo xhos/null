@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
@@ -77,86 +76,35 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, paramsList []sqlc
 		return nil, fmt.Errorf("TransactionService.Create: no transactions provided")
 	}
 
-	// Validate all transactions first
+	// validate all transactions first
 	for i, params := range paramsList {
 		if err := s.validateCreateParams(params); err != nil {
 			return nil, fmt.Errorf("TransactionService.Create: transaction %d invalid: %w", i, err)
 		}
 	}
 
-	// Prepare bulk insert arrays
-	accountIDs := make([]int64, len(paramsList))
-	txDates := make([]time.Time, len(paramsList))
-	txAmountCents := make([]int64, len(paramsList))
-	txCurrencies := make([]string, len(paramsList))
-	txDirections := make([]int16, len(paramsList))
-	txDescs := make([]string, len(paramsList))
-	categoryIDs := make([]int64, len(paramsList))
-	merchants := make([]string, len(paramsList))
-	userNotes := make([]string, len(paramsList))
-	foreignAmountCents := make([]int64, len(paramsList))
-	foreignCurrencies := make([]string, len(paramsList))
-	exchangeRates := make([]float64, len(paramsList))
-
-	for i, params := range paramsList {
-		accountIDs[i] = params.AccountID
-		txDates[i] = params.TxDate
-		txAmountCents[i] = params.TxAmountCents
-		txCurrencies[i] = params.TxCurrency
-		txDirections[i] = params.TxDirection
-
-		if params.TxDesc != nil {
-			txDescs[i] = *params.TxDesc
+	transactions := make([]sqlc.Transaction, 0, len(paramsList))
+	for _, params := range paramsList {
+		id, err := s.queries.CreateTransaction(ctx, params)
+		if err != nil {
+			return nil, wrapErr("TransactionService.Create.Insert", err)
 		}
 
-		if params.CategoryID != nil {
-			categoryIDs[i] = *params.CategoryID
+		tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
+			UserID: userID,
+			ID:     id,
+		})
+		if err != nil {
+			return nil, wrapErr("TransactionService.Create.Get", err)
 		}
 
-		if params.Merchant != nil {
-			merchants[i] = *params.Merchant
-		}
-
-		if params.UserNotes != nil {
-			userNotes[i] = *params.UserNotes
-		}
-
-		if params.ForeignAmountCents != nil {
-			foreignAmountCents[i] = *params.ForeignAmountCents
-		}
-
-		if params.ForeignCurrency != nil {
-			foreignCurrencies[i] = *params.ForeignCurrency
-		}
-
-		if params.ExchangeRate != nil {
-			exchangeRates[i] = *params.ExchangeRate
-		}
+		transactions = append(transactions, tx)
 	}
 
-	// Bulk insert
-	transactions, err := s.queries.BulkCreateTransactions(ctx, sqlc.BulkCreateTransactionsParams{
-		AccountIds:         accountIDs,
-		TxDates:            txDates,
-		TxAmountCents:      txAmountCents,
-		TxCurrencies:       txCurrencies,
-		TxDirections:       txDirections,
-		TxDescs:            txDescs,
-		CategoryIds:        categoryIDs,
-		Merchants:          merchants,
-		UserNotes:          userNotes,
-		ForeignAmountCents: foreignAmountCents,
-		ForeignCurrencies:  foreignCurrencies,
-		ExchangeRates:      exchangeRates,
-	})
-	if err != nil {
-		return nil, wrapErr("TransactionService.Create.BulkInsert", err)
-	}
-
-	// Sync balances for all affected accounts
+	// sync balances for all affected accounts
 	affectedAccounts := make(map[int64]bool)
-	for _, accountID := range accountIDs {
-		affectedAccounts[accountID] = true
+	for _, tx := range transactions {
+		affectedAccounts[tx.AccountID] = true
 	}
 
 	for accountID := range affectedAccounts {
@@ -165,7 +113,7 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, paramsList []sqlc
 		}
 	}
 
-	// Apply rules to transactions that need it
+	// apply rules to transactions that need it
 	for _, tx := range transactions {
 		shouldApplyRules := !tx.CategoryManuallySet || !tx.MerchantManuallySet
 		if shouldApplyRules {
