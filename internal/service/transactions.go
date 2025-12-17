@@ -85,17 +85,9 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, paramsList []sqlc
 
 	transactions := make([]sqlc.Transaction, 0, len(paramsList))
 	for _, params := range paramsList {
-		id, err := s.queries.CreateTransaction(ctx, params)
+		tx, err := s.queries.CreateTransaction(ctx, params)
 		if err != nil {
 			return nil, wrapErr("TransactionService.Create.Insert", err)
-		}
-
-		tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{
-			UserID: userID,
-			ID:     id,
-		})
-		if err != nil {
-			return nil, wrapErr("TransactionService.Create.Get", err)
 		}
 
 		transactions = append(transactions, tx)

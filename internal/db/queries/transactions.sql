@@ -148,7 +148,7 @@ where
     or au.user_id is not null
   )
 returning
-  id;
+  *;
 
 -- name: BulkCreateTransactions :many
 insert into

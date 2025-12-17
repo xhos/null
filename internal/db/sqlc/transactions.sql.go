@@ -287,7 +287,7 @@ where
     or au.user_id is not null
   )
 returning
-  id
+  id, account_id, email_id, tx_date, tx_amount_cents, tx_currency, tx_direction, tx_desc, balance_after_cents, balance_currency, merchant, category_id, category_manually_set, merchant_manually_set, suggestions, user_notes, foreign_amount_cents, foreign_currency, exchange_rate, created_at, updated_at
 `
 
 type CreateTransactionParams struct {
@@ -312,7 +312,7 @@ type CreateTransactionParams struct {
 	UserID              uuid.UUID `db:"user_id" json:"user_id"`
 }
 
-func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (int64, error) {
+func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
 	row := q.db.QueryRow(ctx, createTransaction,
 		arg.EmailID,
 		arg.AccountID,
@@ -334,9 +334,31 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.Suggestions,
 		arg.UserID,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	var i Transaction
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.EmailID,
+		&i.TxDate,
+		&i.TxAmountCents,
+		&i.TxCurrency,
+		&i.TxDirection,
+		&i.TxDesc,
+		&i.BalanceAfterCents,
+		&i.BalanceCurrency,
+		&i.Merchant,
+		&i.CategoryID,
+		&i.CategoryManuallySet,
+		&i.MerchantManuallySet,
+		&i.Suggestions,
+		&i.UserNotes,
+		&i.ForeignAmountCents,
+		&i.ForeignCurrency,
+		&i.ExchangeRate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const deleteTransaction = `-- name: DeleteTransaction :execrows
