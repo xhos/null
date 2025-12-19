@@ -1,11 +1,6 @@
 -- name: ListCategories :many
 select
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  *
 from
   categories
 where
@@ -15,12 +10,7 @@ order by
 
 -- name: GetCategory :one
 select
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  *
 from
   categories
 where
@@ -29,12 +19,7 @@ where
 
 -- name: GetCategoryBySlug :one
 select
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  *
 from
   categories
 where
@@ -47,12 +32,7 @@ insert into
 values
   (@user_id::uuid, @slug::text, @color::text)
 returning
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at;
+  *;
 
 -- name: UpdateCategory :exec
 update
@@ -70,12 +50,7 @@ insert into
 values
   (@user_id::uuid, @slug::text, @color::text) on CONFLICT (user_id, slug) do NOTHING
 returning
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at;
+  *;
 
 -- name: DeleteCategoriesBySlugPrefix :execrows
 delete from

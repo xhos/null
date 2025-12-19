@@ -1,7 +1,6 @@
 package api
 
 import (
-	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/rules"
 	"context"
@@ -23,11 +22,11 @@ func (s *Server) ListRules(ctx context.Context, req *connect.Request[pb.ListRule
 
 	rules, err := s.services.Rules.List(ctx, userID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.ListRulesResponse{
-		Rules: mapSlice(rules, toProtoRule),
+		Rules: rules,
 	}), nil
 }
 
@@ -44,11 +43,11 @@ func (s *Server) GetRule(ctx context.Context, req *connect.Request[pb.GetRuleReq
 
 	rule, err := s.services.Rules.Get(ctx, userID, ruleID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetRuleResponse{
-		Rule: toProtoRule(rule),
+		Rule: rule,
 	}), nil
 }
 
@@ -88,23 +87,9 @@ func (s *Server) CreateRule(ctx context.Context, req *connect.Request[pb.CreateR
 	}
 	conditionsBytes = normalizedBytes
 
-	params := sqlc.CreateRuleParams{
-		UserID:     userID,
-		RuleName:   req.Msg.GetRuleName(),
-		Conditions: conditionsBytes,
-	}
-
-	if req.Msg.CategoryId != nil {
-		params.CategoryID = *req.Msg.CategoryId
-	}
-
-	if req.Msg.Merchant != nil {
-		params.Merchant = *req.Msg.Merchant
-	}
-
-	rule, err := s.services.Rules.Create(ctx, params)
+	rule, err := s.services.Rules.Create(ctx, userID, req.Msg.GetRuleName(), conditionsBytes, req.Msg.CategoryId, req.Msg.Merchant)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	// apply to existing transactions if requested
@@ -112,14 +97,14 @@ func (s *Server) CreateRule(ctx context.Context, req *connect.Request[pb.CreateR
 		count, err := s.services.Rules.ApplyToExisting(ctx, userID, nil)
 		if err != nil {
 			// log but don't fail the request
-			s.log.Warn("failed to apply rule to existing transactions", "rule_id", rule.RuleID, "error", err)
+			s.log.Warn("failed to apply rule to existing transactions", "rule_id", rule.RuleId, "error", err)
 		} else {
-			s.log.Info("applied rule to existing transactions", "rule_id", rule.RuleID, "count", count)
+			s.log.Info("applied rule to existing transactions", "rule_id", rule.RuleId, "count", count)
 		}
 	}
 
 	return connect.NewResponse(&pb.CreateRuleResponse{
-		Rule: toProtoRule(rule),
+		Rule: rule,
 	}), nil
 }
 
@@ -134,27 +119,14 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 		return nil, err
 	}
 
-	params := sqlc.UpdateRuleParams{
-		RuleID: ruleID,
-		UserID: userID,
-	}
-
-	if req.Msg.RuleName != nil {
-		params.RuleName = req.Msg.RuleName
-	}
-	if req.Msg.CategoryId != nil {
-		params.CategoryID = req.Msg.CategoryId
-	}
-	if req.Msg.Merchant != nil {
-		params.Merchant = req.Msg.Merchant
-	}
+	var conditionsBytes []byte
 	if req.Msg.Conditions != nil {
-		conditionsBytes, err := req.Msg.Conditions.MarshalJSON()
+		condBytes, err := req.Msg.Conditions.MarshalJSON()
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, "Invalid conditions JSON")
 		}
 
-		validationResult := rules.ValidateRuleJSONDetailed(conditionsBytes)
+		validationResult := rules.ValidateRuleJSONDetailed(condBytes)
 		if !validationResult.Valid {
 			errorMsg := "Rule validation failed:"
 			for _, validationErr := range validationResult.Errors {
@@ -163,7 +135,7 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 			return nil, status.Error(codes.InvalidArgument, errorMsg)
 		}
 
-		normalizedRule, err := rules.NormalizeAndValidateRule(conditionsBytes)
+		normalizedRule, err := rules.NormalizeAndValidateRule(condBytes)
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, "Rule normalization failed: "+err.Error())
 		}
@@ -172,19 +144,12 @@ func (s *Server) UpdateRule(ctx context.Context, req *connect.Request[pb.UpdateR
 		if err != nil {
 			return nil, status.Error(codes.Internal, "Failed to serialize normalized rule")
 		}
-		params.Conditions = normalizedBytes
-	}
-	if req.Msg.IsActive != nil {
-		params.IsActive = req.Msg.IsActive
-	}
-	if req.Msg.PriorityOrder != nil {
-		priority := int32(*req.Msg.PriorityOrder)
-		params.PriorityOrder = &priority
+		conditionsBytes = normalizedBytes
 	}
 
-	err = s.services.Rules.Update(ctx, params)
+	err = s.services.Rules.Update(ctx, userID, ruleID, req.Msg.RuleName, conditionsBytes, req.Msg.CategoryId, req.Msg.Merchant)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	// apply to existing transactions if requested
@@ -213,54 +178,12 @@ func (s *Server) DeleteRule(ctx context.Context, req *connect.Request[pb.DeleteR
 
 	affected, err := s.services.Rules.Delete(ctx, userID, ruleID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.DeleteRuleResponse{
 		AffectedRows: affected,
 	}), nil
-}
-
-func toProtoRule(r *sqlc.TransactionRule) *pb.Rule {
-	if r == nil {
-		return nil
-	}
-
-	var conditions *structpb.Struct
-	if len(r.Conditions) > 0 {
-		conditions = &structpb.Struct{}
-		if err := conditions.UnmarshalJSON(r.Conditions); err == nil {
-			// conditions successfully unmarshaled
-		} else {
-			conditions = nil
-		}
-	}
-
-	isActive := false
-	if r.IsActive != nil {
-		isActive = *r.IsActive
-	}
-
-	timesApplied := int32(0)
-	if r.TimesApplied != nil {
-		timesApplied = *r.TimesApplied
-	}
-
-	return &pb.Rule{
-		RuleId:        r.RuleID.String(),
-		UserId:        r.UserID.String(),
-		RuleName:      r.RuleName,
-		CategoryId:    r.CategoryID,
-		Conditions:    conditions,
-		IsActive:      isActive,
-		PriorityOrder: r.PriorityOrder,
-		RuleSource:    r.RuleSource,
-		CreatedAt:     toProtoTimestamp(&r.CreatedAt),
-		UpdatedAt:     toProtoTimestamp(&r.UpdatedAt),
-		LastAppliedAt: toProtoTimestamp(r.LastAppliedAt),
-		TimesApplied:  timesApplied,
-		Merchant:      r.Merchant,
-	}
 }
 
 func (s *Server) ValidateRule(ctx context.Context, req *connect.Request[pb.ValidateRuleRequest]) (*connect.Response[pb.ValidateRuleResponse], error) {

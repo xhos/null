@@ -2,6 +2,7 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 	"fmt"
 	"time"
@@ -9,6 +10,8 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/type/money"
 )
+
+// ----- types -------------------------------------------------------------------------------
 
 type AccountSummary struct {
 	Summary *sqlc.GetDashboardSummaryRow
@@ -51,19 +54,21 @@ type NetWorthHistoryParams struct {
 	Granularity int32
 }
 
+// ----- interface ---------------------------------------------------------------------------
+
 type DashboardService interface {
 	Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
 	Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error)
 	NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
-	Trends(ctx context.Context, params sqlc.GetDashboardTrendsParams) ([]sqlc.GetDashboardTrendsRow, error)
-	Summary(ctx context.Context, params sqlc.GetDashboardSummaryParams) (*sqlc.GetDashboardSummaryRow, error)
-	MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonParams) ([]sqlc.GetMonthlyComparisonRow, error)
-	TopCategories(ctx context.Context, params sqlc.GetTopCategoriesParams) ([]sqlc.GetTopCategoriesRow, error)
-	TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsParams) ([]sqlc.GetTopMerchantsRow, error)
-	AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error)
-	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error)
+	Trends(ctx context.Context, userID uuid.UUID, req *pb.GetSpendingTrendsRequest) ([]*pb.TrendPoint, error)
+	Summary(ctx context.Context, userID uuid.UUID, req *pb.GetDashboardSummaryRequest) (*pb.DashboardSummary, error)
+	MonthlyComparison(ctx context.Context, userID uuid.UUID, monthsBack int32) ([]*pb.MonthlyComparison, error)
+	TopCategories(ctx context.Context, userID uuid.UUID, req *pb.GetTopCategoriesRequest) ([]*pb.TopCategory, error)
+	TopMerchants(ctx context.Context, userID uuid.UUID, req *pb.GetTopMerchantsRequest) ([]*pb.TopMerchant, error)
+	AccountBalances(ctx context.Context, userID uuid.UUID) ([]*pb.AccountBalance, error)
+	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]*pb.TrendPoint, error)
 	GetCategorySpendingComparison(ctx context.Context, params CategorySpendingParams) (*CategorySpendingResult, error)
-	GetNetWorthHistory(ctx context.Context, params NetWorthHistoryParams) ([]sqlc.GetNetWorthHistoryRow, error)
+	GetNetWorthHistory(ctx context.Context, params NetWorthHistoryParams) ([]*pb.NetWorthPoint, error)
 }
 
 type dashSvc struct {
@@ -74,250 +79,189 @@ func newDashSvc(queries *sqlc.Queries) DashboardService {
 	return &dashSvc{queries: queries}
 }
 
-func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
-	primaryCurrency, err := s.getUserPrimaryCurrency(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("DashboardService.Balance.GetPrimaryCurrency", err)
-	}
+// ----- methods -----------------------------------------------------------------------------
 
-	balances, err := s.AccountBalances(ctx, userID)
+func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Balance", err)
 	}
 
 	totalCents := int64(0)
-
 	for _, balance := range balances {
 		if balance.BalanceCents > 0 {
-			// TODO: Convert to primary currency if different
-			// For now, assume all accounts are in same currency
 			totalCents += balance.BalanceCents
 		}
 	}
 
-	return &money.Money{
-		CurrencyCode: primaryCurrency,
-		Units:        totalCents / 100,
-		Nanos:        int32((totalCents % 100) * 10_000_000),
-	}, nil
+	return s.centsToMoney(ctx, userID, totalCents)
 }
 
 func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
-	primaryCurrency, err := s.getUserPrimaryCurrency(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("DashboardService.Debt.GetPrimaryCurrency", err)
-	}
-
-	balances, err := s.AccountBalances(ctx, userID)
+	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Debt", err)
 	}
 
 	totalCents := int64(0)
-
 	for _, balance := range balances {
 		if balance.BalanceCents < 0 {
-			// TODO: Convert to primary currency if different
-			// Negate to get positive debt amount
 			totalCents += -balance.BalanceCents
 		}
 	}
 
-	return &money.Money{
-		CurrencyCode: primaryCurrency,
-		Units:        totalCents / 100,
-		Nanos:        int32((totalCents % 100) * 10_000_000),
-	}, nil
+	return s.centsToMoney(ctx, userID, totalCents)
 }
 
-func (s *dashSvc) Trends(ctx context.Context, params sqlc.GetDashboardTrendsParams) ([]sqlc.GetDashboardTrendsRow, error) {
+func (s *dashSvc) Trends(ctx context.Context, userID uuid.UUID, req *pb.GetSpendingTrendsRequest) ([]*pb.TrendPoint, error) {
+	startTime := dateToTime(req.StartDate)
+	endTime := dateToTime(req.EndDate)
+
+	params := sqlc.GetDashboardTrendsParams{
+		UserID: userID,
+		Start:  startTime,
+		End:    endTime,
+	}
+
 	trends, err := s.queries.GetDashboardTrends(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Trends", err)
 	}
-	return trends, nil
+
+	result := make([]*pb.TrendPoint, len(trends))
+	for i, trend := range trends {
+		result[i] = trendPointToPb(&trend)
+	}
+	return result, nil
 }
 
-func (s *dashSvc) Summary(ctx context.Context, params sqlc.GetDashboardSummaryParams) (*sqlc.GetDashboardSummaryRow, error) {
+func (s *dashSvc) Summary(ctx context.Context, userID uuid.UUID, req *pb.GetDashboardSummaryRequest) (*pb.DashboardSummary, error) {
+	params := buildDashboardSummaryParams(userID, req)
 	summary, err := s.queries.GetDashboardSummary(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Summary", err)
 	}
-	return &summary, nil
+	return dashboardSummaryToPb(&summary), nil
 }
 
-func (s *dashSvc) MonthlyComparison(ctx context.Context, params sqlc.GetMonthlyComparisonParams) ([]sqlc.GetMonthlyComparisonRow, error) {
+func (s *dashSvc) MonthlyComparison(ctx context.Context, userID uuid.UUID, monthsBack int32) ([]*pb.MonthlyComparison, error) {
+	params := buildMonthlyComparisonParams(userID, monthsBack)
 	comparison, err := s.queries.GetMonthlyComparison(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.MonthlyComparison", err)
 	}
-	return comparison, nil
+
+	result := make([]*pb.MonthlyComparison, len(comparison))
+	for i, comp := range comparison {
+		result[i] = monthlyComparisonToPb(&comp)
+	}
+	return result, nil
 }
 
-func (s *dashSvc) TopCategories(ctx context.Context, params sqlc.GetTopCategoriesParams) ([]sqlc.GetTopCategoriesRow, error) {
+func (s *dashSvc) TopCategories(ctx context.Context, userID uuid.UUID, req *pb.GetTopCategoriesRequest) ([]*pb.TopCategory, error) {
+	params := buildTopCategoriesParams(userID, req)
 	categories, err := s.queries.GetTopCategories(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.TopCategories", err)
 	}
-	return categories, nil
+
+	result := make([]*pb.TopCategory, len(categories))
+	for i, cat := range categories {
+		result[i] = topCategoryToPb(&cat)
+	}
+	return result, nil
 }
 
-func (s *dashSvc) TopMerchants(ctx context.Context, params sqlc.GetTopMerchantsParams) ([]sqlc.GetTopMerchantsRow, error) {
+func (s *dashSvc) TopMerchants(ctx context.Context, userID uuid.UUID, req *pb.GetTopMerchantsRequest) ([]*pb.TopMerchant, error) {
+	params := buildTopMerchantsParams(userID, req)
 	merchants, err := s.queries.GetTopMerchants(ctx, params)
 	if err != nil {
 		return nil, wrapErr("DashboardService.TopMerchants", err)
 	}
-	return merchants, nil
+
+	result := make([]*pb.TopMerchant, len(merchants))
+	for i, merchant := range merchants {
+		result[i] = topMerchantToPb(&merchant)
+	}
+	return result, nil
 }
 
 func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
-	primaryCurrency, err := s.getUserPrimaryCurrency(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("DashboardService.NetBalance.GetPrimaryCurrency", err)
-	}
-
-	balances, err := s.AccountBalances(ctx, userID)
+	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.NetBalance", err)
 	}
 
 	totalCents := int64(0)
-
 	for _, balance := range balances {
-		// TODO: Convert to primary currency if different
 		totalCents += balance.BalanceCents
 	}
 
-	return &money.Money{
-		CurrencyCode: primaryCurrency,
-		Units:        totalCents / 100,
-		Nanos:        int32((totalCents % 100) * 10_000_000),
-	}, nil
+	return s.centsToMoney(ctx, userID, totalCents)
 }
 
-func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]sqlc.GetAccountBalancesRow, error) {
+func (s *dashSvc) AccountBalances(ctx context.Context, userID uuid.UUID) ([]*pb.AccountBalance, error) {
 	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.AccountBalances", err)
 	}
-	return balances, nil
+
+	result := make([]*pb.AccountBalance, len(balances))
+	for i, balance := range balances {
+		result[i] = accountBalanceToPb(&balance)
+	}
+	return result, nil
 }
 
-func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]sqlc.GetDashboardTrendsRow, error) {
-	var start, end *time.Time
-
+func (s *dashSvc) GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]*pb.TrendPoint, error) {
 	parsedStart, err := time.Parse("2006-01-02", startDate)
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetSpendingTrends.ParseStartDate", err)
 	}
-	start = &parsedStart
 
 	parsedEnd, err := time.Parse("2006-01-02", endDate)
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetSpendingTrends.ParseEndDate", err)
 	}
-	end = &parsedEnd
 
-	params := sqlc.GetDashboardTrendsParams{
-		UserID: userID,
-		Start:  start,
-		End:    end,
-	}
-
-	// TODO: currently the database query doesn't support filtering by category or account
-	// these parameters are included for future extensibility but ignored for now in this MVP
+	// TODO: categoryID and accountID ignored until query supports filtering
 	_ = categoryID
 	_ = accountID
 
-	return s.Trends(ctx, params)
+	req := &pb.GetSpendingTrendsRequest{
+		StartDate: timeToDate(parsedStart),
+		EndDate:   timeToDate(parsedEnd),
+	}
+
+	return s.Trends(ctx, userID, req)
 }
 
 func (s *dashSvc) GetCategorySpendingComparison(
 	ctx context.Context,
 	params CategorySpendingParams,
 ) (*CategorySpendingResult, error) {
-	// Get user's timezone from preferences
-	timezone, err := s.queries.GetUserTimezone(ctx, params.UserID)
-	if err != nil {
-		timezone = "UTC" // fallback
-	}
-
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		loc = time.UTC
-	}
+	loc := s.getUserLocation(ctx, params.UserID)
 	now := time.Now().In(loc)
 
-	var currentStart, currentEnd, previousStart, previousEnd time.Time
-	var currentLabel, previousLabel string
-
-	switch params.PeriodType {
-	case Period7Days:
-		currentStart = startOfDay(now.AddDate(0, 0, -6), loc)
-		currentEnd = endOfDay(now, loc)
-		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
-		previousStart = startOfDay(now.AddDate(0, 0, -13), loc)
-		currentLabel = "Last 7 Days"
-		previousLabel = "Previous 7 Days"
-
-	case Period30Days:
-		currentStart = startOfDay(now.AddDate(0, 0, -29), loc)
-		currentEnd = endOfDay(now, loc)
-		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
-		previousStart = startOfDay(now.AddDate(0, 0, -59), loc)
-		currentLabel = "Last 30 Days"
-		previousLabel = "Previous 30 Days"
-
-	case Period90Days:
-		currentStart = startOfDay(now.AddDate(0, 0, -89), loc)
-		currentEnd = endOfDay(now, loc)
-		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
-		previousStart = startOfDay(now.AddDate(0, 0, -179), loc)
-		currentLabel = "Last 90 Days"
-		previousLabel = "Previous 90 Days"
-
-	case PeriodCustom:
-		if params.CustomStart == nil || params.CustomEnd == nil {
-			return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
-				fmt.Errorf("custom period requires both start and end dates"))
-		}
-
-		currentStart = startOfDay(*params.CustomStart, loc)
-		currentEnd = endOfDay(*params.CustomEnd, loc)
-
-		if currentEnd.Before(currentStart) {
-			return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
-				fmt.Errorf("end date must be after start date"))
-		}
-
-		duration := currentEnd.Sub(currentStart) + time.Nanosecond
-		previousEnd = startOfDay(currentStart, loc).Add(-time.Nanosecond)
-		previousStart = currentStart.Add(-duration)
-
-		currentLabel = formatDateRange(currentStart, currentEnd)
-		previousLabel = formatDateRange(previousStart, previousEnd)
-
-	default:
-		return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
-			fmt.Errorf("invalid period type"))
+	periods, err := s.calculatePeriods(params, now, loc)
+	if err != nil {
+		return nil, err
 	}
 
-	// Use top categories as proxy for category spending (GetCategorySpendingForPeriod removed)
 	current, err := s.queries.GetTopCategories(ctx, sqlc.GetTopCategoriesParams{
 		UserID: params.UserID,
-		Start:  &currentStart,
-		End:    &currentEnd,
+		Start:  &periods.currentStart,
+		End:    &periods.currentEnd,
 		Limit:  int32Ptr(20),
 	})
 	if err != nil {
 		return nil, wrapErr("DashboardService.GetCategorySpendingComparison.Current", err)
 	}
 
-	// Query previous period
 	previous, err := s.queries.GetTopCategories(ctx, sqlc.GetTopCategoriesParams{
 		UserID: params.UserID,
-		Start:  &previousStart,
-		End:    &previousEnd,
+		Start:  &periods.previousStart,
+		End:    &periods.previousEnd,
 		Limit:  int32Ptr(20),
 	})
 	if err != nil {
@@ -326,19 +270,281 @@ func (s *dashSvc) GetCategorySpendingComparison(
 
 	return &CategorySpendingResult{
 		CurrentPeriod: PeriodInfo{
-			StartDate: currentStart.Format("2006-01-02"),
-			EndDate:   currentEnd.Format("2006-01-02"),
-			Label:     currentLabel,
+			StartDate: periods.currentStart.Format("2006-01-02"),
+			EndDate:   periods.currentEnd.Format("2006-01-02"),
+			Label:     periods.currentLabel,
 		},
 		PreviousPeriod: PeriodInfo{
-			StartDate: previousStart.Format("2006-01-02"),
-			EndDate:   previousEnd.Format("2006-01-02"),
-			Label:     previousLabel,
+			StartDate: periods.previousStart.Format("2006-01-02"),
+			EndDate:   periods.previousEnd.Format("2006-01-02"),
+			Label:     periods.previousLabel,
 		},
 		Current:  current,
 		Previous: previous,
 	}, nil
 }
+
+type periodBounds struct {
+	currentStart, currentEnd    time.Time
+	previousStart, previousEnd  time.Time
+	currentLabel, previousLabel string
+}
+
+func (s *dashSvc) calculatePeriods(params CategorySpendingParams, now time.Time, loc *time.Location) (*periodBounds, error) {
+	p := &periodBounds{}
+
+	switch params.PeriodType {
+	case Period7Days:
+		p.currentStart = startOfDay(now.AddDate(0, 0, -6), loc)
+		p.currentEnd = endOfDay(now, loc)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(0, 0, -13), loc)
+		p.currentLabel = "Last 7 Days"
+		p.previousLabel = "Previous 7 Days"
+
+	case Period30Days:
+		p.currentStart = startOfDay(now.AddDate(0, 0, -29), loc)
+		p.currentEnd = endOfDay(now, loc)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(0, 0, -59), loc)
+		p.currentLabel = "Last 30 Days"
+		p.previousLabel = "Previous 30 Days"
+
+	case Period90Days:
+		p.currentStart = startOfDay(now.AddDate(0, 0, -89), loc)
+		p.currentEnd = endOfDay(now, loc)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(0, 0, -179), loc)
+		p.currentLabel = "Last 90 Days"
+		p.previousLabel = "Previous 90 Days"
+
+	case PeriodCustom:
+		if params.CustomStart == nil || params.CustomEnd == nil {
+			return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
+				fmt.Errorf("custom period requires both start and end dates"))
+		}
+
+		p.currentStart = startOfDay(*params.CustomStart, loc)
+		p.currentEnd = endOfDay(*params.CustomEnd, loc)
+
+		if p.currentEnd.Before(p.currentStart) {
+			return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
+				fmt.Errorf("end date must be after start date"))
+		}
+
+		duration := p.currentEnd.Sub(p.currentStart) + time.Nanosecond
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = p.currentStart.Add(-duration)
+		p.currentLabel = formatDateRange(p.currentStart, p.currentEnd)
+		p.previousLabel = formatDateRange(p.previousStart, p.previousEnd)
+
+	default:
+		return nil, wrapErr("DashboardService.GetCategorySpendingComparison",
+			fmt.Errorf("invalid period type"))
+	}
+
+	return p, nil
+}
+
+// getUserPrimaryCurrency retrieves the user's primary currency
+// Falls back to CAD if not found or on error
+func (s *dashSvc) getUserPrimaryCurrency(ctx context.Context, userID uuid.UUID) string {
+	currency, err := s.queries.GetUserPrimaryCurrency(ctx, userID)
+	if err != nil {
+		return "CAD"
+	}
+	return currency
+}
+
+func (s *dashSvc) getUserLocation(ctx context.Context, userID uuid.UUID) *time.Location {
+	timezone, err := s.queries.GetUserTimezone(ctx, userID)
+	if err != nil {
+		return time.UTC
+	}
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		return time.UTC
+	}
+	return loc
+}
+
+func (s *dashSvc) centsToMoney(ctx context.Context, userID uuid.UUID, cents int64) (*money.Money, error) {
+	currency := s.getUserPrimaryCurrency(ctx, userID)
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        cents / 100,
+		Nanos:        int32((cents % 100) * 10_000_000),
+	}, nil
+}
+
+func (s *dashSvc) GetNetWorthHistory(
+	ctx context.Context,
+	params NetWorthHistoryParams,
+) ([]*pb.NetWorthPoint, error) {
+	loc := s.getUserLocation(ctx, params.UserID)
+
+	result, err := s.queries.GetNetWorthHistory(ctx, sqlc.GetNetWorthHistoryParams{
+		UserID:      params.UserID,
+		StartDate:   params.StartDate.In(loc),
+		EndDate:     params.EndDate.In(loc),
+		Granularity: params.Granularity,
+	})
+	if err != nil {
+		return nil, wrapErr("DashboardService.GetNetWorthHistory", err)
+	}
+
+	// Get user's primary currency
+	currency := s.getUserPrimaryCurrency(ctx, params.UserID)
+
+	protoResult := make([]*pb.NetWorthPoint, len(result))
+	for i, row := range result {
+		protoResult[i] = netWorthPointToPb(&row, currency)
+	}
+
+	return protoResult, nil
+}
+
+// ----- param builders ----------------------------------------------------------------------
+
+func buildDashboardSummaryParams(userID uuid.UUID, req *pb.GetDashboardSummaryRequest) sqlc.GetDashboardSummaryParams {
+	return sqlc.GetDashboardSummaryParams{
+		UserID: userID,
+		Start:  dateToTime(req.StartDate),
+		End:    dateToTime(req.EndDate),
+	}
+}
+
+func buildTopCategoriesParams(userID uuid.UUID, req *pb.GetTopCategoriesRequest) sqlc.GetTopCategoriesParams {
+	return sqlc.GetTopCategoriesParams{
+		UserID: userID,
+		Start:  dateToTime(req.StartDate),
+		End:    dateToTime(req.EndDate),
+		Limit:  req.Limit,
+	}
+}
+
+func buildTopMerchantsParams(userID uuid.UUID, req *pb.GetTopMerchantsRequest) sqlc.GetTopMerchantsParams {
+	return sqlc.GetTopMerchantsParams{
+		UserID: userID,
+		Start:  dateToTime(req.StartDate),
+		End:    dateToTime(req.EndDate),
+		Limit:  req.Limit,
+	}
+}
+
+func buildMonthlyComparisonParams(userID uuid.UUID, monthsBack int32) sqlc.GetMonthlyComparisonParams {
+	end := time.Now()
+	start := end.AddDate(0, -int(monthsBack), 0)
+
+	return sqlc.GetMonthlyComparisonParams{
+		UserID: userID,
+		Start:  &start,
+		End:    &end,
+	}
+}
+
+// ----- conversion helpers ------------------------------------------------------------------
+
+func trendPointToPb(trend *sqlc.GetDashboardTrendsRow) *pb.TrendPoint {
+	if trend == nil {
+		return nil
+	}
+
+	// parse the date string to time.Time for conversion
+	trendDate, _ := time.Parse("2006-01-02", trend.Date)
+	return &pb.TrendPoint{
+		Date:     timeToDate(trendDate),
+		Income:   centsToMoney(trend.IncomeCents, "CAD"),
+		Expenses: centsToMoney(trend.ExpenseCents, "CAD"),
+	}
+}
+
+func monthlyComparisonToPb(comp *sqlc.GetMonthlyComparisonRow) *pb.MonthlyComparison {
+	if comp == nil {
+		return nil
+	}
+
+	return &pb.MonthlyComparison{
+		Month:    comp.Month,
+		Income:   centsToMoney(comp.IncomeCents, "CAD"),
+		Expenses: centsToMoney(comp.ExpenseCents, "CAD"),
+		Net:      centsToMoney(comp.NetCents, "CAD"),
+	}
+}
+
+func topCategoryToPb(cat *sqlc.GetTopCategoriesRow) *pb.TopCategory {
+	if cat == nil {
+		return nil
+	}
+
+	return &pb.TopCategory{
+		Slug:             cat.Slug,
+		Color:            cat.Color,
+		TransactionCount: cat.TransactionCount,
+		TotalAmount:      centsToMoney(cat.TotalAmountCents, "CAD"),
+	}
+}
+
+func topMerchantToPb(merchant *sqlc.GetTopMerchantsRow) *pb.TopMerchant {
+	if merchant == nil {
+		return nil
+	}
+
+	merchantName := ""
+	if merchant.Merchant != nil {
+		merchantName = *merchant.Merchant
+	}
+
+	return &pb.TopMerchant{
+		Merchant:         merchantName,
+		TransactionCount: merchant.TransactionCount,
+		TotalAmount:      centsToMoney(merchant.TotalAmountCents, "CAD"),
+		AvgAmount:        centsToMoney(merchant.AvgAmountCents, "CAD"),
+	}
+}
+
+func accountBalanceToPb(row *sqlc.GetAccountBalancesRow) *pb.AccountBalance {
+	if row == nil {
+		return nil
+	}
+
+	return &pb.AccountBalance{
+		Id:             row.ID,
+		Name:           row.Name,
+		AccountType:    pb.AccountType(row.AccountType),
+		CurrentBalance: centsToMoney(row.BalanceCents, row.Currency),
+		Currency:       row.Currency,
+	}
+}
+
+func dashboardSummaryToPb(summary *sqlc.GetDashboardSummaryRow) *pb.DashboardSummary {
+	if summary == nil {
+		return nil
+	}
+
+	return &pb.DashboardSummary{
+		TotalAccounts:             summary.TotalAccounts,
+		TotalTransactions:         summary.TotalTransactions,
+		TotalIncome:               centsToMoney(summary.TotalIncomeCents, "CAD"),
+		TotalExpenses:             centsToMoney(summary.TotalExpenseCents, "CAD"),
+		UncategorizedTransactions: summary.UncategorizedTransactions,
+	}
+}
+
+func netWorthPointToPb(row *sqlc.GetNetWorthHistoryRow, currency string) *pb.NetWorthPoint {
+	if row == nil {
+		return nil
+	}
+
+	// parse the date string to time.Time for conversion
+	pointDate, _ := time.Parse("2006-01-02", row.Date)
+	return &pb.NetWorthPoint{
+		Date:     timeToDate(pointDate),
+		NetWorth: centsToMoney(row.NetWorthCents, currency),
+	}
+}
+
+// ----- internal helpers --------------------------------------------------------------------
 
 func startOfDay(t time.Time, loc *time.Location) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
@@ -358,45 +564,4 @@ func formatDateRange(start, end time.Time) string {
 		end.Month().String()[:3], end.Day(), end.Year())
 }
 
-// getUserPrimaryCurrency retrieves the user's primary currency
-// Falls back to CAD if not found or on error
-func (s *dashSvc) getUserPrimaryCurrency(ctx context.Context, userID uuid.UUID) (string, error) {
-	currency, err := s.queries.GetUserPrimaryCurrency(ctx, userID)
-	if err != nil {
-		// If we can't get currency, default to CAD
-		return "CAD", nil
-	}
-	return currency, nil
-}
-
-func (s *dashSvc) GetNetWorthHistory(
-	ctx context.Context,
-	params NetWorthHistoryParams,
-) ([]sqlc.GetNetWorthHistoryRow, error) {
-	// Get user's timezone from preferences
-	timezone, err := s.queries.GetUserTimezone(ctx, params.UserID)
-	if err != nil {
-		timezone = "UTC" // fallback
-	}
-
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-
-	// Ensure dates are in the correct timezone
-	startDate := params.StartDate.In(loc)
-	endDate := params.EndDate.In(loc)
-
-	result, err := s.queries.GetNetWorthHistory(ctx, sqlc.GetNetWorthHistoryParams{
-		UserID:      params.UserID,
-		StartDate:   startDate,
-		EndDate:     endDate,
-		Granularity: params.Granularity,
-	})
-	if err != nil {
-		return nil, wrapErr("DashboardService.GetNetWorthHistory", err)
-	}
-
-	return result, nil
-}
+// TODO: this file is something....

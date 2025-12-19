@@ -15,10 +15,10 @@ func (s *Server) ExportBackup(ctx context.Context, req *connect.Request[pb.Expor
 
 	backup, err := s.services.Backup.ExportAll(ctx, userID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
-	protoBackup := backupToProto(backup)
+	protoBackup := s.services.Backup.BackupToProto(backup)
 
 	return connect.NewResponse(&pb.ExportBackupResponse{
 		Backup: protoBackup,
@@ -31,11 +31,11 @@ func (s *Server) ImportBackup(ctx context.Context, req *connect.Request[pb.Impor
 		return nil, err
 	}
 
-	backup := backupFromProto(req.Msg.Backup)
+	backup := s.services.Backup.BackupFromProto(req.Msg.Backup)
 
 	err = s.services.Backup.ImportAll(ctx, userID, backup)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.ImportBackupResponse{

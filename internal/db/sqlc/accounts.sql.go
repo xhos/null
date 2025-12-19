@@ -9,39 +9,8 @@ import (
 	"context"
 	"time"
 
-	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
 )
-
-const checkUserAccountAccess = `-- name: CheckUserAccountAccess :one
-select
-  exists(
-    select
-      1
-    from
-      accounts a
-      left join account_users au on a.id = au.account_id
-      and au.user_id = $1::uuid
-    where
-      a.id = $2::bigint
-      and (
-        a.owner_id = $1::uuid
-        or au.user_id is not null
-      )
-  ) as has_access
-`
-
-type CheckUserAccountAccessParams struct {
-	UserID    uuid.UUID `db:"user_id" json:"user_id"`
-	AccountID int64     `db:"account_id" json:"account_id"`
-}
-
-func (q *Queries) CheckUserAccountAccess(ctx context.Context, arg CheckUserAccountAccessParams) (bool, error) {
-	row := q.db.QueryRow(ctx, checkUserAccountAccess, arg.UserID, arg.AccountID)
-	var has_access bool
-	err := row.Scan(&has_access)
-	return has_access, err
-}
 
 const createAccount = `-- name: CreateAccount :one
 insert into
@@ -173,40 +142,28 @@ type GetAccountParams struct {
 }
 
 type GetAccountRow struct {
-	ID                 int64             `db:"id" json:"id"`
-	OwnerID            uuid.UUID         `db:"owner_id" json:"owner_id"`
-	Name               string            `db:"name" json:"name"`
-	Bank               string            `db:"bank" json:"bank"`
-	AccountType        arian.AccountType `db:"account_type" json:"account_type"`
-	Alias              *string           `db:"alias" json:"alias"`
-	AnchorDate         time.Time         `db:"anchor_date" json:"anchor_date"`
-	AnchorBalanceCents int64             `db:"anchor_balance_cents" json:"anchor_balance_cents"`
-	AnchorCurrency     string            `db:"anchor_currency" json:"anchor_currency"`
-	MainCurrency       string            `db:"main_currency" json:"main_currency"`
-	Colors             []string          `db:"colors" json:"colors"`
-	CreatedAt          time.Time         `db:"created_at" json:"created_at"`
-	UpdatedAt          time.Time         `db:"updated_at" json:"updated_at"`
-	BalanceCents       int64             `db:"balance_cents" json:"balance_cents"`
-	BalanceCurrency    string            `db:"balance_currency" json:"balance_currency"`
+	Account         Account `db:"account" json:"account"`
+	BalanceCents    int64   `db:"balance_cents" json:"balance_cents"`
+	BalanceCurrency string  `db:"balance_currency" json:"balance_currency"`
 }
 
 func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAccountRow, error) {
 	row := q.db.QueryRow(ctx, getAccount, arg.UserID, arg.ID)
 	var i GetAccountRow
 	err := row.Scan(
-		&i.ID,
-		&i.OwnerID,
-		&i.Name,
-		&i.Bank,
-		&i.AccountType,
-		&i.Alias,
-		&i.AnchorDate,
-		&i.AnchorBalanceCents,
-		&i.AnchorCurrency,
-		&i.MainCurrency,
-		&i.Colors,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.Account.ID,
+		&i.Account.OwnerID,
+		&i.Account.Name,
+		&i.Account.Bank,
+		&i.Account.AccountType,
+		&i.Account.Alias,
+		&i.Account.AnchorDate,
+		&i.Account.AnchorBalanceCents,
+		&i.Account.AnchorCurrency,
+		&i.Account.MainCurrency,
+		&i.Account.Colors,
+		&i.Account.CreatedAt,
+		&i.Account.UpdatedAt,
 		&i.BalanceCents,
 		&i.BalanceCurrency,
 	)
@@ -313,21 +270,9 @@ order by
 `
 
 type ListAccountsRow struct {
-	ID                 int64             `db:"id" json:"id"`
-	OwnerID            uuid.UUID         `db:"owner_id" json:"owner_id"`
-	Name               string            `db:"name" json:"name"`
-	Bank               string            `db:"bank" json:"bank"`
-	AccountType        arian.AccountType `db:"account_type" json:"account_type"`
-	Alias              *string           `db:"alias" json:"alias"`
-	AnchorDate         time.Time         `db:"anchor_date" json:"anchor_date"`
-	AnchorBalanceCents int64             `db:"anchor_balance_cents" json:"anchor_balance_cents"`
-	AnchorCurrency     string            `db:"anchor_currency" json:"anchor_currency"`
-	MainCurrency       string            `db:"main_currency" json:"main_currency"`
-	Colors             []string          `db:"colors" json:"colors"`
-	CreatedAt          time.Time         `db:"created_at" json:"created_at"`
-	UpdatedAt          time.Time         `db:"updated_at" json:"updated_at"`
-	BalanceCents       int64             `db:"balance_cents" json:"balance_cents"`
-	BalanceCurrency    string            `db:"balance_currency" json:"balance_currency"`
+	Account         Account `db:"account" json:"account"`
+	BalanceCents    int64   `db:"balance_cents" json:"balance_cents"`
+	BalanceCurrency string  `db:"balance_currency" json:"balance_currency"`
 }
 
 func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAccountsRow, error) {
@@ -340,19 +285,19 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 	for rows.Next() {
 		var i ListAccountsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.OwnerID,
-			&i.Name,
-			&i.Bank,
-			&i.AccountType,
-			&i.Alias,
-			&i.AnchorDate,
-			&i.AnchorBalanceCents,
-			&i.AnchorCurrency,
-			&i.MainCurrency,
-			&i.Colors,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.Account.ID,
+			&i.Account.OwnerID,
+			&i.Account.Name,
+			&i.Account.Bank,
+			&i.Account.AccountType,
+			&i.Account.Alias,
+			&i.Account.AnchorDate,
+			&i.Account.AnchorBalanceCents,
+			&i.Account.AnchorCurrency,
+			&i.Account.MainCurrency,
+			&i.Account.Colors,
+			&i.Account.CreatedAt,
+			&i.Account.UpdatedAt,
 			&i.BalanceCents,
 			&i.BalanceCurrency,
 		); err != nil {

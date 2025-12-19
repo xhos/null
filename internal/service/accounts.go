@@ -4,78 +4,21 @@ import (
 	"ariand/internal/db/sqlc"
 	pb "ariand/internal/gen/arian/v1"
 	"context"
-	"database/sql"
-	"errors"
-	"time"
+	"fmt"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// centsToMoney converts cents to google.type.Money
-func centsToMoney(cents int64, currency string) *money.Money {
-	return &money.Money{
-		CurrencyCode: currency,
-		Units:        cents / 100,
-		Nanos:        int32((cents % 100) * 10_000_000),
-	}
-}
-
-// dateToProtoTimestamp converts time.Time (date only) to timestamppb.Timestamp
-func dateToProtoTimestamp(t time.Time) *timestamppb.Timestamp {
-	return timestamppb.New(t)
-}
-
-// timeToProtoTimestamp converts a time pointer to timestamppb.Timestamp
-func timeToProtoTimestamp(t *time.Time) *timestamppb.Timestamp {
-	if t == nil {
-		return nil
-	}
-	return timestamppb.New(*t)
-}
-
-// rowToPbAccount converts sqlc row types to pb.Account
-func rowToPbAccount(
-	id int64,
-	ownerID uuid.UUID,
-	name, bank string,
-	accountType pb.AccountType,
-	alias *string,
-	anchorDate time.Time,
-	anchorBalanceCents int64,
-	anchorCurrency, mainCurrency string,
-	colors []string,
-	createdAt, updatedAt time.Time,
-	balanceCents int64,
-	balanceCurrency string,
-) *pb.Account {
-	return &pb.Account{
-		Id:            id,
-		OwnerId:       ownerID.String(),
-		Name:          name,
-		Bank:          bank,
-		Type:          accountType,
-		Alias:         alias,
-		AnchorDate:    dateToProtoTimestamp(anchorDate),
-		AnchorBalance: centsToMoney(anchorBalanceCents, anchorCurrency),
-		MainCurrency:  mainCurrency,
-		Colors:        colors,
-		CreatedAt:     timeToProtoTimestamp(&createdAt),
-		UpdatedAt:     timeToProtoTimestamp(&updatedAt),
-		Balance:       centsToMoney(balanceCents, balanceCurrency),
-	}
-}
+// ----- interface --------------------------------------------------------------------------------
 
 type AccountService interface {
+	Create(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error)
+	Get(ctx context.Context, userID uuid.UUID, accountID int64) (*pb.Account, error)
+	Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateAccountRequest) error
+	Delete(ctx context.Context, userID uuid.UUID, accountID int64) (int64, error)
 	List(ctx context.Context, userID uuid.UUID) ([]*pb.Account, error)
-	Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Account, error)
-	Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*pb.Account, error)
-	Update(ctx context.Context, params sqlc.UpdateAccountParams) error
-	Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error)
-	CheckUserAccountAccess(ctx context.Context, params sqlc.CheckUserAccountAccessParams) (bool, error)
 }
 
 type acctSvc struct {
@@ -83,92 +26,107 @@ type acctSvc struct {
 	log     *log.Logger
 }
 
-func (s *acctSvc) WithTx(tx pgx.Tx) AccountService {
-	return &acctSvc{
-		queries: s.queries.WithTx(tx),
-		log:     s.log,
-	}
+func newAcctSvc(queries *sqlc.Queries, logger *log.Logger) AccountService {
+	return &acctSvc{queries: queries, log: logger}
 }
 
-func newAcctSvc(queries *sqlc.Queries, lg *log.Logger) AccountService {
-	return &acctSvc{queries: queries, log: lg}
-}
+// ----- methods ----------------------------------------------------------------------------------
 
-func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Account, error) {
-	rows, err := s.queries.ListAccounts(ctx, userID)
+func (s *acctSvc) Create(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
+	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
-		return nil, wrapErr("AccountService.List", err)
+		return nil, wrapErr("AccountService.Create", fmt.Errorf("invalid user_id: %w", err))
 	}
 
-	accounts := make([]*pb.Account, len(rows))
-	for i, row := range rows {
-		accounts[i] = rowToPbAccount(
-			row.ID, row.OwnerID, row.Name, row.Bank,
-			pb.AccountType(row.AccountType), row.Alias,
-			row.AnchorDate, row.AnchorBalanceCents, row.AnchorCurrency,
-			row.MainCurrency, row.Colors,
-			row.CreatedAt, row.UpdatedAt,
-			row.BalanceCents, row.BalanceCurrency,
-		)
-	}
-	return accounts, nil
-}
+	anchorBalance := req.GetAnchorBalance()
+	anchorCents := moneyToCents(anchorBalance)
+	anchorCurrency := anchorBalance.GetCurrencyCode()
 
-func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Account, error) {
-	row, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
-		UserID: userID,
-		ID:     id,
-	})
+	mainCurrency := req.GetMainCurrency()
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("AccountService.Get", ErrNotFound)
+	// TODO: change default colors
+	colors := req.GetColors()
+	if len(colors) == 0 {
+		colors = []string{"#1f2937", "#3b82f6", "#10b981"}
+	} else if len(colors) != 3 {
+		return nil, wrapErr(
+			"AccountService.Create",
+			fmt.Errorf("colors must be exactly 3 hex values, got %d", len(colors)))
 	}
 
-	if err != nil {
-		return nil, wrapErr("AccountService.Get", err)
+	params := sqlc.CreateAccountParams{
+		OwnerID:            userID,
+		Name:               req.GetName(),
+		Bank:               req.GetBank(),
+		AccountType:        int16(req.GetType()),
+		Alias:              req.Alias,
+		AnchorBalanceCents: anchorCents,
+		AnchorCurrency:     anchorCurrency,
+		MainCurrency:       mainCurrency,
+		Colors:             colors,
 	}
-
-	return rowToPbAccount(
-		row.ID, row.OwnerID, row.Name, row.Bank,
-		pb.AccountType(row.AccountType), row.Alias,
-		row.AnchorDate, row.AnchorBalanceCents, row.AnchorCurrency,
-		row.MainCurrency, row.Colors,
-		row.CreatedAt, row.UpdatedAt,
-		row.BalanceCents, row.BalanceCurrency,
-	), nil
-}
-
-func (s *acctSvc) Create(ctx context.Context, params sqlc.CreateAccountParams, userSvc UserService) (*pb.Account, error) {
-	// AnchorBalanceCents defaults to 0 if not provided, which is fine
-	// Just ensure currency is set
 
 	created, err := s.queries.CreateAccount(ctx, params)
 	if err != nil {
 		return nil, wrapErr("AccountService.Create", err)
 	}
 
-	if err := userSvc.EnsureDefaultAccount(ctx, params.OwnerID); err != nil {
-		s.log.Warn("Failed to set default account for user", "user_id", params.OwnerID, "error", err)
-	}
-
-	// For newly created accounts, balance equals anchor balance
-	return rowToPbAccount(
-		created.ID, created.OwnerID, created.Name, created.Bank,
-		pb.AccountType(created.AccountType), created.Alias,
-		created.AnchorDate, created.AnchorBalanceCents, created.AnchorCurrency,
-		created.MainCurrency, created.Colors,
-		created.CreatedAt, created.UpdatedAt,
-		created.AnchorBalanceCents, created.AnchorCurrency, // balance = anchor for new accounts
-	), nil
+	return accountRowToPb(created, created.AnchorBalanceCents, created.AnchorCurrency), nil
 }
 
-func (s *acctSvc) Update(ctx context.Context, params sqlc.UpdateAccountParams) error {
+func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, accountID int64) (*pb.Account, error) {
+	row, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
+		UserID: userID,
+		ID:     accountID,
+	})
+	if err != nil {
+		return nil, wrapErr("AccountService.Get", err)
+	}
+
+	return accountRowToPb(row.Account, row.BalanceCents, row.BalanceCurrency), nil
+}
+
+func (s *acctSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateAccountRequest) error {
+	params := sqlc.UpdateAccountParams{
+		ID:     req.GetId(),
+		UserID: userID,
+	}
+
+	if req.Name != nil {
+		params.Name = req.Name
+	}
+	if req.Bank != nil {
+		params.Bank = req.Bank
+	}
+	if req.AccountType != nil {
+		accountType := int16(*req.AccountType)
+		params.AccountType = &accountType
+	}
+	if req.Alias != nil {
+		params.Alias = req.Alias
+	}
+	if req.AnchorDate != nil {
+		t := req.AnchorDate.AsTime()
+		params.AnchorDate = &t
+	}
+	if req.AnchorBalance != nil {
+		cents := moneyToCents(req.AnchorBalance)
+		currency := req.AnchorBalance.CurrencyCode
+		params.AnchorBalanceCents = &cents
+		params.AnchorCurrency = &currency
+	}
+	if req.MainCurrency != nil {
+		params.MainCurrency = req.MainCurrency
+	}
+	if len(req.Colors) > 0 {
+		params.Colors = req.Colors
+	}
+
 	err := s.queries.UpdateAccount(ctx, params)
 	if err != nil {
 		return wrapErr("AccountService.Update", err)
 	}
 
-	// sync balances if anchor fields changed
 	anchorFieldsChanged := params.AnchorDate != nil || params.AnchorBalanceCents != nil
 	if anchorFieldsChanged {
 		if err := s.queries.SyncAccountBalances(ctx, params.ID); err != nil {
@@ -179,18 +137,47 @@ func (s *acctSvc) Update(ctx context.Context, params sqlc.UpdateAccountParams) e
 	return nil
 }
 
-func (s *acctSvc) Delete(ctx context.Context, params sqlc.DeleteAccountParams) (int64, error) {
-	affected, err := s.queries.DeleteAccount(ctx, params)
+func (s *acctSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error) {
+	affected, err := s.queries.DeleteAccount(ctx, sqlc.DeleteAccountParams{
+		UserID: userID,
+		ID:     id,
+	})
 	if err != nil {
 		return 0, wrapErr("AccountService.Delete", err)
 	}
 	return affected, nil
 }
 
-func (s *acctSvc) CheckUserAccountAccess(ctx context.Context, params sqlc.CheckUserAccountAccessParams) (bool, error) {
-	access, err := s.queries.CheckUserAccountAccess(ctx, params)
+func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Account, error) {
+	rows, err := s.queries.ListAccounts(ctx, userID)
 	if err != nil {
-		return false, wrapErr("AccountService.CheckUserAccountAccess", err)
+		return nil, wrapErr("AccountService.List", err)
 	}
-	return access, nil
+
+	accounts := make([]*pb.Account, len(rows))
+	for i, row := range rows {
+		accounts[i] = accountRowToPb(row.Account, row.BalanceCents, row.BalanceCurrency)
+	}
+
+	return accounts, nil
+}
+
+// ----- conversion helpers -----------------------------------------------------------------------
+
+func accountRowToPb(a sqlc.Account, balanceCents int64, balanceCurrency string) *pb.Account {
+	return &pb.Account{
+		Id:            a.ID,
+		OwnerId:       a.OwnerID.String(),
+		Name:          a.Name,
+		Bank:          a.Bank,
+		Type:          pb.AccountType(a.AccountType),
+		Alias:         a.Alias,
+		AnchorDate:    timestamppb.New(a.AnchorDate),
+		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
+		MainCurrency:  a.MainCurrency,
+		Colors:        a.Colors,
+		CreatedAt:     timestamppb.New(a.CreatedAt),
+		UpdatedAt:     timestamppb.New(a.UpdatedAt),
+		Balance:       centsToMoney(balanceCents, balanceCurrency),
+	}
 }

@@ -9,7 +9,6 @@ import (
 	"context"
 	"time"
 
-	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -424,28 +423,8 @@ type FindCandidateTransactionsParams struct {
 }
 
 type FindCandidateTransactionsRow struct {
-	ID                  int64                      `db:"id" json:"id"`
-	AccountID           int64                      `db:"account_id" json:"account_id"`
-	EmailID             *string                    `db:"email_id" json:"email_id"`
-	TxDate              time.Time                  `db:"tx_date" json:"tx_date"`
-	TxAmountCents       int64                      `db:"tx_amount_cents" json:"tx_amount_cents"`
-	TxCurrency          string                     `db:"tx_currency" json:"tx_currency"`
-	TxDirection         arian.TransactionDirection `db:"tx_direction" json:"tx_direction"`
-	TxDesc              *string                    `db:"tx_desc" json:"tx_desc"`
-	BalanceAfterCents   *int64                     `db:"balance_after_cents" json:"balance_after_cents"`
-	BalanceCurrency     *string                    `db:"balance_currency" json:"balance_currency"`
-	Merchant            *string                    `db:"merchant" json:"merchant"`
-	CategoryID          *int64                     `db:"category_id" json:"category_id"`
-	CategoryManuallySet bool                       `db:"category_manually_set" json:"category_manually_set"`
-	MerchantManuallySet bool                       `db:"merchant_manually_set" json:"merchant_manually_set"`
-	Suggestions         []string                   `db:"suggestions" json:"suggestions"`
-	UserNotes           *string                    `db:"user_notes" json:"user_notes"`
-	ForeignAmountCents  *int64                     `db:"foreign_amount_cents" json:"foreign_amount_cents"`
-	ForeignCurrency     *string                    `db:"foreign_currency" json:"foreign_currency"`
-	ExchangeRate        *float64                   `db:"exchange_rate" json:"exchange_rate"`
-	CreatedAt           time.Time                  `db:"created_at" json:"created_at"`
-	UpdatedAt           time.Time                  `db:"updated_at" json:"updated_at"`
-	MerchantScore       float32                    `db:"merchant_score" json:"merchant_score"`
+	Transaction   Transaction `db:"transaction" json:"transaction"`
+	MerchantScore float32     `db:"merchant_score" json:"merchant_score"`
 }
 
 func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandidateTransactionsParams) ([]FindCandidateTransactionsRow, error) {
@@ -463,27 +442,27 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 	for rows.Next() {
 		var i FindCandidateTransactionsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.AccountID,
-			&i.EmailID,
-			&i.TxDate,
-			&i.TxAmountCents,
-			&i.TxCurrency,
-			&i.TxDirection,
-			&i.TxDesc,
-			&i.BalanceAfterCents,
-			&i.BalanceCurrency,
-			&i.Merchant,
-			&i.CategoryID,
-			&i.CategoryManuallySet,
-			&i.MerchantManuallySet,
-			&i.Suggestions,
-			&i.UserNotes,
-			&i.ForeignAmountCents,
-			&i.ForeignCurrency,
-			&i.ExchangeRate,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.Transaction.ID,
+			&i.Transaction.AccountID,
+			&i.Transaction.EmailID,
+			&i.Transaction.TxDate,
+			&i.Transaction.TxAmountCents,
+			&i.Transaction.TxCurrency,
+			&i.Transaction.TxDirection,
+			&i.Transaction.TxDesc,
+			&i.Transaction.BalanceAfterCents,
+			&i.Transaction.BalanceCurrency,
+			&i.Transaction.Merchant,
+			&i.Transaction.CategoryID,
+			&i.Transaction.CategoryManuallySet,
+			&i.Transaction.MerchantManuallySet,
+			&i.Transaction.Suggestions,
+			&i.Transaction.UserNotes,
+			&i.Transaction.ForeignAmountCents,
+			&i.Transaction.ForeignCurrency,
+			&i.Transaction.ExchangeRate,
+			&i.Transaction.CreatedAt,
+			&i.Transaction.UpdatedAt,
 			&i.MerchantScore,
 		); err != nil {
 			return nil, err

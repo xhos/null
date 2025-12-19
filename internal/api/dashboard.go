@@ -18,14 +18,13 @@ func (s *Server) GetDashboardSummary(ctx context.Context, req *connect.Request[p
 		return nil, err
 	}
 
-	params := buildDashboardSummaryParams(userID, req.Msg)
-	summary, err := s.services.Dashboard.Summary(ctx, params)
+	summary, err := s.services.Dashboard.Summary(ctx, userID, req.Msg)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetDashboardSummaryResponse{
-		Summary: toProtoDashboardSummary(summary),
+		Summary: summary,
 	}), nil
 }
 
@@ -35,14 +34,13 @@ func (s *Server) GetMonthlyComparison(ctx context.Context, req *connect.Request[
 		return nil, err
 	}
 
-	params := buildMonthlyComparisonParams(userID, req.Msg.MonthsBack)
-	comparison, err := s.services.Dashboard.MonthlyComparison(ctx, params)
+	comparison, err := s.services.Dashboard.MonthlyComparison(ctx, userID, req.Msg.MonthsBack)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetMonthlyComparisonResponse{
-		Comparisons: mapSlice(comparison, toProtoMonthlyComparison),
+		Comparisons: comparison,
 	}), nil
 }
 
@@ -52,14 +50,13 @@ func (s *Server) GetTopCategories(ctx context.Context, req *connect.Request[pb.G
 		return nil, err
 	}
 
-	params := buildTopCategoriesParams(userID, req.Msg)
-	categories, err := s.services.Dashboard.TopCategories(ctx, params)
+	categories, err := s.services.Dashboard.TopCategories(ctx, userID, req.Msg)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetTopCategoriesResponse{
-		Categories: mapSlice(categories, toProtoTopCategory),
+		Categories: categories,
 	}), nil
 }
 
@@ -69,14 +66,13 @@ func (s *Server) GetTopMerchants(ctx context.Context, req *connect.Request[pb.Ge
 		return nil, err
 	}
 
-	params := buildTopMerchantsParams(userID, req.Msg)
-	merchants, err := s.services.Dashboard.TopMerchants(ctx, params)
+	merchants, err := s.services.Dashboard.TopMerchants(ctx, userID, req.Msg)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetTopMerchantsResponse{
-		Merchants: mapSlice(merchants, toProtoTopMerchant),
+		Merchants: merchants,
 	}), nil
 }
 
@@ -86,16 +82,13 @@ func (s *Server) GetSpendingTrends(ctx context.Context, req *connect.Request[pb.
 		return nil, err
 	}
 
-	startDate := dateToTime(req.Msg.StartDate).Format("2006-01-02")
-	endDate := dateToTime(req.Msg.EndDate).Format("2006-01-02")
-
-	trends, err := s.services.Dashboard.GetSpendingTrends(ctx, userID, startDate, endDate, req.Msg.CategoryId, req.Msg.AccountId)
+	trends, err := s.services.Dashboard.Trends(ctx, userID, req.Msg)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetSpendingTrendsResponse{
-		Trends: mapSlice(trends, toProtoTrendPoint),
+		Trends: trends,
 	}), nil
 }
 
@@ -107,17 +100,17 @@ func (s *Server) GetFinancialSummary(ctx context.Context, req *connect.Request[p
 
 	netBalance, err := s.services.Dashboard.NetBalance(ctx, userID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	totalBalance, err := s.services.Dashboard.Balance(ctx, userID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	totalDebt, err := s.services.Dashboard.Debt(ctx, userID)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetFinancialSummaryResponse{
@@ -136,7 +129,7 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 	// Map proto period type to service period type
 	periodType, err := mapPeriodType(req.Msg.PeriodType)
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	// Convert custom dates if provided (dateToTime from mappers.go returns *time.Time)
@@ -151,7 +144,7 @@ func (s *Server) GetCategorySpendingComparison(ctx context.Context, req *connect
 		CustomEnd:   customEnd,
 	})
 	if err != nil {
-		return nil, handleError(err)
+		return nil, wrapErr(err)
 	}
 
 	// Build a map to merge current and previous period data
@@ -335,37 +328,21 @@ func (s *Server) GetNetWorthHistory(ctx context.Context, req *connect.Request[pb
 	endDate := dateToTime(req.Msg.EndDate)
 
 	if startDate == nil || endDate == nil {
-		return nil, handleError(fmt.Errorf("start_date and end_date are required"))
+		return nil, wrapErr(fmt.Errorf("start_date and end_date are required"))
 	}
-
-	// Get user to fetch their primary currency
-	user, err := s.services.Users.Get(ctx, userID)
-	if err != nil {
-		return nil, handleError(err)
-	}
-	primaryCurrency := user.PrimaryCurrency
 
 	// Map proto granularity to int32
 	granularity := mapGranularity(req.Msg.Granularity)
 
 	// Get history from service layer
-	history, err := s.services.Dashboard.GetNetWorthHistory(ctx, service.NetWorthHistoryParams{
+	dataPoints, err := s.services.Dashboard.GetNetWorthHistory(ctx, service.NetWorthHistoryParams{
 		UserID:      userID,
 		StartDate:   *startDate,
 		EndDate:     *endDate,
 		Granularity: granularity,
 	})
 	if err != nil {
-		return nil, handleError(err)
-	}
-
-	// Convert to proto NetWorthPoints
-	dataPoints := make([]*pb.NetWorthPoint, len(history))
-	for i, point := range history {
-		dataPoints[i] = &pb.NetWorthPoint{
-			Date:     stringToDate(point.Date),
-			NetWorth: centsToMoney(point.NetWorthCents, primaryCurrency),
-		}
+		return nil, wrapErr(err)
 	}
 
 	return connect.NewResponse(&pb.GetNetWorthHistoryResponse{

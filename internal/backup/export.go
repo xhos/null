@@ -46,19 +46,19 @@ func exportAccounts(ctx context.Context, db *sqlc.Queries, userID uuid.UUID) ([]
 	result := make([]AccountData, len(accounts))
 	for i, acc := range accounts {
 		data := AccountData{
-			Name:         acc.Name,
-			Bank:         acc.Bank,
-			AccountType:  formatAccountType(arian.AccountType(acc.AccountType)),
-			Alias:        acc.Alias,
-			MainCurrency: acc.MainCurrency,
-			Colors:       acc.Colors,
+			Name:         acc.Account.Name,
+			Bank:         acc.Account.Bank,
+			AccountType:  formatAccountType(arian.AccountType(acc.Account.AccountType)),
+			Alias:        acc.Account.Alias,
+			MainCurrency: acc.Account.MainCurrency,
+			Colors:       acc.Account.Colors,
 		}
 
-		if !acc.AnchorDate.IsZero() {
-			data.AnchorDate = &acc.AnchorDate
+		if !acc.Account.AnchorDate.IsZero() {
+			data.AnchorDate = &acc.Account.AnchorDate
 		}
 
-		data.AnchorBalance = centsToMoney(acc.AnchorBalanceCents, acc.AnchorCurrency)
+		data.AnchorBalance = centsToMoney(acc.Account.AnchorBalanceCents, acc.Account.AnchorCurrency)
 
 		result[i] = data
 	}

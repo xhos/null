@@ -17,12 +17,7 @@ insert into
 values
   ($1::uuid, $2::text, $3::text)
 returning
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  id, user_id, slug, color, created_at, updated_at
 `
 
 type CreateCategoryParams struct {
@@ -51,12 +46,7 @@ insert into
 values
   ($1::uuid, $2::text, $3::text) on CONFLICT (user_id, slug) do NOTHING
 returning
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  id, user_id, slug, color, created_at, updated_at
 `
 
 type CreateCategoryIfNotExistsParams struct {
@@ -105,12 +95,7 @@ func (q *Queries) DeleteCategoriesBySlugPrefix(ctx context.Context, arg DeleteCa
 
 const getCategory = `-- name: GetCategory :one
 select
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  id, user_id, slug, color, created_at, updated_at
 from
   categories
 where
@@ -139,12 +124,7 @@ func (q *Queries) GetCategory(ctx context.Context, arg GetCategoryParams) (Categ
 
 const getCategoryBySlug = `-- name: GetCategoryBySlug :one
 select
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  id, user_id, slug, color, created_at, updated_at
 from
   categories
 where
@@ -173,12 +153,7 @@ func (q *Queries) GetCategoryBySlug(ctx context.Context, arg GetCategoryBySlugPa
 
 const listCategories = `-- name: ListCategories :many
 select
-  id,
-  user_id,
-  slug,
-  color,
-  created_at,
-  updated_at
+  id, user_id, slug, color, created_at, updated_at
 from
   categories
 where

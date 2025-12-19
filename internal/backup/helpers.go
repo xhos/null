@@ -15,7 +15,7 @@ func buildAccountMap(ctx context.Context, db *sqlc.Queries, userID uuid.UUID) (m
 
 	accountMap := make(map[int64]string)
 	for _, acc := range accounts {
-		accountMap[acc.ID] = acc.Name
+		accountMap[acc.Account.ID] = acc.Account.Name
 	}
 
 	return accountMap, nil
@@ -43,7 +43,7 @@ func buildAccountNameToIDMap(ctx context.Context, db *sqlc.Queries, userID uuid.
 
 	accountMap := make(map[string]int64)
 	for _, acc := range accounts {
-		accountMap[acc.Name] = acc.ID
+		accountMap[acc.Account.Name] = acc.Account.ID
 	}
 
 	return accountMap, nil

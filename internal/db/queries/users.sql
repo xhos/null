@@ -20,7 +20,6 @@ update users
 set
   email = sqlc.narg('email')::text,
   display_name = sqlc.narg('display_name')::text,
-  default_account_id = sqlc.narg('default_account_id')::bigint,
   primary_currency = coalesce(sqlc.narg('primary_currency')::varchar(3), primary_currency),
   timezone = coalesce(sqlc.narg('timezone')::varchar(50), timezone)
 where id = @id::uuid;
@@ -44,29 +43,6 @@ delete from
   users
 where
   id = @id::uuid;
-
--- name: CheckUserExists :one
-select
-  exists(
-    select
-      1
-    from
-      users
-    where
-      id = @id::uuid
-  ) as exists;
-
--- name: GetUserFirstAccount :one
-select
-  id
-from
-  accounts
-where
-  owner_id = @user_id::uuid
-order by
-  created_at asc
-limit
-  1;
 
 -- name: GetUserPrimaryCurrency :one
 select

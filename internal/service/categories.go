@@ -2,6 +2,7 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
 	"crypto/rand"
 	"database/sql"
@@ -12,13 +13,15 @@ import (
 	"github.com/google/uuid"
 )
 
+// ----- interface ---------------------------------------------------------------------------
+
 type CategoryService interface {
-	List(ctx context.Context, userID uuid.UUID) ([]sqlc.Category, error)
-	Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Category, error)
-	Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error)
-	Update(ctx context.Context, params sqlc.UpdateCategoryParams) error
-	Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error)
-	BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sqlc.Category, error)
+	Create(ctx context.Context, userID uuid.UUID, slug, color string) (*pb.Category, error)
+	Get(ctx context.Context, userID uuid.UUID, categoryID int64) (*pb.Category, error)
+	GetBySlug(ctx context.Context, userID uuid.UUID, slug string) (*pb.Category, error)
+	Update(ctx context.Context, userID uuid.UUID, categoryID int64, slug, color *string) error
+	Delete(ctx context.Context, userID uuid.UUID, categoryID int64) (int64, error)
+	List(ctx context.Context, userID uuid.UUID) ([]*pb.Category, error)
 }
 
 type catSvc struct {
@@ -26,73 +29,73 @@ type catSvc struct {
 	log     *log.Logger
 }
 
-func newCatSvc(queries *sqlc.Queries, lg *log.Logger) CategoryService {
-	return &catSvc{queries: queries, log: lg}
+func newCatSvc(queries *sqlc.Queries, logger *log.Logger) CategoryService {
+	return &catSvc{queries: queries, log: logger}
 }
 
-func (s *catSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.Category, error) {
-	categories, err := s.queries.ListCategories(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("CategoryService.List", err)
+// ----- methods -----------------------------------------------------------------------------
+
+func (s *catSvc) Create(ctx context.Context, userID uuid.UUID, slug, color string) (*pb.Category, error) {
+	if err := s.ensureParentCategories(ctx, userID, slug); err != nil {
+		return nil, wrapErr("CategoryService.Create", err)
 	}
-	return categories, nil
+
+	category, err := s.queries.CreateCategory(ctx, sqlc.CreateCategoryParams{
+		UserID: userID,
+		Slug:   slug,
+		Color:  color,
+	})
+	if err != nil {
+		return nil, wrapErr("CategoryService.Create", err)
+	}
+
+	return categoryToPb(&category), nil
 }
 
-func (s *catSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*sqlc.Category, error) {
+func (s *catSvc) Get(ctx context.Context, userID uuid.UUID, categoryID int64) (*pb.Category, error) {
 	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
-		ID:     id,
+		ID:     categoryID,
 		UserID: userID,
 	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("CategoryService.Get", ErrNotFound)
-	}
 	if err != nil {
 		return nil, wrapErr("CategoryService.Get", err)
 	}
 
-	return &category, nil
+	return categoryToPb(&category), nil
 }
 
-func (s *catSvc) Create(ctx context.Context, params sqlc.CreateCategoryParams) (*sqlc.Category, error) {
-	// hierarchical slugs like "food.groceries" require parent "food" to exist first
-	if err := s.ensureParentCategories(ctx, params.UserID, params.Slug); err != nil {
-		return nil, wrapErr("CategoryService.Create", err)
-	}
-
-	category, err := s.queries.CreateCategory(ctx, params)
+func (s *catSvc) GetBySlug(ctx context.Context, userID uuid.UUID, slug string) (*pb.Category, error) {
+	category, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
+		Slug:   slug,
+		UserID: userID,
+	})
 	if err != nil {
-		return nil, wrapErr("CategoryService.Create", err)
+		return nil, wrapErr("CategoryService.BySlug", err)
 	}
 
-	return &category, nil
+	return categoryToPb(&category), nil
 }
 
-func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) error {
-	isSlugBeingUpdated := params.Slug != nil
-	if isSlugBeingUpdated {
+func (s *catSvc) Update(ctx context.Context, userID uuid.UUID, categoryID int64, slug, color *string) error {
+	if slug != nil {
 		oldCategory, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
-			ID:     params.ID,
-			UserID: params.UserID,
+			ID:     categoryID,
+			UserID: userID,
 		})
-		if errors.Is(err, sql.ErrNoRows) {
-			return wrapErr("CategoryService.Update", ErrNotFound)
-		}
 		if err != nil {
 			return wrapErr("CategoryService.Update", err)
 		}
 
-		slugIsActuallyChanging := oldCategory.Slug != *params.Slug
-		if slugIsActuallyChanging {
-			// when slug changes, we need to update child category slugs to maintain hierarchy
-			if err := s.ensureParentCategories(ctx, params.UserID, *params.Slug); err != nil {
+		slugIsChanging := oldCategory.Slug != *slug
+		if slugIsChanging {
+			if err := s.ensureParentCategories(ctx, userID, *slug); err != nil {
 				return wrapErr("CategoryService.Update", err)
 			}
 
 			_, err = s.queries.UpdateChildCategorySlugs(ctx, sqlc.UpdateChildCategorySlugsParams{
-				UserID:        params.UserID,
+				UserID:        userID,
 				OldSlugPrefix: oldCategory.Slug,
-				NewSlugPrefix: *params.Slug,
+				NewSlugPrefix: *slug,
 			})
 			if err != nil {
 				return wrapErr("CategoryService.Update", err)
@@ -100,26 +103,28 @@ func (s *catSvc) Update(ctx context.Context, params sqlc.UpdateCategoryParams) e
 		}
 	}
 
-	err := s.queries.UpdateCategory(ctx, params)
+	err := s.queries.UpdateCategory(ctx, sqlc.UpdateCategoryParams{
+		ID:     categoryID,
+		UserID: userID,
+		Slug:   slug,
+		Color:  color,
+	})
 	if err != nil {
 		return wrapErr("CategoryService.Update", err)
 	}
 	return nil
 }
 
-func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64, error) {
+func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, categoryID int64) (int64, error) {
 	category, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
-		ID:     id,
+		ID:     categoryID,
 		UserID: userID,
 	})
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, wrapErr("CategoryService.Delete", ErrNotFound)
-	}
 	if err != nil {
 		return 0, wrapErr("CategoryService.Delete", err)
 	}
 
-	// deleting "food" should also delete "food.groceries", "food.dining", etc.
+	// cascade delete children like "food.groceries" when deleting "food"
 	affected, err := s.queries.DeleteCategoriesBySlugPrefix(ctx, sqlc.DeleteCategoriesBySlugPrefixParams{
 		UserID: userID,
 		Slug:   category.Slug,
@@ -131,26 +136,35 @@ func (s *catSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) (int64,
 	return affected, nil
 }
 
-func (s *catSvc) BySlug(ctx context.Context, userID uuid.UUID, slug string) (*sqlc.Category, error) {
-	category, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
-		Slug:   slug,
-		UserID: userID,
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("CategoryService.BySlug", ErrNotFound)
-	}
+func (s *catSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Category, error) {
+	rows, err := s.queries.ListCategories(ctx, userID)
 	if err != nil {
-		return nil, wrapErr("CategoryService.BySlug", err)
+		return nil, wrapErr("CategoryService.List", err)
 	}
 
-	return &category, nil
+	result := make([]*pb.Category, len(rows))
+	for i := range rows {
+		result[i] = categoryToPb(&rows[i])
+	}
+
+	return result, nil
 }
+
+// ----- conversion helpers ------------------------------------------------------------------
+
+func categoryToPb(c *sqlc.Category) *pb.Category {
+	return &pb.Category{
+		Id:    c.ID,
+		Slug:  c.Slug,
+		Color: c.Color,
+	}
+}
+
+// ----- internal helpers --------------------------------------------------------------------
 
 func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, slug string) error {
 	parts := strings.Split(slug, ".")
-	hasNoParents := len(parts) <= 1
-	if hasNoParents {
+	if len(parts) <= 1 {
 		return nil
 	}
 
@@ -158,15 +172,24 @@ func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, s
 	for i := 1; i < len(parts); i++ {
 		parentSlug := strings.Join(parts[:i], ".")
 
-		parentExists, err := s.checkCategoryExists(ctx, userID, parentSlug)
-		if err != nil {
-			return err
-		}
-		if parentExists {
+		_, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
+			Slug:   parentSlug,
+			UserID: userID,
+		})
+		if err == nil {
 			continue
 		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
 
-		if err := s.createCategoryWithGeneratedColor(ctx, userID, parentSlug); err != nil {
+		color := generateNiceHexColor()
+		_, err = s.queries.CreateCategoryIfNotExists(ctx, sqlc.CreateCategoryIfNotExistsParams{
+			UserID: userID,
+			Slug:   parentSlug,
+			Color:  color,
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -174,42 +197,12 @@ func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, s
 	return nil
 }
 
-func (s *catSvc) checkCategoryExists(ctx context.Context, userID uuid.UUID, slug string) (bool, error) {
-	_, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
-		Slug:   slug,
-		UserID: userID,
-	})
-
-	if err == nil {
-		return true, nil
-	}
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-
-	return false, err
-}
-
-func (s *catSvc) createCategoryWithGeneratedColor(ctx context.Context, userID uuid.UUID, slug string) error {
-	color := generateNiceHexColor()
-	_, err := s.queries.CreateCategoryIfNotExists(ctx, sqlc.CreateCategoryIfNotExistsParams{
-		UserID: userID,
-		Slug:   slug,
-		Color:  color,
-	})
-	return err
-}
-
 func generateNiceHexColor() string {
-	// using chars 5-b creates muted colors
 	niceHexChars := "56789ab"
 	color := "#"
 
 	randomBytes := make([]byte, 6)
-	if _, err := rand.Read(randomBytes); err != nil {
-		return "#888888"
-	}
+	rand.Read(randomBytes)
 
 	for i := range 6 {
 		charIndex := int(randomBytes[i]) % 7

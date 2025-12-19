@@ -62,16 +62,16 @@ func evaluateCondition(condition *Condition, tx *sqlc.Transaction, account *sqlc
 		fieldValue = tx.TxDesc
 	case FieldAccountType:
 		if account != nil {
-			accountType := account.AccountType.String()
+			accountType := account.Account.AccountType.String()
 			fieldValue = &accountType
 		}
 	case FieldAccountName:
 		if account != nil {
-			fieldValue = &account.Name
+			fieldValue = &account.Account.Name
 		}
 	case FieldBank:
 		if account != nil {
-			fieldValue = &account.Bank
+			fieldValue = &account.Account.Bank
 		}
 	case FieldCurrency:
 		fieldValue = &tx.TxCurrency

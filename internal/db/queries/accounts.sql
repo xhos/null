@@ -1,6 +1,6 @@
 -- name: ListAccounts :many
 select
-  a.*,
+  sqlc.embed(a),
   COALESCE(
     (select t.balance_after_cents
      from transactions t
@@ -30,7 +30,7 @@ order by
 
 -- name: GetAccount :one
 select
-  a.*,
+  sqlc.embed(a),
   COALESCE(
     (select t.balance_after_cents
      from transactions t
@@ -143,23 +143,6 @@ order by
   id desc
 limit
   1;
-
--- name: CheckUserAccountAccess :one
-select
-  exists(
-    select
-      1
-    from
-      accounts a
-      left join account_users au on a.id = au.account_id
-      and au.user_id = @user_id::uuid
-    where
-      a.id = @account_id::bigint
-      and (
-        a.owner_id = @user_id::uuid
-        or au.user_id is not null
-      )
-  ) as has_access;
 
 -- name: GetUserAccountsCount :one
 select

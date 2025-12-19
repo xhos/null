@@ -84,12 +84,11 @@ type TransactionRule struct {
 }
 
 type User struct {
-	ID               uuid.UUID `db:"id" json:"id"`
-	Email            string    `db:"email" json:"email"`
-	DisplayName      *string   `db:"display_name" json:"display_name"`
-	DefaultAccountID *int64    `db:"default_account_id" json:"default_account_id"`
-	PrimaryCurrency  string    `db:"primary_currency" json:"primary_currency"`
-	Timezone         string    `db:"timezone" json:"timezone"`
-	CreatedAt        time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
+	ID              uuid.UUID `db:"id" json:"id"`
+	Email           string    `db:"email" json:"email"`
+	DisplayName     *string   `db:"display_name" json:"display_name"`
+	PrimaryCurrency string    `db:"primary_currency" json:"primary_currency"`
+	Timezone        string    `db:"timezone" json:"timezone"`
+	CreatedAt       time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at" json:"updated_at"`
 }

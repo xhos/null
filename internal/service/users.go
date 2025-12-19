@@ -2,24 +2,23 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"context"
-	"database/sql"
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
 )
 
+// ----- interface ---------------------------------------------------------------------------
+
 type UserService interface {
-	Get(ctx context.Context, id uuid.UUID) (*sqlc.User, error)
-	GetByEmail(ctx context.Context, email string) (*sqlc.User, error)
-	Create(ctx context.Context, params sqlc.CreateUserParams) (*sqlc.User, error)
-	Update(ctx context.Context, params sqlc.UpdateUserParams) error
-	EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context) ([]sqlc.User, error)
-	Exists(ctx context.Context, id uuid.UUID) (bool, error)
+	Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error)
+	Get(ctx context.Context, id string) (*pb.User, error)
+	Update(ctx context.Context, req *pb.UpdateUserRequest) error
+	Delete(ctx context.Context, id string) error
+	List(ctx context.Context) ([]*pb.User, error)
 }
 
 type userSvc struct {
@@ -27,35 +26,18 @@ type userSvc struct {
 	log     *log.Logger
 }
 
-func newUserSvc(queries *sqlc.Queries, lg *log.Logger) UserService {
-	return &userSvc{queries: queries, log: lg}
+func newUserSvc(queries *sqlc.Queries, logger *log.Logger) UserService {
+	return &userSvc{queries: queries, log: logger}
 }
 
-func (s *userSvc) Get(ctx context.Context, id uuid.UUID) (*sqlc.User, error) {
-	user, err := s.queries.GetUser(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("UserService.Get", ErrNotFound)
-	}
+// ----- methods -----------------------------------------------------------------------------
+
+func (s *userSvc) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
+	params, err := buildCreateUserParams(req)
 	if err != nil {
-		return nil, wrapErr("UserService.Get", err)
-	}
-	return &user, nil
-}
-
-func (s *userSvc) GetByEmail(ctx context.Context, email string) (*sqlc.User, error) {
-	user, err := s.queries.GetUserByEmail(ctx, strings.ToLower(email))
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("UserService.GetByEmail", ErrNotFound)
+		return nil, wrapErr("UserService.Create", err)
 	}
 
-	if err != nil {
-		return nil, wrapErr("UserService.GetByEmail", err)
-	}
-
-	return &user, nil
-}
-
-func (s *userSvc) Create(ctx context.Context, params sqlc.CreateUserParams) (*sqlc.User, error) {
 	params.Email = strings.ToLower(params.Email)
 
 	user, err := s.queries.CreateUser(ctx, params)
@@ -63,16 +45,35 @@ func (s *userSvc) Create(ctx context.Context, params sqlc.CreateUserParams) (*sq
 		return nil, wrapErr("UserService.Create", err)
 	}
 
-	return &user, nil
+	return userToPb(&user), nil
 }
 
-func (s *userSvc) Update(ctx context.Context, params sqlc.UpdateUserParams) error {
+func (s *userSvc) Get(ctx context.Context, id string) (*pb.User, error) {
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, wrapErr("UserService.Get", fmt.Errorf("invalid user_id: %w", err))
+	}
+
+	user, err := s.queries.GetUser(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("UserService.Get", err)
+	}
+
+	return userToPb(&user), nil
+}
+
+func (s *userSvc) Update(ctx context.Context, req *pb.UpdateUserRequest) error {
+	params, err := buildUpdateUserParams(req)
+	if err != nil {
+		return wrapErr("UserService.Update", err)
+	}
+
 	if params.Email != nil {
 		normalized := strings.ToLower(*params.Email)
 		params.Email = &normalized
 	}
 
-	err := s.queries.UpdateUser(ctx, params)
+	err = s.queries.UpdateUser(ctx, params)
 	if err != nil {
 		return wrapErr("UserService.Update", err)
 	}
@@ -80,65 +81,81 @@ func (s *userSvc) Update(ctx context.Context, params sqlc.UpdateUserParams) erro
 	return nil
 }
 
-func (s *userSvc) Delete(ctx context.Context, id uuid.UUID) error {
-	rowsAffected, err := s.queries.DeleteUserWithCascade(ctx, id)
+func (s *userSvc) Delete(ctx context.Context, id string) error {
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return wrapErr("UserService.Delete", fmt.Errorf("invalid user_id: %w", err))
+	}
+
+	rowsAffected, err := s.queries.DeleteUserWithCascade(ctx, userID)
 	if err != nil {
 		return wrapErr("UserService.Delete", err)
 	}
 
-	if rowsAffected == 0 {
-		return wrapErr("UserService.Delete", ErrNotFound)
-	}
+	s.log.Debug("user deleted with cascade", "user_id", userID, "rows_affected", rowsAffected)
 
-	s.log.Info("User deleted with cascade", "user_id", id)
 	return nil
 }
 
-func (s *userSvc) List(ctx context.Context) ([]sqlc.User, error) {
+func (s *userSvc) List(ctx context.Context) ([]*pb.User, error) {
 	users, err := s.queries.ListUsers(ctx)
 	if err != nil {
 		return nil, wrapErr("UserService.List", err)
 	}
-	return users, nil
-}
 
-func (s *userSvc) Exists(ctx context.Context, id uuid.UUID) (bool, error) {
-	exists, err := s.queries.CheckUserExists(ctx, id)
-	if err != nil {
-		return false, wrapErr("UserService.Exists", err)
-	}
-	return exists, nil
-}
-
-func (s *userSvc) EnsureDefaultAccount(ctx context.Context, userID uuid.UUID) error {
-	user, err := s.queries.GetUser(ctx, userID)
-	if err != nil {
-		return wrapErr("UserService.EnsureDefaultAccount", err)
+	pbUsers := make([]*pb.User, len(users))
+	for i, user := range users {
+		u := user
+		pbUsers[i] = userToPb(&u)
 	}
 
-	if user.DefaultAccountID != nil {
+	return pbUsers, nil
+}
+
+// ----- param builders ----------------------------------------------------------------------
+
+func buildCreateUserParams(req *pb.CreateUserRequest) (sqlc.CreateUserParams, error) {
+	userID, err := uuid.Parse(req.GetId())
+	if err != nil {
+		return sqlc.CreateUserParams{}, fmt.Errorf("invalid user_id: %w", err)
+	}
+
+	return sqlc.CreateUserParams{
+		ID:          userID,
+		Email:       req.GetEmail(),
+		DisplayName: req.DisplayName,
+	}, nil
+}
+
+func buildUpdateUserParams(req *pb.UpdateUserRequest) (sqlc.UpdateUserParams, error) {
+	userID, err := uuid.Parse(req.GetId())
+	if err != nil {
+		return sqlc.UpdateUserParams{}, fmt.Errorf("invalid user_id: %w", err)
+	}
+
+	return sqlc.UpdateUserParams{
+		ID:              userID,
+		Email:           req.Email,
+		DisplayName:     req.DisplayName,
+		PrimaryCurrency: req.PrimaryCurrency,
+		Timezone:        req.Timezone,
+	}, nil
+}
+
+// ----- conversion helpers ------------------------------------------------------------------
+
+func userToPb(u *sqlc.User) *pb.User {
+	if u == nil {
 		return nil
 	}
 
-	firstAccountID, err := s.queries.GetUserFirstAccount(ctx, userID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil
+	return &pb.User{
+		Id:              u.ID.String(),
+		Email:           u.Email,
+		DisplayName:     u.DisplayName,
+		PrimaryCurrency: u.PrimaryCurrency,
+		Timezone:        u.Timezone,
+		CreatedAt:       toProtoTimestamp(&u.CreatedAt),
+		UpdatedAt:       toProtoTimestamp(&u.UpdatedAt),
 	}
-
-	if err != nil {
-		return wrapErr("UserService.EnsureDefaultAccount", err)
-	}
-
-	// Use UpdateUser to set default account
-	defaultAccountID := &firstAccountID
-	err = s.queries.UpdateUser(ctx, sqlc.UpdateUserParams{
-		ID:               userID,
-		DefaultAccountID: defaultAccountID,
-	})
-	if err != nil {
-		return wrapErr("UserService.EnsureDefaultAccount", err)
-	}
-
-	s.log.Info("Set default account for user", "user_id", userID, "account_id", firstAccountID)
-	return nil
 }

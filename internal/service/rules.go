@@ -2,29 +2,27 @@ package service
 
 import (
 	"ariand/internal/db/sqlc"
+	pb "ariand/internal/gen/arian/v1"
 	"ariand/internal/rules"
 	"context"
-	"database/sql"
-	"errors"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// ----- interface ---------------------------------------------------------------------------
+
 type RuleService interface {
-	List(ctx context.Context, userID uuid.UUID) ([]sqlc.TransactionRule, error)
-	Get(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (*sqlc.TransactionRule, error)
-	Create(ctx context.Context, params sqlc.CreateRuleParams) (*sqlc.TransactionRule, error)
-	Update(ctx context.Context, params sqlc.UpdateRuleParams) error
+	Create(ctx context.Context, userID uuid.UUID, ruleName string, conditions []byte, categoryID *int64, merchant *string) (*pb.Rule, error)
+	Get(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (*pb.Rule, error)
+	Update(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID, ruleName *string, conditions []byte, categoryID *int64, merchant *string) error
 	Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (int64, error)
+	List(ctx context.Context, userID uuid.UUID) ([]*pb.Rule, error)
 
 	ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (*RuleMatchResult, error)
 	ApplyToExisting(ctx context.Context, userID uuid.UUID, transactionIDs []int64) (int, error)
-}
-
-type RuleMatchResult struct {
-	CategoryID *int64
-	Merchant   *string
 }
 
 type catRuleSvc struct {
@@ -32,45 +30,72 @@ type catRuleSvc struct {
 	log     *log.Logger
 }
 
-func newCatRuleSvc(queries *sqlc.Queries, lg *log.Logger) RuleService {
-	return &catRuleSvc{queries: queries, log: lg}
+func newCatRuleSvc(queries *sqlc.Queries, logger *log.Logger) RuleService {
+	return &catRuleSvc{queries: queries, log: logger}
 }
 
-func (s *catRuleSvc) List(ctx context.Context, userID uuid.UUID) ([]sqlc.TransactionRule, error) {
-	rules, err := s.queries.ListRules(ctx, userID)
-	if err != nil {
-		return nil, wrapErr("RuleService.List", err)
-	}
-	return rules, nil
+// ----- methods -----------------------------------------------------------------------------
+
+type RuleMatchResult struct {
+	CategoryID *int64
+	Merchant   *string
 }
 
-func (s *catRuleSvc) Get(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (*sqlc.TransactionRule, error) {
-	rule, err := s.queries.GetRule(ctx, sqlc.GetRuleParams{
-		RuleID: ruleID,
-		UserID: userID,
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, wrapErr("RuleService.Get", ErrNotFound)
+func (s *catRuleSvc) Create(ctx context.Context, userID uuid.UUID, ruleName string, conditions []byte, categoryID *int64, merchant *string) (*pb.Rule, error) {
+	params := sqlc.CreateRuleParams{
+		UserID:     userID,
+		RuleName:   ruleName,
+		Conditions: conditions,
 	}
-	if err != nil {
-		return nil, wrapErr("RuleService.Get", err)
+	if categoryID != nil {
+		params.CategoryID = *categoryID
 	}
-	return &rule, nil
-}
+	if merchant != nil {
+		params.Merchant = *merchant
+	}
 
-func (s *catRuleSvc) Create(ctx context.Context, params sqlc.CreateRuleParams) (*sqlc.TransactionRule, error) {
 	rule, err := s.queries.CreateRule(ctx, params)
 	if err != nil {
 		return nil, wrapErr("RuleService.Create", err)
 	}
-	return &rule, nil
+
+	return ruleToPb(&rule), nil
 }
 
-func (s *catRuleSvc) Update(ctx context.Context, params sqlc.UpdateRuleParams) error {
+func (s *catRuleSvc) Get(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID) (*pb.Rule, error) {
+	rule, err := s.queries.GetRule(ctx, sqlc.GetRuleParams{
+		RuleID: ruleID,
+		UserID: userID,
+	})
+	if err != nil {
+		return nil, wrapErr("RuleService.Get", err)
+	}
+
+	return ruleToPb(&rule), nil
+}
+
+func (s *catRuleSvc) Update(ctx context.Context, userID uuid.UUID, ruleID uuid.UUID, ruleName *string, conditions []byte, categoryID *int64, merchant *string) error {
+	params := sqlc.UpdateRuleParams{
+		RuleID:   ruleID,
+		UserID:   userID,
+		RuleName: ruleName,
+	}
+
+	if len(conditions) > 0 {
+		params.Conditions = conditions
+	}
+	if categoryID != nil {
+		params.CategoryID = categoryID
+	}
+	if merchant != nil {
+		params.Merchant = merchant
+	}
+
 	err := s.queries.UpdateRule(ctx, params)
 	if err != nil {
 		return wrapErr("RuleService.Update", err)
 	}
+
 	return nil
 }
 
@@ -82,85 +107,34 @@ func (s *catRuleSvc) Delete(ctx context.Context, userID uuid.UUID, ruleID uuid.U
 	if err != nil {
 		return 0, wrapErr("RuleService.Delete", err)
 	}
+
 	return affected, nil
 }
 
-func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (*RuleMatchResult, error) {
-	s.log.Info("ApplyToTransaction called",
-		"user_id", userID,
-		"tx_desc", tx.TxDesc,
-		"merchant", tx.Merchant)
+func (s *catRuleSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Rule, error) {
+	rows, err := s.queries.ListRules(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("RuleService.List", err)
+	}
 
+	result := make([]*pb.Rule, len(rows))
+	for i := range rows {
+		result[i] = ruleToPb(&rows[i])
+	}
+
+	return result, nil
+}
+
+func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, tx *sqlc.Transaction, account *sqlc.GetAccountRow) (*RuleMatchResult, error) {
 	activeRules, err := s.queries.GetActiveRules(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("RuleService.ApplyToTransaction", err)
 	}
 
-	s.log.Info("Fetched active rules", "count", len(activeRules))
-
-	result := &RuleMatchResult{}
-	matchedCount := 0
-
-	for _, rule := range activeRules {
-		s.log.Debug("Evaluating rule",
-			"rule_id", rule.RuleID,
-			"rule_name", rule.RuleName,
-			"conditions", string(rule.Conditions))
-
-		conditions, err := rules.ParseRuleConditions(rule.Conditions)
-		if err != nil {
-			s.log.Warn("failed to parse rule conditions", "rule_id", rule.RuleID, "error", err)
-			continue
-		}
-
-		matches, err := rules.EvaluateRule(conditions, tx, account)
-		if err != nil {
-			s.log.Warn("failed to evaluate rule", "rule_id", rule.RuleID, "error", err)
-			continue
-		}
-
-		if !matches {
-			s.log.Debug("Rule did not match", "rule_id", rule.RuleID)
-			continue
-		}
-
-		matchedCount++
-		s.log.Info("Rule matched!",
-			"rule_id", rule.RuleID,
-			"rule_name", rule.RuleName,
-			"category_id", rule.CategoryID,
-			"merchant", rule.Merchant)
-
-		// first matching rule for category wins
-		if result.CategoryID == nil && rule.CategoryID != nil {
-			result.CategoryID = rule.CategoryID
-			s.log.Info("Setting category from rule", "category_id", *rule.CategoryID)
-		}
-
-		// first matching rule for merchant wins
-		if result.Merchant == nil && rule.Merchant != nil {
-			result.Merchant = rule.Merchant
-			s.log.Info("Setting merchant from rule", "merchant", *rule.Merchant)
-		}
-
-		// stop if we have both
-		if result.CategoryID != nil && result.Merchant != nil {
-			s.log.Info("Both fields matched, stopping evaluation")
-			break
-		}
-	}
-
-	s.log.Info("Rule application completed",
-		"total_rules", len(activeRules),
-		"matched_rules", matchedCount,
-		"final_category_id", result.CategoryID,
-		"final_merchant", result.Merchant)
-
-	return result, nil
+	return s.evaluateRulesForTransaction(activeRules, tx, account), nil
 }
 
 func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, transactionIDs []int64) (int, error) {
-	// fetch transactions that aren't manually set
 	includeManuallySet := false
 	transactions, err := s.queries.GetTransactionsForRuleApplication(ctx, sqlc.GetTransactionsForRuleApplicationParams{
 		UserID:             userID,
@@ -175,21 +149,19 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 		return 0, nil
 	}
 
-	// load active rules once
 	activeRules, err := s.queries.GetActiveRules(ctx, userID)
 	if err != nil {
 		return 0, wrapErr("RuleService.ApplyToExisting.FetchRules", err)
 	}
 
-	// group transactions by matching rules for bulk updates
 	type updateKey struct {
 		categoryID int64
 		merchant   string
 	}
+
 	updateGroups := make(map[updateKey][]int64)
 
 	for _, tx := range transactions {
-		// fetch account for rule evaluation
 		account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{
 			UserID: userID,
 			ID:     tx.AccountID,
@@ -201,16 +173,12 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 
 		ruleResult := s.evaluateRulesForTransaction(activeRules, &tx, &account)
 
-		// skip if no rules matched
-		if ruleResult.CategoryID == nil && ruleResult.Merchant == nil {
+		noMatch := ruleResult.CategoryID == nil && ruleResult.Merchant == nil
+		if noMatch {
 			continue
 		}
 
-		// create grouping key
-		key := updateKey{
-			categoryID: 0,
-			merchant:   "",
-		}
+		key := updateKey{}
 		if ruleResult.CategoryID != nil {
 			key.categoryID = *ruleResult.CategoryID
 		}
@@ -221,22 +189,11 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 		updateGroups[key] = append(updateGroups[key], tx.ID)
 	}
 
-	// bulk update each group
 	totalUpdated := 0
 	for key, txIDs := range updateGroups {
-		categoryID := int64(0)
-		merchant := ""
-
-		if key.categoryID > 0 {
-			categoryID = key.categoryID
-		}
-		if key.merchant != "" {
-			merchant = key.merchant
-		}
-
 		affected, err := s.queries.BulkApplyRuleToTransactions(ctx, sqlc.BulkApplyRuleToTransactionsParams{
-			CategoryID:     categoryID,
-			Merchant:       merchant,
+			CategoryID:     key.categoryID,
+			Merchant:       key.merchant,
 			TransactionIds: txIDs,
 			UserID:         userID,
 		})
@@ -251,7 +208,55 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 	return totalUpdated, nil
 }
 
-// evaluateRulesForTransaction is the same logic as ApplyToTransaction but without ctx/queries
+// ----- conversion helpers ------------------------------------------------------------------
+
+func ruleToPb(r *sqlc.TransactionRule) *pb.Rule {
+	var conditions *structpb.Struct
+	if len(r.Conditions) > 0 {
+		conditions = &structpb.Struct{}
+		if err := conditions.UnmarshalJSON(r.Conditions); err != nil {
+			conditions = nil
+		}
+	}
+
+	isActive := false
+	if r.IsActive != nil {
+		isActive = *r.IsActive
+	}
+
+	timesApplied := int32(0)
+	if r.TimesApplied != nil {
+		timesApplied = *r.TimesApplied
+	}
+
+	rule := &pb.Rule{
+		RuleId:        r.RuleID.String(),
+		UserId:        r.UserID.String(),
+		RuleName:      r.RuleName,
+		CategoryId:    r.CategoryID,
+		Merchant:      r.Merchant,
+		Conditions:    conditions,
+		IsActive:      isActive,
+		PriorityOrder: r.PriorityOrder,
+		RuleSource:    r.RuleSource,
+		TimesApplied:  timesApplied,
+	}
+
+	if !r.CreatedAt.IsZero() {
+		rule.CreatedAt = timestamppb.New(r.CreatedAt)
+	}
+	if !r.UpdatedAt.IsZero() {
+		rule.UpdatedAt = timestamppb.New(r.UpdatedAt)
+	}
+	if r.LastAppliedAt != nil {
+		rule.LastAppliedAt = timestamppb.New(*r.LastAppliedAt)
+	}
+
+	return rule
+}
+
+// ----- internal helpers --------------------------------------------------------------------
+
 func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, tx *sqlc.Transaction, account *sqlc.GetAccountRow) *RuleMatchResult {
 	result := &RuleMatchResult{}
 

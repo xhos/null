@@ -315,7 +315,7 @@ order by
 
 -- name: FindCandidateTransactions :many
 select
-  t.*,
+  sqlc.embed(t),
   similarity(t.tx_desc::text, sqlc.arg(merchant)::text) as merchant_score
 from
   transactions t
