@@ -365,7 +365,7 @@ before_anchor as (
   select
     id,
     main_currency,
-    anchor_balance_cents - sum(
+    anchor_balance_cents - COALESCE(sum(
       case
         when tx_direction = 1 then tx_amount_cents
         when tx_direction = 2 then -tx_amount_cents
@@ -373,7 +373,8 @@ before_anchor as (
       end
     ) over (
       order by tx_date desc, id desc
-    ) as balance_after_cents
+      ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+    ), 0) as balance_after_cents
   from
     anchor_transactions
   where

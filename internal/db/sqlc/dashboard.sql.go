@@ -241,23 +241,19 @@ account_balances_at_date as (
     ds.period_date,
     a.id as account_id,
     a.anchor_currency,
-    a.anchor_balance_cents +
     COALESCE(
-      SUM(
-        case when t.tx_direction = 1
-          then t.tx_amount_cents
-          else -t.tx_amount_cents
-        end
-      ), 0
+      (select t.balance_after_cents
+       from transactions t
+       where t.account_id = a.id
+         and t.tx_date <= ds.period_date
+       order by t.tx_date desc, t.id desc
+       limit 1),
+      a.anchor_balance_cents
     ) as balance_cents
   from date_series ds
   cross join accounts a
   left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
-  left join transactions t on t.account_id = a.id
-    and t.tx_date > a.anchor_date
-    and t.tx_date <= ds.period_date
   where (a.owner_id = $4::uuid or au.user_id is not null)
-  group by ds.period_date, a.id, a.anchor_balance_cents, a.anchor_currency
 )
 select
   to_char(ab.period_date, 'YYYY-MM-DD') as date,
