@@ -187,6 +187,7 @@ update
   transactions
 set
   email_id = coalesce(sqlc.narg('email_id')::text, email_id),
+  account_id = coalesce(sqlc.narg('account_id')::bigint, account_id),
   tx_date = coalesce(sqlc.narg('tx_date')::timestamptz, tx_date),
   tx_amount_cents = coalesce(sqlc.narg('tx_amount_cents')::bigint, tx_amount_cents),
   tx_currency = coalesce(sqlc.narg('tx_currency')::char(3), tx_currency),

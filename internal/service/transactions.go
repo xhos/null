@@ -141,11 +141,21 @@ func (s *txnSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateTra
 		return wrapErr("TransactionService.Update", err)
 	}
 
-	// sync balances if amount, date, or direction changed
+	// sync balances if amount, date, direction, or account changed
 	balanceFieldsChanged := params.TxAmountCents != nil || params.TxDate != nil || params.TxDirection != nil
-	if balanceFieldsChanged {
+	accountChanged := params.AccountID != nil && *params.AccountID != tx.AccountID
+
+	if balanceFieldsChanged || accountChanged {
+		// sync the original account
 		if err := s.queries.SyncAccountBalances(ctx, tx.AccountID); err != nil {
-			s.log.Warn("failed to sync account balances after updating transaction", "tx_id", params.ID, "account_id", tx.AccountID, "error", err)
+			s.log.Warn("failed to sync original account balances after updating transaction", "tx_id", params.ID, "account_id", tx.AccountID, "error", err)
+		}
+
+		// if account changed, also sync the new account
+		if accountChanged {
+			if err := s.queries.SyncAccountBalances(ctx, *params.AccountID); err != nil {
+				s.log.Warn("failed to sync new account balances after updating transaction", "tx_id", params.ID, "account_id", *params.AccountID, "error", err)
+			}
 		}
 	}
 
@@ -397,6 +407,9 @@ func buildUpdateTxParams(userID uuid.UUID, req *pb.UpdateTransactionRequest) sql
 	}
 	if req.ExchangeRate != nil {
 		params.ExchangeRate = req.ExchangeRate
+	}
+	if req.AccountId != nil {
+		params.AccountID = req.AccountId
 	}
 
 	return params

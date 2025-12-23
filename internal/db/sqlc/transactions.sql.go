@@ -829,37 +829,39 @@ update
   transactions
 set
   email_id = coalesce($1::text, email_id),
-  tx_date = coalesce($2::timestamptz, tx_date),
-  tx_amount_cents = coalesce($3::bigint, tx_amount_cents),
-  tx_currency = coalesce($4::char(3), tx_currency),
-  tx_direction = coalesce($5::smallint, tx_direction),
-  tx_desc = coalesce($6::text, tx_desc),
-  category_id = coalesce($7::bigint, category_id),
-  merchant = coalesce($8::text, merchant),
-  user_notes = coalesce($9::text, user_notes),
-  foreign_amount_cents = coalesce($10::bigint, foreign_amount_cents),
-  foreign_currency = coalesce($11::char(3), foreign_currency),
-  exchange_rate = coalesce($12::double precision, exchange_rate),
-  suggestions = coalesce($13::text[], suggestions),
-  category_manually_set = coalesce($14::boolean, category_manually_set),
-  merchant_manually_set = coalesce($15::boolean, merchant_manually_set)
+  account_id = coalesce($2::bigint, account_id),
+  tx_date = coalesce($3::timestamptz, tx_date),
+  tx_amount_cents = coalesce($4::bigint, tx_amount_cents),
+  tx_currency = coalesce($5::char(3), tx_currency),
+  tx_direction = coalesce($6::smallint, tx_direction),
+  tx_desc = coalesce($7::text, tx_desc),
+  category_id = coalesce($8::bigint, category_id),
+  merchant = coalesce($9::text, merchant),
+  user_notes = coalesce($10::text, user_notes),
+  foreign_amount_cents = coalesce($11::bigint, foreign_amount_cents),
+  foreign_currency = coalesce($12::char(3), foreign_currency),
+  exchange_rate = coalesce($13::double precision, exchange_rate),
+  suggestions = coalesce($14::text[], suggestions),
+  category_manually_set = coalesce($15::boolean, category_manually_set),
+  merchant_manually_set = coalesce($16::boolean, merchant_manually_set)
 where
-  id = $16::bigint
+  id = $17::bigint
   and account_id in (
     select
       a.id
     from
       accounts a
       left join account_users au on a.id = au.account_id
-      and au.user_id = $17::uuid
+      and au.user_id = $18::uuid
     where
-      a.owner_id = $17::uuid
+      a.owner_id = $18::uuid
       or au.user_id is not null
   )
 `
 
 type UpdateTransactionParams struct {
 	EmailID             *string    `db:"email_id" json:"email_id"`
+	AccountID           *int64     `db:"account_id" json:"account_id"`
 	TxDate              *time.Time `db:"tx_date" json:"tx_date"`
 	TxAmountCents       *int64     `db:"tx_amount_cents" json:"tx_amount_cents"`
 	TxCurrency          *string    `db:"tx_currency" json:"tx_currency"`
@@ -881,6 +883,7 @@ type UpdateTransactionParams struct {
 func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
 	_, err := q.db.Exec(ctx, updateTransaction,
 		arg.EmailID,
+		arg.AccountID,
 		arg.TxDate,
 		arg.TxAmountCents,
 		arg.TxCurrency,
