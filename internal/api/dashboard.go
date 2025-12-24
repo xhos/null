@@ -299,6 +299,14 @@ func mapPeriodType(pt pb.PeriodType) (service.PeriodType, error) {
 		return service.Period90Days, nil
 	case pb.PeriodType_PERIOD_TYPE_CUSTOM:
 		return service.PeriodCustom, nil
+	case pb.PeriodType_PERIOD_TYPE_3_MONTHS:
+		return service.Period3Months, nil
+	case pb.PeriodType_PERIOD_TYPE_6_MONTHS:
+		return service.Period6Months, nil
+	case pb.PeriodType_PERIOD_TYPE_1_YEAR:
+		return service.Period1Year, nil
+	case pb.PeriodType_PERIOD_TYPE_ALL_TIME:
+		return service.PeriodAllTime, nil
 	default:
 		return 0, fmt.Errorf("invalid period type: %v", pt)
 	}

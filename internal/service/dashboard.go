@@ -25,6 +25,10 @@ const (
 	Period30Days
 	Period90Days
 	PeriodCustom
+	Period3Months
+	Period6Months
+	Period1Year
+	PeriodAllTime
 )
 
 type CategorySpendingParams struct {
@@ -317,6 +321,40 @@ func (s *dashSvc) calculatePeriods(params CategorySpendingParams, now time.Time,
 		p.previousStart = startOfDay(now.AddDate(0, 0, -179), loc)
 		p.currentLabel = "Last 90 Days"
 		p.previousLabel = "Previous 90 Days"
+
+	case Period3Months:
+		p.currentStart = startOfDay(now.AddDate(0, -3, 0), loc)
+		p.currentEnd = endOfDay(now, loc)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(0, -6, 0), loc)
+		p.currentLabel = "Last 3 Months"
+		p.previousLabel = "Previous 3 Months"
+
+	case Period6Months:
+		p.currentStart = startOfDay(now.AddDate(0, -6, 0), loc)
+		p.currentEnd = endOfDay(now, loc)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(0, -12, 0), loc)
+		p.currentLabel = "Last 6 Months"
+		p.previousLabel = "Previous 6 Months"
+
+	case Period1Year:
+		p.currentStart = startOfDay(now.AddDate(-1, 0, 0), loc)
+		p.currentEnd = endOfDay(now, loc)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(-2, 0, 0), loc)
+		p.currentLabel = "Last Year"
+		p.previousLabel = "Previous Year"
+
+	case PeriodAllTime:
+		// For all-time, go back 10 years (or to earliest transaction)
+		p.currentStart = startOfDay(now.AddDate(-10, 0, 0), loc)
+		p.currentEnd = endOfDay(now, loc)
+		// For all-time, no previous period comparison makes sense
+		p.previousEnd = p.currentStart.Add(-time.Nanosecond)
+		p.previousStart = startOfDay(now.AddDate(-20, 0, 0), loc)
+		p.currentLabel = "All Time"
+		p.previousLabel = "N/A"
 
 	case PeriodCustom:
 		if params.CustomStart == nil || params.CustomEnd == nil {
