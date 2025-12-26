@@ -73,6 +73,7 @@ type DashboardService interface {
 	GetSpendingTrends(ctx context.Context, userID uuid.UUID, startDate string, endDate string, categoryID *int64, accountID *int64) ([]*pb.TrendPoint, error)
 	GetCategorySpendingComparison(ctx context.Context, params CategorySpendingParams) (*CategorySpendingResult, error)
 	GetNetWorthHistory(ctx context.Context, params NetWorthHistoryParams) ([]*pb.NetWorthPoint, error)
+	GetEarliestTransactionDate(ctx context.Context, userID uuid.UUID) (time.Time, error)
 }
 
 type dashSvc struct {
@@ -247,7 +248,16 @@ func (s *dashSvc) GetCategorySpendingComparison(
 	loc := s.getUserLocation(ctx, params.UserID)
 	now := time.Now().In(loc)
 
-	periods, err := s.calculatePeriods(params, now, loc)
+	// Get earliest transaction date for all-time period
+	var earliestTxDate *time.Time
+	if params.PeriodType == PeriodAllTime {
+		date, err := s.queries.GetEarliestTransactionDate(ctx, params.UserID)
+		if err == nil {
+			earliestTxDate = &date
+		}
+	}
+
+	periods, err := s.calculatePeriods(params, now, loc, earliestTxDate)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +304,7 @@ type periodBounds struct {
 	currentLabel, previousLabel string
 }
 
-func (s *dashSvc) calculatePeriods(params CategorySpendingParams, now time.Time, loc *time.Location) (*periodBounds, error) {
+func (s *dashSvc) calculatePeriods(params CategorySpendingParams, now time.Time, loc *time.Location, earliestTxDate *time.Time) (*periodBounds, error) {
 	p := &periodBounds{}
 
 	switch params.PeriodType {
@@ -347,14 +357,20 @@ func (s *dashSvc) calculatePeriods(params CategorySpendingParams, now time.Time,
 		p.previousLabel = "Previous Year"
 
 	case PeriodAllTime:
-		// For all-time, go back 10 years (or to earliest transaction)
-		p.currentStart = startOfDay(now.AddDate(-10, 0, 0), loc)
+		// For all-time, use the earliest transaction date if available
+		if earliestTxDate != nil {
+			p.currentStart = startOfDay(*earliestTxDate, loc)
+		} else {
+			// Fallback to 1 year if no transactions
+			p.currentStart = startOfDay(now.AddDate(-1, 0, 0), loc)
+		}
 		p.currentEnd = endOfDay(now, loc)
-		// For all-time, no previous period comparison makes sense
-		p.previousEnd = p.currentStart.Add(-time.Nanosecond)
-		p.previousStart = startOfDay(now.AddDate(-20, 0, 0), loc)
+		// For all-time, calculate a matching previous period (same duration before start)
+		duration := p.currentEnd.Sub(p.currentStart)
+		p.previousEnd = startOfDay(p.currentStart, loc).Add(-time.Nanosecond)
+		p.previousStart = p.previousEnd.Add(-duration)
 		p.currentLabel = "All Time"
-		p.previousLabel = "N/A"
+		p.previousLabel = "Previous Period"
 
 	case PeriodCustom:
 		if params.CustomStart == nil || params.CustomEnd == nil {
@@ -440,6 +456,14 @@ func (s *dashSvc) GetNetWorthHistory(
 	}
 
 	return protoResult, nil
+}
+
+func (s *dashSvc) GetEarliestTransactionDate(ctx context.Context, userID uuid.UUID) (time.Time, error) {
+	date, err := s.queries.GetEarliestTransactionDate(ctx, userID)
+	if err != nil {
+		return time.Time{}, wrapErr("DashboardService.GetEarliestTransactionDate", err)
+	}
+	return date, nil
 }
 
 // ----- param builders ----------------------------------------------------------------------

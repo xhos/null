@@ -339,6 +339,15 @@ func (s *Server) GetNetWorthHistory(ctx context.Context, req *connect.Request[pb
 		return nil, wrapErr(fmt.Errorf("start_date and end_date are required"))
 	}
 
+	// Clamp start date to earliest transaction date to avoid showing fake historical data
+	earliestTxDate, err := s.services.Dashboard.GetEarliestTransactionDate(ctx, userID)
+	if err == nil {
+		// If start date is before earliest transaction, use earliest transaction instead
+		if startDate.Before(earliestTxDate) {
+			startDate = &earliestTxDate
+		}
+	}
+
 	// Map proto granularity to int32
 	granularity := mapGranularity(req.Msg.Granularity)
 

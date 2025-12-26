@@ -125,15 +125,23 @@ account_balances_at_date as (
     ds.period_date,
     a.id as account_id,
     a.anchor_currency,
-    COALESCE(
-      (select t.balance_after_cents
-       from transactions t
-       where t.account_id = a.id
-         and t.tx_date <= ds.period_date
-       order by t.tx_date desc, t.id desc
-       limit 1),
-      a.anchor_balance_cents
-    ) as balance_cents
+    CASE
+      -- If there's a transaction on or before the period date, use its balance
+      WHEN EXISTS (
+        select 1 from transactions t
+        where t.account_id = a.id and t.tx_date <= ds.period_date
+      ) THEN (
+        select t.balance_after_cents
+        from transactions t
+        where t.account_id = a.id and t.tx_date <= ds.period_date
+        order by t.tx_date desc, t.id desc
+        limit 1
+      )
+      -- If anchor date is on or before period date, use anchor balance
+      WHEN a.anchor_date <= ds.period_date THEN a.anchor_balance_cents
+      -- Otherwise, account didn't exist yet, so balance is 0
+      ELSE 0
+    END as balance_cents
   from date_series ds
   cross join accounts a
   left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
@@ -145,3 +153,10 @@ select
 from account_balances_at_date ab
 group by ab.period_date
 order by ab.period_date;
+
+-- name: GetEarliestTransactionDate :one
+select MIN(t.tx_date)::date as earliest_date
+from transactions t
+join accounts a on t.account_id = a.id
+left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
+where (a.owner_id = @user_id::uuid or au.user_id is not null);
