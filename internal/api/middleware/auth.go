@@ -15,15 +15,15 @@ import (
 
 type AuthConfig struct {
 	InternalAPIKey string
-	BetterAuthURL  string
+	WebURL         string
 }
 
-func validateJWT(ctx context.Context, tokenString, betterAuthURL string) (*User, error) {
-	if betterAuthURL == "" {
-		return nil, fmt.Errorf("better-auth URL not configured")
+func validateJWT(ctx context.Context, tokenString, webURL string) (*User, error) {
+	if webURL == "" {
+		return nil, fmt.Errorf("web URL not configured")
 	}
 
-	jwksURL := fmt.Sprintf("%s/api/auth/jwks", betterAuthURL)
+	jwksURL := fmt.Sprintf("%s/api/auth/jwks", webURL)
 
 	keyset, err := jwk.Fetch(ctx, jwksURL)
 	if err != nil {
@@ -82,13 +82,13 @@ func Auth(config *AuthConfig, logger *log.Logger) Middleware {
 			if after, ok := strings.CutPrefix(authHeader, "Bearer "); ok {
 				tokenString := after
 
-				if config.BetterAuthURL == "" {
-					logger.Error("Better-Auth URL not configured")
+				if config.WebURL == "" {
+					logger.Error("web URL not configured")
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
 
-				user, err := validateJWT(r.Context(), tokenString, config.BetterAuthURL)
+				user, err := validateJWT(r.Context(), tokenString, config.WebURL)
 				if err != nil {
 					logger.Warn("JWT validation failed", "error", err, "remote_addr", r.RemoteAddr)
 					w.WriteHeader(http.StatusUnauthorized)

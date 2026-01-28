@@ -21,27 +21,34 @@ func main() {
 	cfg := config.Load()
 
 	// ----- logger -----------------
-	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal("failed to create log file", "err", err)
-	}
-	defer logFile.Close()
+	var logger *log.Logger
+	var logFile *os.File
 
-	// Choose formatter based on config
-	var formatter log.Formatter
-	if cfg.LogFormat == "text" {
-		formatter = log.TextFormatter
-	} else {
-		formatter = log.JSONFormatter
+	// create a log file only when using json
+	// cause why would anyone point monitoring tools to a non json log file
+	logWriter := io.Writer(os.Stdout)
+	logFormatter := log.TextFormatter
+
+	if cfg.LogFormat != "text" {
+		var err error
+		logFile, err = os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatal("failed to create log file", "err", err)
+		}
+		defer logFile.Close()
+
+		logWriter = io.MultiWriter(os.Stdout, logFile)
+		logFormatter = log.JSONFormatter
 	}
 
-	logger := log.NewWithOptions(
-		io.MultiWriter(os.Stdout, logFile),
+	logger = log.NewWithOptions(
+		logWriter,
 		log.Options{
 			ReportTimestamp: true,
 			Level:           cfg.LogLevel,
-			Formatter:       formatter,
-		})
+			Formatter:       logFormatter,
+		},
+	)
 
 	// ----- migrations -------------
 	logger.Info("running database migrations")
@@ -69,7 +76,7 @@ func main() {
 	srv := api.NewServer(services, logger.WithPrefix("api"))
 	authConfig := &middleware.AuthConfig{
 		InternalAPIKey: cfg.APIKey,
-		BetterAuthURL:  cfg.BetterAuthURL,
+		WebURL:         cfg.ArianWebURL,
 	}
 
 	handler := srv.GetHandler(authConfig)
@@ -78,11 +85,11 @@ func main() {
 
 	go func() {
 		server := &http.Server{
-			Addr:    cfg.Address,
+			Addr:    cfg.ListenAddress,
 			Handler: h2c.NewHandler(handler, &http2.Server{}),
 		}
 
-		logger.Info("server is listening", "addr", cfg.Address)
+		logger.Info("server is listening", "addr", cfg.ListenAddress)
 		serverErrors <- server.ListenAndServe()
 	}()
 

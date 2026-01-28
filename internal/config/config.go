@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flag"
 	"os"
 	"strings"
 
@@ -9,26 +8,20 @@ import (
 )
 
 type Config struct {
-	Address string // the address on which the server listens
-	APIKey  string // internal API key for authenticating requests
+	ListenAddress string
+	APIKey        string // for for internal service communication
 
-	DatabaseURL   string // database connection URL
-	BetterAuthURL string // better-auth service URL
+	DatabaseURL      string
+	ArianWebURL      string
+	ArianReceiptsURL string
+	ExchangeAPIURL   string
 
-	ExchangeAPIURL string // exchange rate API URL
-
-	LogLevel  log.Level // logging level
-	LogFormat string    // logging format: "json" or "text"
+	LogLevel  log.Level
+	LogFormat string // "json" | "text"
 }
 
-// parseAddress ensures the address is in the correct format for network listeners.
-// If the input is just a port (e.g. "55555"), it returns ":55555".
-// If the input is already an address (e.g. "0.0.0.0:55555" or ":55555"), it returns it unchanged.
-// Examples:
-//
-//	parseAddress("55555")         // ":55555"
-//	parseAddress(":55555")        // ":55555"
-//	parseAddress("0.0.0.0:55555") // "0.0.0.0:55555"
+// safely parse whatever port or address the user provides
+// handdles cases like "8080", ":8080", "127.0.0.1:8080"
 func parseAddress(port string) string {
 	port = strings.TrimSpace(port)
 	if strings.Contains(port, ":") {
@@ -37,20 +30,20 @@ func parseAddress(port string) string {
 	return ":" + port
 }
 
-// Load reads configuration from environment variables and command-line flags
 func Load() Config {
-	address := flag.String("port", "55555", "listen address or port (e.g. 55555, :55555, 0.0.0.0:55555)")
-
-	flag.Parse()
-
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		panic("API_KEY environment variable is required")
 	}
 
-	betterAuthURL := os.Getenv("BETTER_AUTH_URL")
-	if betterAuthURL == "" {
-		panic("BETTER_AUTH_URL environment variable is required")
+	arianWebURL := os.Getenv("ARIAN_WEB_URL")
+	if arianWebURL == "" {
+		panic("ARIAN_WEB_URL environment variable is required")
+	}
+
+	arianReceiptsURL := os.Getenv("ARIAN_RECEIPTS_URL")
+	if arianReceiptsURL == "" {
+		panic("ARIAN_RECEIPTS_URL environment variable is required")
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
@@ -70,16 +63,22 @@ func Load() Config {
 
 	logFormat := strings.ToLower(strings.TrimSpace(os.Getenv("LOG_FORMAT")))
 	if logFormat != "json" && logFormat != "text" {
-		logFormat = "json" // default to json for production
+		logFormat = "text"
+	}
+
+	listenAddr := os.Getenv("LISTEN_ADDRESS")
+	if listenAddr == "" {
+		listenAddr = "127.0.0.1:55555"
 	}
 
 	return Config{
-		Address:        parseAddress(*address),
-		APIKey:         apiKey,
-		DatabaseURL:    databaseURL,
-		BetterAuthURL:  betterAuthURL,
-		ExchangeAPIURL: exchangeAPIURL,
-		LogLevel:       logLevel,
-		LogFormat:      logFormat,
+		ListenAddress:    parseAddress(listenAddr),
+		APIKey:           apiKey,
+		DatabaseURL:      databaseURL,
+		ArianWebURL:      arianWebURL,
+		ArianReceiptsURL: arianReceiptsURL,
+		ExchangeAPIURL:   exchangeAPIURL,
+		LogLevel:         logLevel,
+		LogFormat:        logFormat,
 	}
 }
