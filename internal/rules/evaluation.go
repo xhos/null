@@ -1,11 +1,12 @@
 package rules
 
 import (
-	"ariand/internal/db/sqlc"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"null/internal/db/sqlc"
 )
 
 // EvaluateRule evaluates a rule against transaction and account data

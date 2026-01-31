@@ -1,12 +1,12 @@
 package main
 
 import (
-	"ariand/internal/backup"
-	"ariand/internal/config"
-	"ariand/internal/db"
 	"context"
 	"encoding/json"
 	"fmt"
+	"null/internal/backup"
+	"null/internal/config"
+	"null/internal/db"
 	"os"
 
 	"github.com/charmbracelet/log"
@@ -37,8 +37,8 @@ func main() {
 
 func printUsage() {
 	fmt.Println(`Usage:
-  ariand backup <file>
-  ariand restore <file>
+  null backup <file>
+  null restore <file>
 
 Environment:
   DATABASE_URL   PostgreSQL connection string
@@ -47,7 +47,7 @@ Environment:
 
 func runBackup() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: ariand backup <file>")
+		fmt.Fprintln(os.Stderr, "Usage: null backup <file>")
 		os.Exit(1)
 	}
 
@@ -88,7 +88,7 @@ func runBackup() {
 
 func runRestore() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: ariand restore <file>")
+		fmt.Fprintln(os.Stderr, "Usage: null restore <file>")
 		os.Exit(1)
 	}
 

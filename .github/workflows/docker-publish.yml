@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ariand
+  IMAGE_NAME: null
   REGISTRY: ghcr.io
   GO_VERSION: 1.24
 

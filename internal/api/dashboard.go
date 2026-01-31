@@ -1,12 +1,13 @@
 package api
 
 import (
-	pb "ariand/internal/gen/arian/v1"
-	"ariand/internal/service"
 	"context"
 	"fmt"
 	"sort"
 	"time"
+
+	pb "null/internal/gen/null/v1"
+	"null/internal/service"
 
 	"connectrpc.com/connect"
 	"google.golang.org/genproto/googleapis/type/date"

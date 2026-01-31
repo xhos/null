@@ -1,10 +1,11 @@
 package service
 
 import (
-	"ariand/internal/db/sqlc"
-	pb "ariand/internal/gen/arian/v1"
-	"ariand/internal/rules"
 	"context"
+
+	"null/internal/db/sqlc"
+	pb "null/internal/gen/null/v1"
+	"null/internal/rules"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"

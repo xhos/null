@@ -9,8 +9,8 @@ import (
 	"context"
 	"time"
 
-	arian "ariand/internal/gen/arian/v1"
 	"github.com/google/uuid"
+	null "null/internal/gen/null/v1"
 )
 
 const getAccountBalances = `-- name: GetAccountBalances :many
@@ -43,11 +43,11 @@ order by
 `
 
 type GetAccountBalancesRow struct {
-	ID           int64             `db:"id" json:"id"`
-	Name         string            `db:"name" json:"name"`
-	AccountType  arian.AccountType `db:"account_type" json:"account_type"`
-	Currency     string            `db:"currency" json:"currency"`
-	BalanceCents int64             `db:"balance_cents" json:"balance_cents"`
+	ID           int64            `db:"id" json:"id"`
+	Name         string           `db:"name" json:"name"`
+	AccountType  null.AccountType `db:"account_type" json:"account_type"`
+	Currency     string           `db:"currency" json:"currency"`
+	BalanceCents int64            `db:"balance_cents" json:"balance_cents"`
 }
 
 func (q *Queries) GetAccountBalances(ctx context.Context, userID uuid.UUID) ([]GetAccountBalancesRow, error) {

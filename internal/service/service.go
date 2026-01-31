@@ -1,9 +1,9 @@
 package service
 
 import (
-	"ariand/internal/config"
-	"ariand/internal/db"
-	"ariand/internal/exchange"
+	"null/internal/config"
+	"null/internal/db"
+	"null/internal/exchange"
 
 	"github.com/charmbracelet/log"
 )

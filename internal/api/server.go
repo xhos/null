@@ -1,10 +1,10 @@
 package api
 
 import (
-	"ariand/internal/api/middleware"
-	"ariand/internal/gen/arian/v1/arianv1connect"
-	"ariand/internal/service"
 	"net/http"
+	"null/internal/api/middleware"
+	"null/internal/gen/null/v1/nullv1connect"
+	"null/internal/service"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpchealth"
@@ -20,13 +20,13 @@ type Server struct {
 
 func NewServer(services *service.Services, logger *log.Logger) *Server {
 	healthCheck := grpchealth.NewStaticChecker(
-		"arian.v1.UserService",
-		"arian.v1.AccountService",
-		"arian.v1.TransactionService",
-		"arian.v1.CategoryService",
-		"arian.v1.RuleService",
-		"arian.v1.DashboardService",
-		"arian.v1.BackupService",
+		"null.v1.UserService",
+		"null.v1.AccountService",
+		"null.v1.TransactionService",
+		"null.v1.CategoryService",
+		"null.v1.RuleService",
+		"null.v1.DashboardService",
+		"null.v1.BackupService",
 	)
 
 	return &Server{
@@ -68,13 +68,13 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	mux.Handle(healthPath, healthHandler)
 
 	reflector := grpcreflect.NewStaticReflector(
-		"arian.v1.UserService",
-		"arian.v1.AccountService",
-		"arian.v1.TransactionService",
-		"arian.v1.CategoryService",
-		"arian.v1.RuleService",
-		"arian.v1.DashboardService",
-		"arian.v1.BackupService",
+		"null.v1.UserService",
+		"null.v1.AccountService",
+		"null.v1.TransactionService",
+		"null.v1.CategoryService",
+		"null.v1.RuleService",
+		"null.v1.DashboardService",
+		"null.v1.BackupService",
 	)
 	reflectPath, reflectHandler := grpcreflect.NewHandlerV1(reflector)
 	mux.Handle(reflectPath, reflectHandler)
@@ -86,25 +86,25 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 		middleware.UserIDExtractor(),
 	)
 
-	path, handler := arianv1connect.NewUserServiceHandler(s, interceptors)
+	path, handler := nullv1connect.NewUserServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewAccountServiceHandler(s, interceptors)
+	path, handler = nullv1connect.NewAccountServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewTransactionServiceHandler(s, interceptors)
+	path, handler = nullv1connect.NewTransactionServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewCategoryServiceHandler(s, interceptors)
+	path, handler = nullv1connect.NewCategoryServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewRuleServiceHandler(s, interceptors)
+	path, handler = nullv1connect.NewRuleServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewDashboardServiceHandler(s, interceptors)
+	path, handler = nullv1connect.NewDashboardServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
-	path, handler = arianv1connect.NewBackupServiceHandler(s, interceptors)
+	path, handler = nullv1connect.NewBackupServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
 	s.log.Info("all connect-go services registered",

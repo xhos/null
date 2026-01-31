@@ -1,11 +1,12 @@
 package api
 
 import (
-	"ariand/internal/api/middleware"
-	"ariand/internal/service"
 	"context"
 	"errors"
 	"time"
+
+	"null/internal/api/middleware"
+	"null/internal/service"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"

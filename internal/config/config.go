@@ -11,10 +11,10 @@ type Config struct {
 	ListenAddress string
 	APIKey        string // for for internal service communication
 
-	DatabaseURL      string
-	ArianWebURL      string
-	ArianReceiptsURL string
-	ExchangeAPIURL   string
+	DatabaseURL     string
+	NullWebURL      string
+	NullReceiptsURL string
+	ExchangeAPIURL  string
 
 	LogLevel  log.Level
 	LogFormat string // "json" | "text"
@@ -36,14 +36,14 @@ func Load() Config {
 		panic("API_KEY environment variable is required")
 	}
 
-	arianWebURL := os.Getenv("ARIAN_WEB_URL")
-	if arianWebURL == "" {
-		panic("ARIAN_WEB_URL environment variable is required")
+	nullWebURL := os.Getenv("NULL_WEB_URL")
+	if nullWebURL == "" {
+		panic("NULL_WEB_URL environment variable is required")
 	}
 
-	arianReceiptsURL := os.Getenv("ARIAN_RECEIPTS_URL")
-	if arianReceiptsURL == "" {
-		panic("ARIAN_RECEIPTS_URL environment variable is required")
+	nullReceiptsURL := os.Getenv("NULL_RECEIPTS_URL")
+	if nullReceiptsURL == "" {
+		panic("NULL_RECEIPTS_URL environment variable is required")
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
@@ -72,13 +72,13 @@ func Load() Config {
 	}
 
 	return Config{
-		ListenAddress:    parseAddress(listenAddr),
-		APIKey:           apiKey,
-		DatabaseURL:      databaseURL,
-		ArianWebURL:      arianWebURL,
-		ArianReceiptsURL: arianReceiptsURL,
-		ExchangeAPIURL:   exchangeAPIURL,
-		LogLevel:         logLevel,
-		LogFormat:        logFormat,
+		ListenAddress:   parseAddress(listenAddr),
+		APIKey:          apiKey,
+		DatabaseURL:     databaseURL,
+		NullWebURL:      nullWebURL,
+		NullReceiptsURL: nullReceiptsURL,
+		ExchangeAPIURL:  exchangeAPIURL,
+		LogLevel:        logLevel,
+		LogFormat:       logFormat,
 	}
 }
