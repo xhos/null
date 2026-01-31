@@ -13,7 +13,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.11
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/rs/cors v1.11.1
-	golang.org/x/net v0.46.0
+	golang.org/x/net v0.47.0
 	google.golang.org/genproto v0.0.0-20251007200510-49b9836ed3ff
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
@@ -51,10 +51,10 @@ require (
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20251009144603-d2f985daa21b // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251007200510-49b9836ed3ff // indirect
 )
