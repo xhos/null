@@ -49,7 +49,7 @@
           protoc-gen-go
 
           (writeShellScriptBin "run" ''
-            go run cmd/ariand/main.go
+            go run cmd/null/main.go
           '')
 
           (writeShellScriptBin "fmt" ''

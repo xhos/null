@@ -1,11 +1,12 @@
 package backup
 
 import (
-	"ariand/internal/db/sqlc"
-	arian "ariand/internal/gen/arian/v1"
 	"context"
 	"encoding/json"
 	"fmt"
+
+	"null/internal/db/sqlc"
+	nullpb "null/internal/gen/null/v1"
 
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/type/money"
@@ -48,7 +49,7 @@ func exportAccounts(ctx context.Context, db *sqlc.Queries, userID uuid.UUID) ([]
 		data := AccountData{
 			Name:         acc.Account.Name,
 			Bank:         acc.Account.Bank,
-			AccountType:  formatAccountType(arian.AccountType(acc.Account.AccountType)),
+			AccountType:  formatAccountType(nullpb.AccountType(acc.Account.AccountType)),
 			Alias:        acc.Account.Alias,
 			MainCurrency: acc.Account.MainCurrency,
 			Colors:       acc.Account.Colors,
@@ -93,7 +94,7 @@ func exportTransactions(ctx context.Context, db *sqlc.Queries, userID uuid.UUID)
 			AccountName:  accountName,
 			TxDate:       tx.TxDate,
 			TxAmount:     centsToMoney(tx.TxAmountCents, tx.TxCurrency),
-			TxDirection:  formatTransactionDirection(arian.TransactionDirection(tx.TxDirection)),
+			TxDirection:  formatTransactionDirection(nullpb.TransactionDirection(tx.TxDirection)),
 			TxDesc:       tx.TxDesc,
 			Merchant:     tx.Merchant,
 			UserNotes:    tx.UserNotes,

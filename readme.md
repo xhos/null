@@ -1,6 +1,6 @@
-# ariand
+# null
 
-ariand is a high-performance gRPC (or rather [connect-go](https://github.com/connectrpc/connect-go)) API built in Go that handles core financial operations including user management, account management, transaction processing, and categorization, among other things.
+null is a high-performance gRPC (or rather [connect-go](https://github.com/connectrpc/connect-go)) API built in Go that handles core financial operations including user management, account management, transaction processing, and categorization, among other things.
 
 ## ⚙️ config
 
@@ -10,8 +10,8 @@ ariand is a high-performance gRPC (or rather [connect-go](https://github.com/con
 |---------------------------|--------------------------------------------|----------------------|------------|
 | `API_KEY`                 | Authentication key for gRPC API access     |                      | [x]        |
 | `DATABASE_URL`            | PostgreSQL connection string               |                      | [x]        |
-| `ARIAN_WEB_URL`           | URL for arian-web frontend                 |                      | [x]        |
-| `ARIAN_RECEIPTS_URL`      | gRPC endpoint for receipt parsing service  |                      | [x]        |
+| `NULL_WEB_URL`            | URL for null-web frontend                  |                      | [x]        |
+| `NULL_RECEIPTS_URL`       | gRPC endpoint for receipt parsing service  |                      | [x]        |
 | `EXCHANGE_API_URL`        | Exchange rate API endpoint                 |                      | [x]        |
 | `LISTEN_ADDRESS`          | Server listen address (port or host:port)  | `127.0.0.1:55555`    | [ ]        |
 | `LOG_LEVEL`               | Log level: debug, info, warn, error        | `info`               | [ ]        |
@@ -19,13 +19,9 @@ ariand is a high-performance gRPC (or rather [connect-go](https://github.com/con
 
 ## 🌱 ecosystem
 
-```definition
-arian (n.) /ˈarjan/ [Welsh] Silver; money; wealth.  
-```
-
-- [ariand](https://github.com/xhos/ariand) - main backend service
-- [arian-web](https://github.com/xhos/arian-web) - frontend web application
-- [arian-mobile](https://github.com/xhos/arian-mobile) - mobile appplication
-- [arian-protos](https://github.com/xhos/arian-protos) - shared protobuf definitions
-- [arian-receipts](https://github.com/xhos/arian-receipts) - receipt parsing microservice
-- [arian-email-parser](https://github.com/xhos/arian-email-parser) - email parsing service
+- [null](https://github.com/xhos/null) - main backend service
+- [null-web](https://github.com/xhos/null-web) - frontend web application
+- [null-mobile](https://github.com/xhos/null-mobile) - mobile appplication
+- [null-protos](https://github.com/xhos/null-protos) - shared protobuf definitions
+- [null-receipts](https://github.com/xhos/null-receipts) - receipt parsing microservice
+- [null-email-parser](https://github.com/xhos/null-email-parser) - email parsing service

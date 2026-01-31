@@ -1,8 +1,9 @@
 package api
 
 import (
-	pb "ariand/internal/gen/arian/v1"
 	"context"
+
+	pb "null/internal/gen/null/v1"
 
 	"connectrpc.com/connect"
 )

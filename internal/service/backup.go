@@ -1,12 +1,13 @@
 package service
 
 import (
-	"ariand/internal/backup"
-	"ariand/internal/db/sqlc"
-	pb "ariand/internal/gen/arian/v1"
 	"context"
 	"encoding/json"
 	"time"
+
+	"null/internal/backup"
+	"null/internal/db/sqlc"
+	pb "null/internal/gen/null/v1"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"

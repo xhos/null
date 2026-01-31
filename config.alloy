@@ -1,11 +1,11 @@
-local.file_match "ariand_logs" {
+local.file_match "null_logs" {
 	path_targets = [{
 		"__path__" = "/var/log/app.log",
 	}]
 }
 
-loki.source.file "ariand" {
-	targets    = local.file_match.ariand_logs.targets
+loki.source.file "null" {
+	targets    = local.file_match.null_logs.targets
 	forward_to = [loki.process.parse_json.receiver]
 }
 
@@ -41,7 +41,7 @@ loki.process "parse_json" {
 			user_id   = "user_id",
 			procedure = "procedure",
 			status    = "status",
-			app       = "ariand",
+			app       = "null",
 		}
 	}
 	

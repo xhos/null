@@ -1,10 +1,11 @@
 package api
 
 import (
-	pb "ariand/internal/gen/arian/v1"
-	"ariand/internal/rules"
 	"context"
 	"encoding/json"
+
+	pb "null/internal/gen/null/v1"
+	"null/internal/rules"
 
 	"connectrpc.com/connect"
 	"google.golang.org/grpc/codes"
