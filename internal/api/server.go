@@ -2,9 +2,9 @@ package api
 
 import (
 	"net/http"
-	"null/internal/api/middleware"
-	"null/internal/gen/null/v1/nullv1connect"
-	"null/internal/service"
+	"null-core/internal/api/middleware"
+	"null-core/internal/gen/null/v1/nullv1connect"
+	"null-core/internal/service"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpchealth"

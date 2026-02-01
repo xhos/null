@@ -728,8 +728,8 @@ const file_null_v1_receipt_services_proto_rawDesc = "" +
 	"\n" +
 	"GetReceipt\x12\x1a.null.v1.GetReceiptRequest\x1a\x1b.null.v1.GetReceiptResponse\x12N\n" +
 	"\rUpdateReceipt\x12\x1d.null.v1.UpdateReceiptRequest\x1a\x1e.null.v1.UpdateReceiptResponse\x12N\n" +
-	"\rDeleteReceipt\x12\x1d.null.v1.DeleteReceiptRequest\x1a\x1e.null.v1.DeleteReceiptResponseB\x84\x01\n" +
-	"\vcom.null.v1B\x14ReceiptServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\rDeleteReceipt\x12\x1d.null.v1.DeleteReceiptRequest\x1a\x1e.null.v1.DeleteReceiptResponseB\x89\x01\n" +
+	"\vcom.null.v1B\x14ReceiptServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_receipt_services_proto_rawDescOnce sync.Once

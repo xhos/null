@@ -278,9 +278,9 @@ const file_null_v1_enums_proto_rawDesc = "" +
 	"\x17GRANULARITY_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fGRANULARITY_DAY\x10\x01\x12\x14\n" +
 	"\x10GRANULARITY_WEEK\x10\x02\x12\x15\n" +
-	"\x11GRANULARITY_MONTH\x10\x03Bz\n" +
+	"\x11GRANULARITY_MONTH\x10\x03B\x7f\n" +
 	"\vcom.null.v1B\n" +
-	"EnumsProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"EnumsProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_enums_proto_rawDescOnce sync.Once

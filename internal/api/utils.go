@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"null/internal/api/middleware"
-	"null/internal/service"
+	"null-core/internal/api/middleware"
+	"null-core/internal/service"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"

@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	pb "null/internal/gen/null/v1"
-	"null/internal/service"
+	pb "null-core/internal/gen/null/v1"
+	"null-core/internal/service"
 
 	"connectrpc.com/connect"
 	"google.golang.org/genproto/googleapis/type/date"

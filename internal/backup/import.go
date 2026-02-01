@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"null/internal/db/sqlc"
+	"null-core/internal/db/sqlc"
 
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/type/money"

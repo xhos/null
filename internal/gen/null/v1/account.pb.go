@@ -270,8 +270,8 @@ const file_null_v1_account_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x127\n" +
 	"\faccount_type\x18\x03 \x01(\x0e2\x14.null.v1.AccountTypeR\vaccountType\x12;\n" +
 	"\x0fcurrent_balance\x18\x04 \x01(\v2\x12.google.type.MoneyR\x0ecurrentBalance\x12\x1a\n" +
-	"\bcurrency\x18\x05 \x01(\tR\bcurrencyB|\n" +
-	"\vcom.null.v1B\fAccountProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\bcurrency\x18\x05 \x01(\tR\bcurrencyB\x81\x01\n" +
+	"\vcom.null.v1B\fAccountProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_account_proto_rawDescOnce sync.Once

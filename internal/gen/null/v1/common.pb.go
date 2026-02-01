@@ -211,8 +211,8 @@ const file_null_v1_common_proto_rawDesc = "" +
 	"\x03_id\";\n" +
 	"\tTimeOfDay\x12\x14\n" +
 	"\x05hours\x18\x01 \x01(\x05R\x05hours\x12\x18\n" +
-	"\aminutes\x18\x02 \x01(\x05R\aminutesB{\n" +
-	"\vcom.null.v1B\vCommonProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\aminutes\x18\x02 \x01(\x05R\aminutesB\x80\x01\n" +
+	"\vcom.null.v1B\vCommonProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_common_proto_rawDescOnce sync.Once

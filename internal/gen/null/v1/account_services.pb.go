@@ -670,8 +670,8 @@ const file_null_v1_account_services_proto_rawDesc = "" +
 	"GetAccount\x12\x1a.null.v1.GetAccountRequest\x1a\x1b.null.v1.GetAccountResponse\x12N\n" +
 	"\rCreateAccount\x12\x1d.null.v1.CreateAccountRequest\x1a\x1e.null.v1.CreateAccountResponse\x12N\n" +
 	"\rUpdateAccount\x12\x1d.null.v1.UpdateAccountRequest\x1a\x1e.null.v1.UpdateAccountResponse\x12N\n" +
-	"\rDeleteAccount\x12\x1d.null.v1.DeleteAccountRequest\x1a\x1e.null.v1.DeleteAccountResponseB\x84\x01\n" +
-	"\vcom.null.v1B\x14AccountServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\rDeleteAccount\x12\x1d.null.v1.DeleteAccountRequest\x1a\x1e.null.v1.DeleteAccountResponseB\x89\x01\n" +
+	"\vcom.null.v1B\x14AccountServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_account_services_proto_rawDescOnce sync.Once

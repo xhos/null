@@ -1,6 +1,6 @@
-# null
+# null-core
 
-null is a high-performance gRPC (or rather [connect-go](https://github.com/connectrpc/connect-go)) API built in Go that handles core financial operations including user management, account management, transaction processing, and categorization, among other things.
+null-core is a high-performance gRPC (or rather [connect-go](https://github.com/connectrpc/connect-go)) API built in Go that handles core financial operations including user management, account management, transaction processing, and categorization, among other things.
 
 ## ⚙️ config
 
@@ -19,7 +19,7 @@ null is a high-performance gRPC (or rather [connect-go](https://github.com/conne
 
 ## 🌱 ecosystem
 
-- [null](https://github.com/xhos/null) - main backend service
+- [null-core](https://github.com/xhos/null-core) - main backend service (this repo)
 - [null-web](https://github.com/xhos/null-web) - frontend web application
 - [null-mobile](https://github.com/xhos/null-mobile) - mobile appplication
 - [null-protos](https://github.com/xhos/null-protos) - shared protobuf definitions

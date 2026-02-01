@@ -560,8 +560,8 @@ const file_null_v1_receipt_ocr_proto_rawDesc = "" +
 	"\x11OCR_ERROR_TIMEOUT\x10\x042\x9b\x01\n" +
 	"\x11ReceiptOCRService\x12K\n" +
 	"\fParseReceipt\x12\x1c.null.v1.ParseReceiptRequest\x1a\x1d.null.v1.ParseReceiptResponse\x129\n" +
-	"\x06Health\x12\x16.null.v1.HealthRequest\x1a\x17.null.v1.HealthResponseB\x7f\n" +
-	"\vcom.null.v1B\x0fReceiptOcrProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\x06Health\x12\x16.null.v1.HealthRequest\x1a\x17.null.v1.HealthResponseB\x84\x01\n" +
+	"\vcom.null.v1B\x0fReceiptOcrProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_receipt_ocr_proto_rawDescOnce sync.Once

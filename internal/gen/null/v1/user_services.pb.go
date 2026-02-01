@@ -444,8 +444,8 @@ const file_null_v1_user_services_proto_rawDesc = "" +
 	"\n" +
 	"UpdateUser\x12\x1a.null.v1.UpdateUserRequest\x1a\x1b.null.v1.UpdateUserResponse\x12E\n" +
 	"\n" +
-	"DeleteUser\x12\x1a.null.v1.DeleteUserRequest\x1a\x1b.null.v1.DeleteUserResponseB\x81\x01\n" +
-	"\vcom.null.v1B\x11UserServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"DeleteUser\x12\x1a.null.v1.DeleteUserRequest\x1a\x1b.null.v1.DeleteUserResponseB\x86\x01\n" +
+	"\vcom.null.v1B\x11UserServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_user_services_proto_rawDescOnce sync.Once

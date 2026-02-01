@@ -2,8 +2,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-cmd = "go build -o ./tmp/main ./cmd/null/main.go"
-bin = "./tmp/main"
+cmd = "go build -o ./tmp/null-core ./cmd/null/main.go"
+bin = "./tmp/null-core"
 include_ext = ["go"]
 exclude_dir = ["tmp", "vendor"]
 exclude_regex = ["_test\\.go"]
@@ -12,7 +12,7 @@ delay = 1000
 stop_on_error = true
 # Set text logs for development
 args_bin = ["LOG_FORMAT=text"]
-full_bin = "LOG_FORMAT=text ./tmp/main"
+full_bin = "LOG_FORMAT=text ./tmp/null-core"
 
 [log]
 time = false

@@ -530,8 +530,8 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"\x16RECEIPT_STATUS_PENDING\x10\x01\x12\x19\n" +
 	"\x15RECEIPT_STATUS_PARSED\x10\x02\x12\x19\n" +
 	"\x15RECEIPT_STATUS_LINKED\x10\x03\x12\x19\n" +
-	"\x15RECEIPT_STATUS_FAILED\x10\x04B|\n" +
-	"\vcom.null.v1B\fReceiptProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\x15RECEIPT_STATUS_FAILED\x10\x04B\x81\x01\n" +
+	"\vcom.null.v1B\fReceiptProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_receipt_proto_rawDescOnce sync.Once

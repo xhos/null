@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: null
+  IMAGE_NAME: null-core
   REGISTRY: ghcr.io
   GO_VERSION: 1.24
 

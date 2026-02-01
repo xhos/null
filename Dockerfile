@@ -19,16 +19,16 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
     go build -trimpath -ldflags="-s -w \
-        -X 'null/internal/version.Version=${VERSION:-dev}' \
-        -X 'null/internal/version.GitCommit=${GIT_COMMIT:-dev}'" \
-        -o /out/null ./cmd/null/main.go
+        -X 'null-core/internal/version.Version=${VERSION:-dev}' \
+        -X 'null-core/internal/version.GitCommit=${GIT_COMMIT:-dev}'" \
+        -o /out/null-core ./cmd/null/main.go
 
 # ----- runtime ----------------------------------------------------------------------------------- 
 FROM alpine:3.22.2
 
 # metadata
-LABEL org.opencontainers.image.title="null" \
-      org.opencontainers.image.source="https://github.com/xhos/null"
+LABEL org.opencontainers.image.title="null-core" \
+      org.opencontainers.image.source="https://github.com/xhos/null-core"
 
 # runtime deps
 RUN apk add --no-cache ca-certificates tzdata curl && \
@@ -36,7 +36,7 @@ RUN apk add --no-cache ca-certificates tzdata curl && \
     adduser -u 1001 -S -G app -h /app app
 
 # copy binary and migrations
-COPY --from=builder --chown=app:app /out/null /app/null
+COPY --from=builder --chown=app:app /out/null-core /app/null-core
 COPY --from=builder --chown=app:app /src/internal/db/migrations /app/internal/db/migrations
 
 USER app
@@ -49,4 +49,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
         -H "Content-Type: application/json" \
         -d "{}" || exit 1
 
-ENTRYPOINT ["/app/null"]
+ENTRYPOINT ["/app/null-core"]

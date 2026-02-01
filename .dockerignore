@@ -24,7 +24,7 @@ docker-compose*.yml
 .dockerignore
 
 # Build artifacts
-/null
+/null-core
 /bin
 /dist
 /build

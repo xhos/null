@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"null/internal/db/sqlc"
-	pb "null/internal/gen/null/v1"
+	"null-core/internal/db/sqlc"
+	pb "null-core/internal/gen/null/v1"
 
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/type/money"

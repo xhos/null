@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	pb "null/internal/gen/null/v1"
-	"null/internal/rules"
+	pb "null-core/internal/gen/null/v1"
+	"null-core/internal/rules"
 
 	"connectrpc.com/connect"
 	"google.golang.org/grpc/codes"

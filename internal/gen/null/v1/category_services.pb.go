@@ -555,8 +555,8 @@ const file_null_v1_category_services_proto_rawDesc = "" +
 	"\vGetCategory\x12\x1b.null.v1.GetCategoryRequest\x1a\x1c.null.v1.GetCategoryResponse\x12Q\n" +
 	"\x0eCreateCategory\x12\x1e.null.v1.CreateCategoryRequest\x1a\x1f.null.v1.CreateCategoryResponse\x12Q\n" +
 	"\x0eUpdateCategory\x12\x1e.null.v1.UpdateCategoryRequest\x1a\x1f.null.v1.UpdateCategoryResponse\x12Q\n" +
-	"\x0eDeleteCategory\x12\x1e.null.v1.DeleteCategoryRequest\x1a\x1f.null.v1.DeleteCategoryResponseB\x85\x01\n" +
-	"\vcom.null.v1B\x15CategoryServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\x0eDeleteCategory\x12\x1e.null.v1.DeleteCategoryRequest\x1a\x1f.null.v1.DeleteCategoryResponseB\x8a\x01\n" +
+	"\vcom.null.v1B\x15CategoryServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_category_services_proto_rawDescOnce sync.Once

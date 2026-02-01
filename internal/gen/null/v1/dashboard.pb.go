@@ -709,8 +709,8 @@ const file_null_v1_dashboard_proto_rawDesc = "" +
 	"\x15previous_period_total\x18\x02 \x01(\v2\x12.google.type.MoneyR\x13previousPeriodTotal\"g\n" +
 	"\rNetWorthPoint\x12%\n" +
 	"\x04date\x18\x01 \x01(\v2\x11.google.type.DateR\x04date\x12/\n" +
-	"\tnet_worth\x18\x02 \x01(\v2\x12.google.type.MoneyR\bnetWorthB~\n" +
-	"\vcom.null.v1B\x0eDashboardProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\tnet_worth\x18\x02 \x01(\v2\x12.google.type.MoneyR\bnetWorthB\x83\x01\n" +
+	"\vcom.null.v1B\x0eDashboardProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_dashboard_proto_rawDescOnce sync.Once

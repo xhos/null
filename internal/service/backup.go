@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"null/internal/backup"
-	"null/internal/db/sqlc"
-	pb "null/internal/gen/null/v1"
+	"null-core/internal/backup"
+	"null-core/internal/db/sqlc"
+	pb "null-core/internal/gen/null/v1"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"

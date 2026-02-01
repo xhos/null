@@ -3,7 +3,7 @@ package backup
 import (
 	"context"
 
-	"null/internal/db/sqlc"
+	"null-core/internal/db/sqlc"
 
 	"github.com/google/uuid"
 )

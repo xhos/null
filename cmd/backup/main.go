@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"null/internal/backup"
-	"null/internal/config"
-	"null/internal/db"
+	"null-core/internal/backup"
+	"null-core/internal/config"
+	"null-core/internal/db"
 	"os"
 
 	"github.com/charmbracelet/log"

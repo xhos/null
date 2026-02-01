@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"null/internal/db/sqlc"
-	pb "null/internal/gen/null/v1"
+	"null-core/internal/db/sqlc"
+	pb "null-core/internal/gen/null/v1"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"

@@ -3,7 +3,7 @@ package backup
 import (
 	"fmt"
 
-	nullpb "null/internal/gen/null/v1"
+	nullpb "null-core/internal/gen/null/v1"
 )
 
 func parseAccountType(s string) (nullpb.AccountType, error) {

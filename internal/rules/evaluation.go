@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"null/internal/db/sqlc"
+	"null-core/internal/db/sqlc"
 )
 
 // EvaluateRule evaluates a rule against transaction and account data

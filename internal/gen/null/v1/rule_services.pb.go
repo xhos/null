@@ -830,8 +830,8 @@ const file_null_v1_rule_services_proto_rawDesc = "" +
 	"UpdateRule\x12\x1a.null.v1.UpdateRuleRequest\x1a\x1b.null.v1.UpdateRuleResponse\x12E\n" +
 	"\n" +
 	"DeleteRule\x12\x1a.null.v1.DeleteRuleRequest\x1a\x1b.null.v1.DeleteRuleResponse\x12K\n" +
-	"\fValidateRule\x12\x1c.null.v1.ValidateRuleRequest\x1a\x1d.null.v1.ValidateRuleResponseB\x81\x01\n" +
-	"\vcom.null.v1B\x11RuleServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\fValidateRule\x12\x1c.null.v1.ValidateRuleRequest\x1a\x1d.null.v1.ValidateRuleResponseB\x86\x01\n" +
+	"\vcom.null.v1B\x11RuleServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_rule_services_proto_rawDescOnce sync.Once

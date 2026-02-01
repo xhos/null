@@ -131,8 +131,8 @@ const file_null_v1_user_proto_rawDesc = "" +
 	"\x10primary_currency\x18\a \x01(\tB\x14\xbaH\x11r\x0f2\n" +
 	"^[A-Z]{3}$\x98\x01\x03R\x0fprimaryCurrency\x12%\n" +
 	"\btimezone\x18\b \x01(\tB\t\xbaH\x06r\x04\x10\x01\x182R\btimezoneB\x0f\n" +
-	"\r_display_nameBy\n" +
-	"\vcom.null.v1B\tUserProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\r_display_nameB~\n" +
+	"\vcom.null.v1B\tUserProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_user_proto_rawDescOnce sync.Once

@@ -230,8 +230,8 @@ const file_null_v1_backup_services_proto_rawDesc = "" +
 	"\x0erules_imported\x18\x04 \x01(\x05R\rrulesImported2\xa9\x01\n" +
 	"\rBackupService\x12K\n" +
 	"\fExportBackup\x12\x1c.null.v1.ExportBackupRequest\x1a\x1d.null.v1.ExportBackupResponse\x12K\n" +
-	"\fImportBackup\x12\x1c.null.v1.ImportBackupRequest\x1a\x1d.null.v1.ImportBackupResponseB\x83\x01\n" +
-	"\vcom.null.v1B\x13BackupServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\fImportBackup\x12\x1c.null.v1.ImportBackupRequest\x1a\x1d.null.v1.ImportBackupResponseB\x88\x01\n" +
+	"\vcom.null.v1B\x13BackupServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_backup_services_proto_rawDescOnce sync.Once

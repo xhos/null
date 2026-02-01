@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "null/internal/gen/null/v1"
+	null "null-core/internal/gen/null/v1"
 )
 
 const getAccountBalances = `-- name: GetAccountBalances :many

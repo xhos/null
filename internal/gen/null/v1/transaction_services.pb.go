@@ -1097,8 +1097,8 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\x11CreateTransaction\x12!.null.v1.CreateTransactionRequest\x1a\".null.v1.CreateTransactionResponse\x12Z\n" +
 	"\x11UpdateTransaction\x12!.null.v1.UpdateTransactionRequest\x1a\".null.v1.UpdateTransactionResponse\x12Z\n" +
 	"\x11DeleteTransaction\x12!.null.v1.DeleteTransactionRequest\x1a\".null.v1.DeleteTransactionResponse\x12i\n" +
-	"\x16CategorizeTransactions\x12&.null.v1.CategorizeTransactionsRequest\x1a'.null.v1.CategorizeTransactionsResponseB\x88\x01\n" +
-	"\vcom.null.v1B\x18TransactionServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\x16CategorizeTransactions\x12&.null.v1.CategorizeTransactionsRequest\x1a'.null.v1.CategorizeTransactionsResponseB\x8d\x01\n" +
+	"\vcom.null.v1B\x18TransactionServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_transaction_services_proto_rawDescOnce sync.Once

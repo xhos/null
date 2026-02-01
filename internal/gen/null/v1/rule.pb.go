@@ -193,8 +193,8 @@ const file_null_v1_rule_proto_rawDesc = "" +
 	"\bmerchant\x18\r \x01(\tH\x02R\bmerchant\x88\x01\x01B\x0e\n" +
 	"\f_category_idB\x12\n" +
 	"\x10_last_applied_atB\v\n" +
-	"\t_merchantBy\n" +
-	"\vcom.null.v1B\tRuleProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\t_merchantB~\n" +
+	"\vcom.null.v1B\tRuleProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_rule_proto_rawDescOnce sync.Once

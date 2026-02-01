@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	pb "null/internal/gen/null/v1"
+	pb "null-core/internal/gen/null/v1"
 
 	"connectrpc.com/connect"
 )

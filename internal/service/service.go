@@ -1,9 +1,9 @@
 package service
 
 import (
-	"null/internal/config"
-	"null/internal/db"
-	"null/internal/exchange"
+	"null-core/internal/config"
+	"null-core/internal/db"
+	"null-core/internal/exchange"
 
 	"github.com/charmbracelet/log"
 )

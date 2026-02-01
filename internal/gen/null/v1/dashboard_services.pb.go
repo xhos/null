@@ -1093,8 +1093,8 @@ const file_null_v1_dashboard_services_proto_rawDesc = "" +
 	"\x11GetSpendingTrends\x12!.null.v1.GetSpendingTrendsRequest\x1a\".null.v1.GetSpendingTrendsResponse\x12`\n" +
 	"\x13GetFinancialSummary\x12#.null.v1.GetFinancialSummaryRequest\x1a$.null.v1.GetFinancialSummaryResponse\x12~\n" +
 	"\x1dGetCategorySpendingComparison\x12-.null.v1.GetCategorySpendingComparisonRequest\x1a..null.v1.GetCategorySpendingComparisonResponse\x12]\n" +
-	"\x12GetNetWorthHistory\x12\".null.v1.GetNetWorthHistoryRequest\x1a#.null.v1.GetNetWorthHistoryResponseB\x86\x01\n" +
-	"\vcom.null.v1B\x16DashboardServicesProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\x12GetNetWorthHistory\x12\".null.v1.GetNetWorthHistoryRequest\x1a#.null.v1.GetNetWorthHistoryResponseB\x8b\x01\n" +
+	"\vcom.null.v1B\x16DashboardServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_dashboard_services_proto_rawDescOnce sync.Once

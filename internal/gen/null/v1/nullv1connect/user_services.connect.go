@@ -9,7 +9,7 @@ import (
 	context "context"
 	errors "errors"
 	http "net/http"
-	v1 "null/internal/gen/null/v1"
+	v1 "null-core/internal/gen/null/v1"
 	strings "strings"
 )
 

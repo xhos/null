@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"null/internal/db/sqlc"
+	"null-core/internal/db/sqlc"
 
 	"github.com/google/uuid"
 )

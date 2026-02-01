@@ -378,8 +378,8 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x03R\taccountId\x12!\n" +
 	"\faccount_name\x18\x02 \x01(\tR\vaccountName\x12+\n" +
-	"\x11transaction_count\x18\x03 \x01(\x03R\x10transactionCountB\x80\x01\n" +
-	"\vcom.null.v1B\x10TransactionProtoP\x01Z null/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
+	"\x11transaction_count\x18\x03 \x01(\x03R\x10transactionCountB\x85\x01\n" +
+	"\vcom.null.v1B\x10TransactionProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
 	file_null_v1_transaction_proto_rawDescOnce sync.Once
