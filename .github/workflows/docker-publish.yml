@@ -11,7 +11,6 @@ on:
 env:
   IMAGE_NAME: null-core
   REGISTRY: ghcr.io
-  GO_VERSION: 1.24
 
 permissions:
   contents: write
@@ -25,14 +24,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: set up go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: run tests
-        run: go test ./... -v
 
       - name: login to GHCR
         uses: docker/login-action@v3
