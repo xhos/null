@@ -43,7 +43,9 @@ func Load() Config {
 
 	nullReceiptsURL := os.Getenv("NULL_RECEIPTS_URL")
 	if nullReceiptsURL == "" {
-		panic("NULL_RECEIPTS_URL environment variable is required")
+		// TODO: need to make this log print uniform with the app-wide logger
+		// configuration. perhaps create the logger here, use it and then return it?
+		log.Warn("NULL_RECEIPTS_URL is not set!")
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
 
 	"null-core/internal/db/sqlc"
@@ -12,6 +13,9 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 )
+
+//go:embed migrations/*.sql
+var migrations embed.FS
 
 type DB struct {
 	*sqlc.Queries
@@ -49,18 +53,20 @@ func (s *DB) Pool() *pgxpool.Pool {
 	return s.pool
 }
 
-func RunMigrations(dsn string, migrationsDir string) error {
+func RunMigrations(dsn string) error {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return fmt.Errorf("failed to open database for migrations: %w", err)
 	}
 	defer db.Close()
 
+	goose.SetBaseFS(migrations)
+
 	if err := goose.SetDialect("postgres"); err != nil {
 		return fmt.Errorf("failed to set goose dialect: %w", err)
 	}
 
-	if err := goose.Up(db, migrationsDir); err != nil {
+	if err := goose.Up(db, "migrations"); err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
