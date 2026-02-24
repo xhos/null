@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	api "null-core/internal/api"
@@ -71,6 +72,9 @@ func main() {
 		logger.Fatal("failed to create services", "error", err)
 	}
 	logger.Info("services initialized")
+
+	// ----- receipt OCR worker ----
+	go services.Receipts.StartWorker(context.Background())
 
 	// ----- api layer --------
 	srv := api.NewServer(services, logger.WithPrefix("api"))

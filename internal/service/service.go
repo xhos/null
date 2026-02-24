@@ -16,6 +16,7 @@ type Services struct {
 	Dashboard    DashboardService
 	Users        UserService
 	Backup       BackupService
+	Receipts     ReceiptService
 }
 
 func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, error) {
@@ -32,5 +33,6 @@ func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, er
 		Dashboard:    newDashSvc(queries),
 		Users:        newUserSvc(queries, logger.WithPrefix("user")),
 		Backup:       newBackupSvc(queries),
+		Receipts:     newRcptSvc(queries, logger.WithPrefix("rcpt"), cfg.NullReceiptsURL, cfg.DataDir),
 	}, nil
 }

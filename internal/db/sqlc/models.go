@@ -42,6 +42,36 @@ type Category struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
+type Receipt struct {
+	ID            int64              `db:"id" json:"id"`
+	UserID        uuid.UUID          `db:"user_id" json:"user_id"`
+	TransactionID *int64             `db:"transaction_id" json:"transaction_id"`
+	ImagePath     string             `db:"image_path" json:"image_path"`
+	Merchant      *string            `db:"merchant" json:"merchant"`
+	ReceiptDate   *time.Time         `db:"receipt_date" json:"receipt_date"`
+	Currency      *string            `db:"currency" json:"currency"`
+	SubtotalCents *int64             `db:"subtotal_cents" json:"subtotal_cents"`
+	TaxCents      *int64             `db:"tax_cents" json:"tax_cents"`
+	TotalCents    *int64             `db:"total_cents" json:"total_cents"`
+	Confidence    *float32           `db:"confidence" json:"confidence"`
+	Status        null.ReceiptStatus `db:"status" json:"status"`
+	CreatedAt     time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time          `db:"updated_at" json:"updated_at"`
+}
+
+type ReceiptItem struct {
+	ID             int64     `db:"id" json:"id"`
+	ReceiptID      int64     `db:"receipt_id" json:"receipt_id"`
+	RawName        string    `db:"raw_name" json:"raw_name"`
+	Name           *string   `db:"name" json:"name"`
+	Quantity       float64   `db:"quantity" json:"quantity"`
+	UnitPriceCents int64     `db:"unit_price_cents" json:"unit_price_cents"`
+	UnitCurrency   string    `db:"unit_currency" json:"unit_currency"`
+	SortOrder      int32     `db:"sort_order" json:"sort_order"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
+}
+
 type Transaction struct {
 	ID                  int64                     `db:"id" json:"id"`
 	AccountID           int64                     `db:"account_id" json:"account_id"`

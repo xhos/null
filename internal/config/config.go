@@ -16,6 +16,8 @@ type Config struct {
 	NullReceiptsURL string
 	ExchangeAPIURL  string
 
+	DataDir string // local data directory for file storage
+
 	LogLevel  log.Level
 	LogFormat string // "json" | "text"
 }
@@ -73,6 +75,11 @@ func Load() Config {
 		listenAddr = "127.0.0.1:55555"
 	}
 
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "./data"
+	}
+
 	return Config{
 		ListenAddress:   parseAddress(listenAddr),
 		APIKey:          apiKey,
@@ -80,6 +87,7 @@ func Load() Config {
 		NullWebURL:      nullWebURL,
 		NullReceiptsURL: nullReceiptsURL,
 		ExchangeAPIURL:  exchangeAPIURL,
+		DataDir:         dataDir,
 		LogLevel:        logLevel,
 		LogFormat:       logFormat,
 	}

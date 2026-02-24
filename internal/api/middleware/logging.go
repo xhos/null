@@ -25,6 +25,15 @@ const (
 	UserIDKey       contextKey = "user_id"
 )
 
+const maxPayloadLogBytes = 2048
+
+func truncatePayload(s string) string {
+	if len(s) <= maxPayloadLogBytes {
+		return s
+	}
+	return s[:maxPayloadLogBytes] + "... (truncated)"
+}
+
 // ConnectLoggingInterceptor creates a Connect unary interceptor for structured logging
 func ConnectLoggingInterceptor(logger *log.Logger) connect.UnaryInterceptorFunc {
 	marshaler := protojson.MarshalOptions{
@@ -60,7 +69,7 @@ func ConnectLoggingInterceptor(logger *log.Logger) connect.UnaryInterceptorFunc 
 
 			if reqMsg, ok := req.Any().(proto.Message); ok {
 				if jsonBytes, err := marshaler.Marshal(reqMsg); err == nil {
-					requestFields = append(requestFields, "request", string(jsonBytes))
+					requestFields = append(requestFields, "request", truncatePayload(string(jsonBytes)))
 				}
 			}
 
@@ -95,7 +104,7 @@ func ConnectLoggingInterceptor(logger *log.Logger) connect.UnaryInterceptorFunc 
 			responseFields = append(responseFields, "status", "success")
 			if respMsg, ok := resp.Any().(proto.Message); ok {
 				if jsonBytes, err := marshaler.Marshal(respMsg); err == nil {
-					responseFields = append(responseFields, "response", string(jsonBytes))
+					responseFields = append(responseFields, "response", truncatePayload(string(jsonBytes)))
 				}
 			}
 

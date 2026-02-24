@@ -68,7 +68,7 @@
             ${goose}/bin/goose -dir internal/db/migrations postgres "$DATABASE_URL" up
           '')
 
-          (writeShellScriptBin "bump-proto" ''
+          (writeShellScriptBin "bump-protos" ''
             git -C proto fetch origin
             git -C proto checkout main
             git -C proto pull --ff-only
@@ -88,12 +88,22 @@
             go test -coverprofile=coverage.out ./... && \
             go tool cover -html=coverage.out -o coverage.html
           '')
+
+          (writeShellScriptBin "test-db" ''
+            # run database tests. uses DATABASE_URL if TEST_DATABASE_URL not set.
+            if [ -z "$TEST_DATABASE_URL" ]; then
+              TEST_DATABASE_URL="$DATABASE_URL"
+            fi
+            if [ -z "$TEST_DATABASE_URL" ]; then
+              echo "Error: Set TEST_DATABASE_URL or DATABASE_URL"
+              exit 1
+            fi
+            TEST_DATABASE_URL="$TEST_DATABASE_URL" go test ./internal/db/... -v
+          '')
         ];
 
         shellHook = "${self.checks.${pkgs.system}.pre-commit.shellHook}";
       };
     });
-
-    formatter = forAllSystems (pkgs: pkgs.alejandra);
   };
 }

@@ -25,3 +25,6 @@ null-core is a high-performance gRPC (or rather [connect-go](https://github.com/
 - [null-protos](https://github.com/xhos/null-protos) - shared protobuf definitions
 - [null-receipts](https://github.com/xhos/null-receipts) - receipt parsing microservice
 - [null-email-parser](https://github.com/xhos/null-email-parser) - email parsing service
+
+
+null-web is the expected frontend to use, but it is possible to build your own client. The only thing tightly coupled is the Better Auth JWT authentication mechanism, but you can use inter-service API keys to authenticate instead if you prefer.

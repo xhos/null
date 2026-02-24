@@ -79,3 +79,7 @@ sql:
             go_type:
               import: 'null-core/internal/gen/null/v1'
               type: 'TransactionDirection'
+          - column: 'receipts.status'
+            go_type:
+              import: 'null-core/internal/gen/null/v1'
+              type: 'ReceiptStatus'
