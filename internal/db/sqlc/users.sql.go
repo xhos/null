@@ -209,3 +209,34 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 	)
 	return err
 }
+
+const upsertUser = `-- name: UpsertUser :one
+insert into users (id, email, display_name)
+values ($1::uuid, $2::text, $3::text)
+on conflict (id) do update set
+  email = excluded.email,
+  display_name = coalesce(excluded.display_name, users.display_name),
+  updated_at = now()
+returning id, email, display_name, primary_currency, timezone, created_at, updated_at
+`
+
+type UpsertUserParams struct {
+	ID          uuid.UUID `db:"id" json:"id"`
+	Email       string    `db:"email" json:"email"`
+	DisplayName *string   `db:"display_name" json:"display_name"`
+}
+
+func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, upsertUser, arg.ID, arg.Email, arg.DisplayName)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.DisplayName,
+		&i.PrimaryCurrency,
+		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

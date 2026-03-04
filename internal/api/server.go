@@ -85,6 +85,7 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 
 	interceptors := connect.WithInterceptors(
 		middleware.ConnectLoggingInterceptor(s.log),
+		middleware.EnsureUserInterceptor(s.services.Users, s.log),
 		middleware.UserIDExtractor(),
 	)
 

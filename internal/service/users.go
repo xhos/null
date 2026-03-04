@@ -16,6 +16,7 @@ import (
 
 type UserService interface {
 	Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error)
+	EnsureExists(ctx context.Context, id, email, name string) error
 	Get(ctx context.Context, id string) (*pb.User, error)
 	Update(ctx context.Context, req *pb.UpdateUserRequest) error
 	Delete(ctx context.Context, id string) error
@@ -47,6 +48,29 @@ func (s *userSvc) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Us
 	}
 
 	return userToPb(&user), nil
+}
+
+func (s *userSvc) EnsureExists(ctx context.Context, id, email, name string) error {
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return wrapErr("UserService.EnsureExists", fmt.Errorf("invalid user_id: %w", err))
+	}
+
+	var displayName *string
+	if name != "" {
+		displayName = &name
+	}
+
+	_, err = s.queries.UpsertUser(ctx, sqlc.UpsertUserParams{
+		ID:          userID,
+		Email:       strings.ToLower(email),
+		DisplayName: displayName,
+	})
+	if err != nil {
+		return wrapErr("UserService.EnsureExists", err)
+	}
+
+	return nil
 }
 
 func (s *userSvc) Get(ctx context.Context, id string) (*pb.User, error) {

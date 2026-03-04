@@ -87,9 +87,7 @@ type ReceiptItem struct {
 	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	Quantity      float64                `protobuf:"fixed64,5,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	UnitPrice     *money.Money           `protobuf:"bytes,6,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
-	CategoryId    *int64                 `protobuf:"varint,7,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
-	Category      *Category              `protobuf:"bytes,8,opt,name=category,proto3,oneof" json:"category,omitempty"`
-	SortOrder     int32                  `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,7,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -162,20 +160,6 @@ func (x *ReceiptItem) GetQuantity() float64 {
 func (x *ReceiptItem) GetUnitPrice() *money.Money {
 	if x != nil {
 		return x.UnitPrice
-	}
-	return nil
-}
-
-func (x *ReceiptItem) GetCategoryId() int64 {
-	if x != nil && x.CategoryId != nil {
-		return *x.CategoryId
-	}
-	return 0
-}
-
-func (x *ReceiptItem) GetCategory() *Category {
-	if x != nil {
-		return x.Category
 	}
 	return nil
 }
@@ -463,7 +447,7 @@ var File_null_v1_receipt_proto protoreflect.FileDescriptor
 
 const file_null_v1_receipt_proto_rawDesc = "" +
 	"\n" +
-	"\x15null/v1/receipt.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\"\xde\x02\n" +
+	"\x15null/v1/receipt.proto\x12\anull.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\"\xe7\x01\n" +
 	"\vReceiptItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -472,15 +456,10 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"\x04name\x18\x04 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1a\n" +
 	"\bquantity\x18\x05 \x01(\x01R\bquantity\x121\n" +
 	"\n" +
-	"unit_price\x18\x06 \x01(\v2\x12.google.type.MoneyR\tunitPrice\x12$\n" +
-	"\vcategory_id\x18\a \x01(\x03H\x01R\n" +
-	"categoryId\x88\x01\x01\x122\n" +
-	"\bcategory\x18\b \x01(\v2\x11.null.v1.CategoryH\x02R\bcategory\x88\x01\x01\x12\x1d\n" +
+	"unit_price\x18\x06 \x01(\v2\x12.google.type.MoneyR\tunitPrice\x12\x1d\n" +
 	"\n" +
-	"sort_order\x18\t \x01(\x05R\tsortOrderB\a\n" +
-	"\x05_nameB\x0e\n" +
-	"\f_category_idB\v\n" +
-	"\t_category\"\x9c\a\n" +
+	"sort_order\x18\a \x01(\x05R\tsortOrderB\a\n" +
+	"\x05_name\"\x9c\a\n" +
 	"\aReceipt\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12*\n" +
@@ -553,29 +532,27 @@ var file_null_v1_receipt_proto_goTypes = []any{
 	(*Receipt)(nil),               // 2: null.v1.Receipt
 	(*ReceiptLinkCandidate)(nil),  // 3: null.v1.ReceiptLinkCandidate
 	(*money.Money)(nil),           // 4: google.type.Money
-	(*Category)(nil),              // 5: null.v1.Category
-	(*date.Date)(nil),             // 6: google.type.Date
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*date.Date)(nil),             // 5: google.type.Date
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_null_v1_receipt_proto_depIdxs = []int32{
 	4,  // 0: null.v1.ReceiptItem.unit_price:type_name -> google.type.Money
-	5,  // 1: null.v1.ReceiptItem.category:type_name -> null.v1.Category
-	6,  // 2: null.v1.Receipt.receipt_date:type_name -> google.type.Date
-	4,  // 3: null.v1.Receipt.subtotal:type_name -> google.type.Money
-	4,  // 4: null.v1.Receipt.tax:type_name -> google.type.Money
-	4,  // 5: null.v1.Receipt.total:type_name -> google.type.Money
-	0,  // 6: null.v1.Receipt.status:type_name -> null.v1.ReceiptStatus
-	1,  // 7: null.v1.Receipt.items:type_name -> null.v1.ReceiptItem
-	7,  // 8: null.v1.Receipt.created_at:type_name -> google.protobuf.Timestamp
-	7,  // 9: null.v1.Receipt.updated_at:type_name -> google.protobuf.Timestamp
-	4,  // 10: null.v1.Receipt.transaction_amount:type_name -> google.type.Money
-	4,  // 11: null.v1.ReceiptLinkCandidate.amount:type_name -> google.type.Money
-	7,  // 12: null.v1.ReceiptLinkCandidate.tx_date:type_name -> google.protobuf.Timestamp
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	5,  // 1: null.v1.Receipt.receipt_date:type_name -> google.type.Date
+	4,  // 2: null.v1.Receipt.subtotal:type_name -> google.type.Money
+	4,  // 3: null.v1.Receipt.tax:type_name -> google.type.Money
+	4,  // 4: null.v1.Receipt.total:type_name -> google.type.Money
+	0,  // 5: null.v1.Receipt.status:type_name -> null.v1.ReceiptStatus
+	1,  // 6: null.v1.Receipt.items:type_name -> null.v1.ReceiptItem
+	6,  // 7: null.v1.Receipt.created_at:type_name -> google.protobuf.Timestamp
+	6,  // 8: null.v1.Receipt.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 9: null.v1.Receipt.transaction_amount:type_name -> google.type.Money
+	4,  // 10: null.v1.ReceiptLinkCandidate.amount:type_name -> google.type.Money
+	6,  // 11: null.v1.ReceiptLinkCandidate.tx_date:type_name -> google.protobuf.Timestamp
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_null_v1_receipt_proto_init() }
@@ -583,7 +560,6 @@ func file_null_v1_receipt_proto_init() {
 	if File_null_v1_receipt_proto != nil {
 		return
 	}
-	file_null_v1_category_proto_init()
 	file_null_v1_receipt_proto_msgTypes[0].OneofWrappers = []any{}
 	file_null_v1_receipt_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}

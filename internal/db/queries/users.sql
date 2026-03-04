@@ -44,6 +44,15 @@ delete from
 where
   id = @id::uuid;
 
+-- name: UpsertUser :one
+insert into users (id, email, display_name)
+values (@id::uuid, @email::text, sqlc.narg('display_name')::text)
+on conflict (id) do update set
+  email = excluded.email,
+  display_name = coalesce(excluded.display_name, users.display_name),
+  updated_at = now()
+returning *;
+
 -- name: GetUserPrimaryCurrency :one
 select
   primary_currency

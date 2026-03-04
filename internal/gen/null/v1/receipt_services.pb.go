@@ -450,7 +450,6 @@ type ReceiptItemInput struct {
 	Name           *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	Quantity       float64                `protobuf:"fixed64,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	UnitPriceCents int64                  `protobuf:"varint,5,opt,name=unit_price_cents,json=unitPriceCents,proto3" json:"unit_price_cents,omitempty"`
-	CategoryId     *int64                 `protobuf:"varint,6,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -516,13 +515,6 @@ func (x *ReceiptItemInput) GetQuantity() float64 {
 func (x *ReceiptItemInput) GetUnitPriceCents() int64 {
 	if x != nil {
 		return x.UnitPriceCents
-	}
-	return 0
-}
-
-func (x *ReceiptItemInput) GetCategoryId() int64 {
-	if x != nil && x.CategoryId != nil {
-		return *x.CategoryId
 	}
 	return 0
 }
@@ -705,17 +697,14 @@ const file_null_v1_receipt_services_proto_rawDesc = "" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12*\n" +
 	"\x0etransaction_id\x18\x03 \x01(\x03H\x00R\rtransactionId\x88\x01\x01\x12/\n" +
 	"\x05items\x18\x04 \x03(\v2\x19.null.v1.ReceiptItemInputR\x05itemsB\x11\n" +
-	"\x0f_transaction_id\"\xdb\x01\n" +
+	"\x0f_transaction_id\"\xa5\x01\n" +
 	"\x10ReceiptItemInput\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
 	"\braw_name\x18\x02 \x01(\tR\arawName\x12\x17\n" +
 	"\x04name\x18\x03 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1a\n" +
 	"\bquantity\x18\x04 \x01(\x01R\bquantity\x12(\n" +
-	"\x10unit_price_cents\x18\x05 \x01(\x03R\x0eunitPriceCents\x12$\n" +
-	"\vcategory_id\x18\x06 \x01(\x03H\x01R\n" +
-	"categoryId\x88\x01\x01B\a\n" +
-	"\x05_nameB\x0e\n" +
-	"\f_category_id\"C\n" +
+	"\x10unit_price_cents\x18\x05 \x01(\x03R\x0eunitPriceCentsB\a\n" +
+	"\x05_name\"C\n" +
 	"\x15UpdateReceiptResponse\x12*\n" +
 	"\areceipt\x18\x01 \x01(\v2\x10.null.v1.ReceiptR\areceipt\"R\n" +
 	"\x14DeleteReceiptRequest\x12!\n" +
