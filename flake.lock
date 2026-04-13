@@ -561,11 +561,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776120231,
-        "narHash": "sha256-6Rd91pjkNli6GYJ6rmX0iNwSkKhMYfL/m/4Elvz5oLc=",
+        "lastModified": 1776122350,
+        "narHash": "sha256-S1jge0KCZkQWICE/ebYqqXZ8VH6MZBJv1ES985QwiZU=",
         "owner": "xhos",
         "repo": "arian-web",
-        "rev": "6fc52460dcfbfa1c9dcb71b028ab2fb32b65d0b5",
+        "rev": "1a9fed6bc5b12f66b53d3bcf499e910a27b8a60e",
         "type": "github"
       },
       "original": {
