@@ -11,6 +11,8 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -20,10 +22,22 @@ jobs:
         run: nix flake update ${{ inputs.input }}
 
       - name: commit and push
+        id: push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add flake.lock
-          git diff --cached --quiet && echo "no changes" && exit 0
+          if git diff --cached --quiet; then
+            echo "pushed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           git commit -m "flake: update ${{ inputs.input }}"
           git push
+          echo "pushed=true" >> $GITHUB_OUTPUT
+
+      - uses: peter-evans/repository-dispatch@v3
+        if: steps.push.outputs.pushed == 'true'
+        with:
+          token: ${{ secrets.NIX_REPO_PAT }}
+          repository: xhos/nix
+          event-type: deploy-mizore
