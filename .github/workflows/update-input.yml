@@ -1,0 +1,29 @@
+name: update flake input
+
+on:
+  workflow_dispatch:
+    inputs:
+      input:
+        description: flake input name to update
+        required: true
+        type: string
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - name: update ${{ inputs.input }}
+        run: nix flake update ${{ inputs.input }}
+
+      - name: commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add flake.lock
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "flake: update ${{ inputs.input }}"
+          git push
