@@ -118,6 +118,8 @@ in {
           Slice = "system-null.slice";
           User = cfg.user;
           Group = cfg.group;
+          StateDirectory = "null-gateway";
+          WorkingDirectory = "/var/lib/null-gateway";
         };
     };
   };

@@ -70,6 +70,8 @@ in {
           Slice = "system-null.slice";
           User = cfg.user;
           Group = cfg.group;
+          StateDirectory = "null-web";
+          WorkingDirectory = "/var/lib/null-web";
         };
     };
   };
