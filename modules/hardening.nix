@@ -5,7 +5,6 @@
 
   CapabilityBoundingSet = "";
   NoNewPrivileges = true;
-  PrivateUsers = true;
   PrivateTmp = true;
   PrivateDevices = true;
   PrivateMounts = true;
