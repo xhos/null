@@ -120,6 +120,7 @@ in {
           Group = cfg.group;
           StateDirectory = "null-gateway";
           WorkingDirectory = "/var/lib/null-gateway";
+          ReadWritePaths = ["/var/lib/null-gateway"];
         };
     };
   };

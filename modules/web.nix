@@ -72,6 +72,7 @@ in {
           Group = cfg.group;
           StateDirectory = "null-web";
           WorkingDirectory = "/var/lib/null-web";
+          ReadWritePaths = ["/var/lib/null-web"];
         };
     };
   };

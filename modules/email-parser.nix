@@ -114,6 +114,7 @@ in {
           Group = cfg.group;
           StateDirectory = "null-email-parser";
           WorkingDirectory = "/var/lib/null-email-parser";
+          ReadWritePaths = ["/var/lib/null-email-parser"];
         };
     };
   };

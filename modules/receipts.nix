@@ -113,6 +113,7 @@ in {
           Group = cfg.group;
           StateDirectory = "null-receipts";
           WorkingDirectory = "/var/lib/null-receipts";
+          ReadWritePaths = ["/var/lib/null-receipts"];
         };
     };
   };
