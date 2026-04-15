@@ -87,6 +87,7 @@ in {
           EnvironmentFile = mkEnvFiles svcCfg.secretsFile;
           Slice = "system-null.slice";
           StateDirectory = "null";
+          WorkingDirectory = "/var/lib/null";
           User = cfg.user;
           Group = cfg.group;
           ReadWritePaths = [cfg.dataDir];

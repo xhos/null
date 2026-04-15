@@ -112,6 +112,8 @@ in {
           Slice = "system-null.slice";
           User = cfg.user;
           Group = cfg.group;
+          StateDirectory = "null-email-parser";
+          WorkingDirectory = "/var/lib/null-email-parser";
         };
     };
   };
