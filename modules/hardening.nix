@@ -16,7 +16,7 @@
   ProtectKernelLogs = true;
   ProtectKernelModules = true;
   ProtectKernelTunables = true;
-  RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
+  RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK"];
   RestrictNamespaces = true;
   RestrictRealtime = true;
   RestrictSUIDSGID = true;
