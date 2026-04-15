@@ -65,7 +65,7 @@ in {
       serviceConfig =
         (import ./hardening.nix)
         // {
-          ExecStart = "${svcCfg.package}/bin/my-app";
+          ExecStart = "${svcCfg.package}/bin/null-web";
           EnvironmentFile = mkEnvFiles svcCfg.secretsFile;
           Slice = "system-null.slice";
           User = cfg.user;

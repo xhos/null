@@ -134,8 +134,8 @@ in {
 
     systemd.services.null-db-setup = mkIf (cfg.database.enable && cfg.database.createDB) {
       description = "null: database setup";
-      requires = ["postgresql.service"];
-      after = ["postgresql.service"];
+      requires = ["postgresql.service" "postgresql-setup.service"];
+      after = ["postgresql.service" "postgresql-setup.service"];
       wantedBy = ["multi-user.target"];
       serviceConfig = {
         Type = "oneshot";

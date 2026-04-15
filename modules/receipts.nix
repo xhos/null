@@ -111,6 +111,8 @@ in {
           Slice = "system-null.slice";
           User = cfg.user;
           Group = cfg.group;
+          StateDirectory = "null-receipts";
+          WorkingDirectory = "/var/lib/null-receipts";
         };
     };
   };
