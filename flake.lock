@@ -496,11 +496,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776233960,
-        "narHash": "sha256-vQ2HALVcYiuTuWcbsRPYlafCt84K0UpnWH5dPQH/r0g=",
+        "lastModified": 1776238196,
+        "narHash": "sha256-+1MN017ABkIkrap8nU09Bu3NbmXkeosBPZpHN+6t1mI=",
         "owner": "xhos",
         "repo": "arian-email-parser",
-        "rev": "1a1d698165237c9b313402ca70c6da095efb554a",
+        "rev": "ff230237fd4ac2d5b52a80fb18b4b4bbeccafdca",
         "type": "github"
       },
       "original": {
