@@ -475,11 +475,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776621050,
+        "lastModified": 1776641810,
         "narHash": "sha256-wDnD1e2Ys89GX4OOF8g/RJWQhnhMtufBoGxhflnzYsQ=",
         "owner": "xhos",
         "repo": "null-core",
-        "rev": "2e906db8f1f3ca15ba65896ad5352d317b72d781",
+        "rev": "0fa309e770a459c885d5f91982fccb327aa213ae",
         "type": "github"
       },
       "original": {
