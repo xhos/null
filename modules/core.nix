@@ -72,13 +72,23 @@ in {
       }
       // optionalAttrs isUnixSocket {
         DATABASE_URL = mkDatabaseUrl cfg.database.name;
+      }
+      // optionalAttrs cfg.storage.enable {
+        S3_ENDPOINT = "http://127.0.0.1:${toString cfg.storage.s3Port}";
+        S3_BUCKET = cfg.storage.bucket;
+        S3_REGION = cfg.storage.region;
       };
 
     systemd.services.null-core = {
       description = "null: core backend";
       wantedBy = ["multi-user.target"];
-      after = ["network.target"] ++ optionals cfg.database.enable ["null-db-setup.service"];
-      requires = optionals cfg.database.enable ["null-db-setup.service"];
+      after =
+        ["network.target"]
+        ++ optionals cfg.database.enable ["null-db-setup.service"]
+        ++ optionals cfg.storage.enable ["null-storage-setup.service"];
+      requires =
+        optionals cfg.database.enable ["null-db-setup.service"]
+        ++ optionals cfg.storage.enable ["null-storage-setup.service"];
       inherit (svcCfg) environment;
       serviceConfig =
         (import ./hardening.nix)

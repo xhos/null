@@ -27,6 +27,7 @@
         ./modules/web.nix
         ./modules/receipts.nix
         ./modules/email-parser.nix
+        ./modules/storage.nix
       ];
 
       services.null.core.package = inputs.null-core.packages.${pkgs.system}.default;
