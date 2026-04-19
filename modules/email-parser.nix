@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.services.null;
@@ -107,6 +108,7 @@ in {
       serviceConfig =
         (import ./hardening.nix)
         // {
+          ExecStartPre = "${pkgs.bash}/bin/sh -c 'until ${pkgs.netcat}/bin/nc -z ${cfg.core.hostname} ${toString cfg.core.port}; do sleep 1; done'";
           ExecStart = "${svcCfg.package}/bin/server";
           EnvironmentFile = mkEnvFiles svcCfg.secretsFile;
           Slice = "system-null.slice";
