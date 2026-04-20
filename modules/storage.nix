@@ -133,7 +133,7 @@ in {
         Group = "null-garage";
         StateDirectory = "null-garage";
         WorkingDirectory = stateDir;
-        EnvironmentFile = [(svcCfg.secretsFile or cfg.secretsFile)];
+        EnvironmentFile = [(if svcCfg.secretsFile != null then svcCfg.secretsFile else cfg.secretsFile)];
         ExecStart = "${garage} -c ${garageCfg} server";
         Restart = "on-failure";
         RestartSec = 3;
@@ -150,7 +150,7 @@ in {
         RemainAfterExit = true;
         User = "null-garage";
         Group = "null-garage";
-        EnvironmentFile = [(svcCfg.secretsFile or cfg.secretsFile)];
+        EnvironmentFile = [(if svcCfg.secretsFile != null then svcCfg.secretsFile else cfg.secretsFile)];
       };
       script = ''
         set -eu
